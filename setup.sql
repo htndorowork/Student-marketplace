@@ -33,12 +33,14 @@ CREATE TABLE IF NOT EXISTS listings (
   is_available boolean DEFAULT true,
   textbook_year text,
   textbook_subject text,
+  electronics_subcategory text,
   created_at timestamp DEFAULT now()
 );
 
 -- Safe to re-run: adds the columns above if this table already existed
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS textbook_year text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS textbook_subject text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS electronics_subcategory text;
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (

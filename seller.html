@@ -115,6 +115,12 @@
               </select>
             </div>
           </div>
+          <div class="form-group" id="f-ec-row" style="display:none">
+            <label>Electronics Type *</label>
+            <select id="f-ec-subcat">
+              <option value="">Select type</option>
+            </select>
+          </div>
           <div class="form-group">
             <label>Description</label>
             <textarea id="f-desc" placeholder="Describe your item — condition, size, etc." rows="3"></textarea>
@@ -205,8 +211,28 @@
         ).join('');
     }
     populateTbSubjects();
+
+    const ELECTRONICS_SUBCATS=[
+      'Laptops (Windows laptops, MacBooks, Chromebooks)','Tablets (iPads, Samsung Galaxy Tabs)','Smartphones',
+      'Wireless earbuds (AirPods, Galaxy Buds)','Headphones (noise-cancelling and gaming)','Bluetooth speakers',
+      'Power banks','Phone chargers and fast chargers','Laptop chargers','USB flash drives',
+      'External hard drives and SSDs','Wireless mouse','Keyboard (especially for laptop users)','Laptop stands',
+      'USB-C hubs and adapters','Monitors for studying or gaming','Printers',
+      'Calculators (especially scientific and graphing calculators)','Smartwatches','Fitness trackers','Webcams',
+      'Microphones (for online classes or content creation)','Portable projectors','Ring lights',
+      'Portable Wi-Fi routers or MiFi devices','Extension cords and surge protectors','Smart desk lamps',
+      'E-readers (such as Kindle)','Gaming consoles (PlayStation, Xbox, Nintendo Switch)',
+      'Gaming accessories (controllers, gaming mice, mechanical keyboards)'
+    ];
+    function populateEcSubcats(){
+      const sel=document.getElementById('f-ec-subcat');
+      sel.innerHTML='<option value="">Select type</option>'+ELECTRONICS_SUBCATS.map(s=>'<option>'+s+'</option>').join('');
+    }
+    populateEcSubcats();
+
     document.getElementById('f-cat').addEventListener('change',e=>{
       document.getElementById('f-tb-row').style.display = e.target.value==='Textbooks' ? 'grid' : 'none';
+      document.getElementById('f-ec-row').style.display = e.target.value==='Electronics' ? 'block' : 'none';
     });
 
     async function init() {
@@ -275,6 +301,7 @@
       const disc  = parseFloat(document.getElementById('f-discount').value) || 0;
       const tbYear = document.getElementById('f-tb-year').value;
       const tbSubject = document.getElementById('f-tb-subject').value;
+      const ecSubcat = document.getElementById('f-ec-subcat').value;
       const err   = document.getElementById('form-error');
       err.style.color='#9333ea'; err.textContent='';
 
@@ -291,6 +318,7 @@
       if (!price || price<=0) { err.textContent='❌ Enter a valid price'; return; }
       if (!qty || qty<1) { err.textContent='❌ Enter quantity (at least 1)'; return; }
       if (cat==='Textbooks' && (!tbYear || !tbSubject)) { err.textContent='❌ Select a study year and subject for this textbook'; return; }
+      if (cat==='Electronics' && !ecSubcat) { err.textContent='❌ Select an electronics type'; return; }
       const btn = document.getElementById('btn-post');
       btn.textContent='Posting...'; btn.disabled=true;
       const {error} = await supabase.from('listings').insert({
@@ -299,7 +327,8 @@
         image_url: imgs[1]||null, image_url_2: imgs[2]||null, image_url_3: imgs[3]||null,
         is_available: true,
         textbook_year: cat==='Textbooks' ? tbYear : null,
-        textbook_subject: cat==='Textbooks' ? tbSubject : null
+        textbook_subject: cat==='Textbooks' ? tbSubject : null,
+        electronics_subcategory: cat==='Electronics' ? ecSubcat : null
       });
       btn.textContent='Post Listing 🚀'; btn.disabled=false;
       if (error) { err.textContent='❌ '+error.message; return; }
@@ -308,6 +337,8 @@
       document.getElementById('f-tb-year').value='';
       document.getElementById('f-tb-subject').value='';
       document.getElementById('f-tb-row').style.display='none';
+      document.getElementById('f-ec-subcat').value='';
+      document.getElementById('f-ec-row').style.display='none';
       [1,2,3].forEach(n=>{imgs[n]=null;document.getElementById('fi-'+n).value='';document.getElementById('slot-'+n).innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>';});
       err.style.color='#2e7d32'; err.textContent='✅ Listing posted!';
       setTimeout(()=>{err.textContent=''; showTab('listings',document.querySelectorAll('.dash-tab')[1]); loadMyListings();},1500);
@@ -355,7 +386,7 @@
         const thumb = l.image_url ? '<img src="'+l.image_url+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0"/>' : '<div style="width:44px;height:44px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📦</div>';
         return '<div class="listing-row">'+thumb+
           '<div class="listing-info"><div class="listing-title">'+l.title+'</div>'+
-          '<div class="listing-meta">'+l.category+(l.textbook_year?' ('+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+')':'')+' · R'+fp+' · '+status+'</div>'+
+          '<div class="listing-meta">'+l.category+(l.textbook_year?' ('+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+')':'')+(l.electronics_subcategory?' ('+l.electronics_subcategory+')':'')+' · R'+fp+' · '+status+'</div>'+
           '<div class="listing-meta" style="margin-top:4px">Stock: <strong>'+l.quantity+'</strong> &nbsp;'+
           '<button class="btn-sm btn-toggle" style="padding:3px 10px" onclick="window._adjQty(\''+l.id+'\','+l.quantity+',1)">+ Add</button> '+
           '<button class="btn-sm btn-delete" style="padding:3px 10px" onclick="window._adjQty(\''+l.id+'\','+l.quantity+',-1)">− Remove</button>'+

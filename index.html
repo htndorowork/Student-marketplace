@@ -35,7 +35,7 @@
     <div class="cat active" onclick="selectCat('All',this)">All 🛍️</div>
     <div class="cat" id="cat-textbooks" onclick="openTextbookYears(this)">📚 Textbooks</div>
     <div class="cat" onclick="selectCat('Clothing',this)">👗 Clothing</div>
-    <div class="cat" onclick="selectCat('Electronics',this)">📱 Electronics</div>
+    <div class="cat" id="cat-electronics" onclick="openElectronicsSubcats(this)">📱 Electronics</div>
     <div class="cat" onclick="selectCat('Food',this)">🍱 Food</div>
     <div class="cat" onclick="selectCat('Beauty',this)">💄 Beauty</div>
     <div class="cat" onclick="selectCat('Wigs',this)">💇 Wigs</div>
@@ -156,8 +156,21 @@
       'Theology':['Biblical & Systematic Studies']
     };
 
+    const ELECTRONICS_SUBCATS=[
+      'Laptops (Windows laptops, MacBooks, Chromebooks)','Tablets (iPads, Samsung Galaxy Tabs)','Smartphones',
+      'Wireless earbuds (AirPods, Galaxy Buds)','Headphones (noise-cancelling and gaming)','Bluetooth speakers',
+      'Power banks','Phone chargers and fast chargers','Laptop chargers','USB flash drives',
+      'External hard drives and SSDs','Wireless mouse','Keyboard (especially for laptop users)','Laptop stands',
+      'USB-C hubs and adapters','Monitors for studying or gaming','Printers',
+      'Calculators (especially scientific and graphing calculators)','Smartwatches','Fitness trackers','Webcams',
+      'Microphones (for online classes or content creation)','Portable projectors','Ring lights',
+      'Portable Wi-Fi routers or MiFi devices','Extension cords and surge protectors','Smart desk lamps',
+      'E-readers (such as Kindle)','Gaming consoles (PlayStation, Xbox, Nintendo Switch)',
+      'Gaming accessories (controllers, gaming mice, mechanical keyboards)'
+    ];
+
     let all=[], cat='All', currentListing=null, galleryIdx=0, modalQty=1, currentUser=null, cart=[];
-    let tbYear=null, tbSubject=null;
+    let tbYear=null, tbSubject=null, ecSubcat=null;
 
     // Init
     const {data:{user}}=await supabase.auth.getUser();
@@ -186,7 +199,7 @@
         const db=l.discount_percent>0?'<div class="discount-tag">-'+l.discount_percent+'% OFF</div>':'';
         const img=l.image_url?'<img src="'+l.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:44px">${e}</span>`;
         const stock=l.quantity>5?'<div class="card-stock">'+l.quantity+' in stock</div>':l.quantity>0?'<div class="card-stock low">Only '+l.quantity+' left!</div>':'<div class="card-stock out">Out of stock</div>';
-        const tbTag=(l.category==='Textbooks'&&l.textbook_year)?'<div class="card-residence">🎓 '+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+'</div>':'';
+        const tbTag=(l.category==='Textbooks'&&l.textbook_year)?'<div class="card-residence">🎓 '+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+'</div>':(l.category==='Electronics'&&l.electronics_subcategory)?'<div class="card-residence">📱 '+l.electronics_subcategory+'</div>':'';
         const outOfStock=l.quantity<=0;
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
           '<div class="card-img" style="background:'+c.bg+'">'+db+img+'</div>'+
@@ -228,7 +241,7 @@
       document.getElementById('modal-title').textContent=l.title;
       document.getElementById('modal-price').innerHTML=l.discount_percent>0?'<span style="text-decoration:line-through;color:#aaa;font-size:14px">R'+l.price+'</span> <span style="color:#7c3aed;font-weight:900;font-size:20px">R'+fp+'</span>':'<span style="font-size:22px;font-weight:900">R'+fp+'</span>';
       document.getElementById('modal-desc').textContent=l.description||'No description.';
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'');
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+((l.category==='Electronics'&&l.electronics_subcategory)?'<div><strong>📱 Type:</strong> '+l.electronics_subcategory+'</div>':'');
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -397,7 +410,7 @@
 
     window.closeModal=()=>{document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
     window.selectCat=(c,el)=>{
-      cat=c;tbYear=null;tbSubject=null;
+      cat=c;tbYear=null;tbSubject=null;ecSubcat=null;
       document.getElementById('tb-panel').style.display='none';
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
@@ -410,6 +423,9 @@
         f=f.filter(l=>l.category==='Textbooks');
         if(tbYear)f=f.filter(l=>l.textbook_year===tbYear);
         if(tbSubject)f=f.filter(l=>l.textbook_subject===tbSubject);
+      } else if(cat==='Electronics'){
+        f=f.filter(l=>l.category==='Electronics');
+        if(ecSubcat)f=f.filter(l=>l.electronics_subcategory===ecSubcat);
       } else if(cat!=='All'){
         f=f.filter(l=>l.category===cat);
       }
@@ -418,9 +434,30 @@
     };
     window.filterListings=window.doFilter;
 
+    // ===== ELECTRONICS SUBCATEGORY DRILL-DOWN (flat, no year step) =====
+    window.openElectronicsSubcats=(el)=>{
+      cat='Electronics';ecSubcat=null;tbYear=null;tbSubject=null;
+      document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
+      el.classList.add('active');
+      renderEcSubcats();
+      document.getElementById('tb-panel').style.display='block';
+      doFilter();
+    };
+    function renderEcSubcats(){
+      const p=document.getElementById('tb-panel');
+      let html='<div class="tb-heading">📱 Browse electronics by type</div>';
+      html+='<button class="tb-view-all-year" onclick="viewAllElectronics()">Show all electronics</button>';
+      html+='<div class="tb-subject-grid">'+
+        ELECTRONICS_SUBCATS.map(sub=>'<button class="tb-subject-btn'+(ecSubcat===sub?' active':'')+'" onclick="selectEcSubcat(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>').join('')+
+        '</div>';
+      p.innerHTML=html;
+    }
+    window.viewAllElectronics=()=>{ecSubcat=null;renderEcSubcats();doFilter();};
+    window.selectEcSubcat=(sub)=>{ecSubcat=sub;renderEcSubcats();doFilter();};
+
     // ===== TEXTBOOK YEAR / FACULTY / SUBJECT DRILL-DOWN =====
     window.openTextbookYears=(el)=>{
-      cat='Textbooks';tbYear=null;tbSubject=null;
+      cat='Textbooks';tbYear=null;tbSubject=null;ecSubcat=null;
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
       renderTbYearPicker();
