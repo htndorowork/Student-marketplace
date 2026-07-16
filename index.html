@@ -33,7 +33,7 @@
 
   <div class="cats">
     <div class="cat active" onclick="selectCat('All',this)">All 🛍️</div>
-    <div class="cat" onclick="selectCat('Textbooks',this)">📚 Textbooks</div>
+    <div class="cat" id="cat-textbooks" onclick="openTextbookYears(this)">📚 Textbooks</div>
     <div class="cat" onclick="selectCat('Clothing',this)">👗 Clothing</div>
     <div class="cat" onclick="selectCat('Electronics',this)">📱 Electronics</div>
     <div class="cat" onclick="selectCat('Food',this)">🍱 Food</div>
@@ -42,6 +42,8 @@
     <div class="cat" onclick="selectCat('Perfumes',this)">🌸 Perfumes</div>
     <div class="cat" onclick="selectCat('Tutoring',this)">🎓 Tutoring</div>
   </div>
+
+  <div class="tb-panel" id="tb-panel" style="display:none"></div>
 
   <main class="main">
     <div class="stats">
@@ -142,7 +144,20 @@
     const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
     const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Wigs:{bg:'#f3e5f5',text:'#7b1fa2'},Perfumes:{bg:'#e0f7fa',text:'#00838f'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'}};
 
+    const TB_YEARS=['1st Year','2nd Year','3rd Year'];
+    const TB_TAXONOMY={
+      'Economic and Management Sciences (EMS)':['Accounting & Auditing','Statistics','Business & Financial Management','Actuarial Science & Quantitative Finance'],
+      'Natural and Agricultural Sciences':['Mathematics & Applied Mathematics','Physics','Computer Science & IT','Chemistry & Biochemistry','Agricultural Sciences'],
+      'Engineering':['Chemical Engineering','Electrical, Electronic & Computer Engineering','Mechanical Engineering'],
+      'Law (Faculty of Law)':['Private & Public Law','Mercantile & Criminal Law'],
+      'Health Sciences':['Physiology & Anatomy','Nursing & Pharmacy','Human Movement Sciences'],
+      'Humanities & Social Sciences':['Languages & Linguistics','Social Sciences','Psychology'],
+      'Education':['Pedagogy & Curriculum Studies'],
+      'Theology':['Biblical & Systematic Studies']
+    };
+
     let all=[], cat='All', currentListing=null, galleryIdx=0, modalQty=1, currentUser=null, cart=[];
+    let tbYear=null, tbSubject=null;
 
     // Init
     const {data:{user}}=await supabase.auth.getUser();
@@ -171,6 +186,7 @@
         const db=l.discount_percent>0?'<div class="discount-tag">-'+l.discount_percent+'% OFF</div>':'';
         const img=l.image_url?'<img src="'+l.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:44px">${e}</span>`;
         const stock=l.quantity>5?'<div class="card-stock">'+l.quantity+' in stock</div>':l.quantity>0?'<div class="card-stock low">Only '+l.quantity+' left!</div>':'<div class="card-stock out">Out of stock</div>';
+        const tbTag=(l.category==='Textbooks'&&l.textbook_year)?'<div class="card-residence">🎓 '+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+'</div>':'';
         const outOfStock=l.quantity<=0;
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
           '<div class="card-img" style="background:'+c.bg+'">'+db+img+'</div>'+
@@ -178,6 +194,7 @@
           '<div class="card-title">'+l.title+'</div>'+
           '<div class="card-seller">👤 '+(l.profiles?.full_name||'Seller')+'</div>'+
           (l.profiles?.residence?'<div class="card-residence">📍 '+l.profiles.residence+'</div>':'')+
+          tbTag+
           stock+
           '<div class="card-footer"><span class="price">R'+fp+'</span>'+
           '<button class="btn-add-cart" '+(outOfStock?'disabled':'')+' onclick="event.stopPropagation();window._quickAdd(\''+l.id+'\')">'+(outOfStock?'Out of stock':'+ Cart')+'</button>'+
@@ -211,7 +228,7 @@
       document.getElementById('modal-title').textContent=l.title;
       document.getElementById('modal-price').innerHTML=l.discount_percent>0?'<span style="text-decoration:line-through;color:#aaa;font-size:14px">R'+l.price+'</span> <span style="color:#7c3aed;font-weight:900;font-size:20px">R'+fp+'</span>':'<span style="font-size:22px;font-weight:900">R'+fp+'</span>';
       document.getElementById('modal-desc').textContent=l.description||'No description.';
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'');
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'');
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -379,15 +396,75 @@
     }
 
     window.closeModal=()=>{document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
-    window.selectCat=(c,el)=>{cat=c;document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));el.classList.add('active');doFilter();};
+    window.selectCat=(c,el)=>{
+      cat=c;tbYear=null;tbSubject=null;
+      document.getElementById('tb-panel').style.display='none';
+      document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
+      el.classList.add('active');
+      doFilter();
+    };
     window.doFilter=()=>{
       const q=(document.getElementById('search-input').value||'').toLowerCase();
       let f=all;
-      if(cat!=='All')f=f.filter(l=>l.category===cat);
+      if(cat==='Textbooks'){
+        f=f.filter(l=>l.category==='Textbooks');
+        if(tbYear)f=f.filter(l=>l.textbook_year===tbYear);
+        if(tbSubject)f=f.filter(l=>l.textbook_subject===tbSubject);
+      } else if(cat!=='All'){
+        f=f.filter(l=>l.category===cat);
+      }
       if(q)f=f.filter(l=>l.title.toLowerCase().includes(q)||(l.description||'').toLowerCase().includes(q));
       render(f);
     };
     window.filterListings=window.doFilter;
+
+    // ===== TEXTBOOK YEAR / FACULTY / SUBJECT DRILL-DOWN =====
+    window.openTextbookYears=(el)=>{
+      cat='Textbooks';tbYear=null;tbSubject=null;
+      document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
+      el.classList.add('active');
+      renderTbYearPicker();
+      document.getElementById('tb-panel').style.display='block';
+      doFilter();
+    };
+    function renderTbYearPicker(){
+      const p=document.getElementById('tb-panel');
+      p.innerHTML=
+        '<div class="tb-heading">📚 Which year are your textbooks for?</div>'+
+        '<div class="tb-year-grid">'+
+        TB_YEARS.map(y=>'<button class="tb-year-btn" onclick="openTbFaculties(\''+y+'\')">'+y+'</button>').join('')+
+        '<button class="tb-year-btn tb-year-all" onclick="viewAllTextbooks()">Show all textbooks</button>'+
+        '</div>';
+    }
+    window.viewAllTextbooks=()=>{
+      tbYear=null;tbSubject=null;
+      document.getElementById('tb-panel').style.display='none';
+      doFilter();
+    };
+    window.openTbFaculties=(year)=>{
+      tbYear=year;tbSubject=null;
+      renderTbFaculties();
+      doFilter();
+    };
+    function renderTbFaculties(){
+      const p=document.getElementById('tb-panel');
+      let html='<div class="tb-crumbs">'+
+        '<span class="tb-crumb" onclick="renderTbYearPicker()">Textbooks</span>'+
+        '<span class="tb-crumb-sep">›</span>'+
+        '<span class="tb-crumb-current">'+tbYear+'</span>'+
+        '</div>';
+      html+='<button class="tb-view-all-year" onclick="viewAllInYear()">View all '+tbYear+' textbooks</button>';
+      html+=Object.keys(TB_TAXONOMY).map(fac=>
+        '<div class="tb-faculty-block">'+
+        '<div class="tb-faculty-title">'+fac+'</div>'+
+        '<div class="tb-subject-grid">'+
+        TB_TAXONOMY[fac].map(sub=>'<button class="tb-subject-btn'+(tbSubject===sub?' active':'')+'" onclick="selectTbSubject(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>').join('')+
+        '</div></div>'
+      ).join('');
+      p.innerHTML=html;
+    }
+    window.viewAllInYear=()=>{tbSubject=null;doFilter();renderTbFaculties();};
+    window.selectTbSubject=(sub)=>{tbSubject=sub;renderTbFaculties();doFilter();};
 
     // LIGHTBOX
     let lbImgs=[], lbIdx=0;

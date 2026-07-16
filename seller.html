@@ -100,6 +100,21 @@
               </select>
             </div>
           </div>
+          <div class="form-row" id="f-tb-row" style="display:none">
+            <div class="form-group">
+              <label>Study Year *</label>
+              <select id="f-tb-year">
+                <option value="">Select year</option>
+                <option>1st Year</option><option>2nd Year</option><option>3rd Year</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Subject *</label>
+              <select id="f-tb-subject">
+                <option value="">Select subject</option>
+              </select>
+            </div>
+          </div>
           <div class="form-group">
             <label>Description</label>
             <textarea id="f-desc" placeholder="Describe your item — condition, size, etc." rows="3"></textarea>
@@ -170,6 +185,30 @@
     let currentUser = null;
     const imgs = {1:null,2:null,3:null};
 
+    const TB_TAXONOMY={
+      'Economic and Management Sciences (EMS)':['Accounting & Auditing','Statistics','Business & Financial Management','Actuarial Science & Quantitative Finance'],
+      'Natural and Agricultural Sciences':['Mathematics & Applied Mathematics','Physics','Computer Science & IT','Chemistry & Biochemistry','Agricultural Sciences'],
+      'Engineering':['Chemical Engineering','Electrical, Electronic & Computer Engineering','Mechanical Engineering'],
+      'Law (Faculty of Law)':['Private & Public Law','Mercantile & Criminal Law'],
+      'Health Sciences':['Physiology & Anatomy','Nursing & Pharmacy','Human Movement Sciences'],
+      'Humanities & Social Sciences':['Languages & Linguistics','Social Sciences','Psychology'],
+      'Education':['Pedagogy & Curriculum Studies'],
+      'Theology':['Biblical & Systematic Studies']
+    };
+    function populateTbSubjects(){
+      const sel=document.getElementById('f-tb-subject');
+      sel.innerHTML='<option value="">Select subject</option>'+
+        Object.keys(TB_TAXONOMY).map(fac=>
+          '<optgroup label="'+fac+'">'+
+          TB_TAXONOMY[fac].map(sub=>'<option>'+sub+'</option>').join('')+
+          '</optgroup>'
+        ).join('');
+    }
+    populateTbSubjects();
+    document.getElementById('f-cat').addEventListener('change',e=>{
+      document.getElementById('f-tb-row').style.display = e.target.value==='Textbooks' ? 'grid' : 'none';
+    });
+
     async function init() {
       const {data:{user}} = await supabase.auth.getUser();
 
@@ -234,6 +273,8 @@
       const price = parseFloat(document.getElementById('f-price').value);
       const qty   = parseInt(document.getElementById('f-qty').value) || 1;
       const disc  = parseFloat(document.getElementById('f-discount').value) || 0;
+      const tbYear = document.getElementById('f-tb-year').value;
+      const tbSubject = document.getElementById('f-tb-subject').value;
       const err   = document.getElementById('form-error');
       err.style.color='#9333ea'; err.textContent='';
 
@@ -249,18 +290,24 @@
       if (!cat)   { err.textContent='❌ Select a category'; return; }
       if (!price || price<=0) { err.textContent='❌ Enter a valid price'; return; }
       if (!qty || qty<1) { err.textContent='❌ Enter quantity (at least 1)'; return; }
+      if (cat==='Textbooks' && (!tbYear || !tbSubject)) { err.textContent='❌ Select a study year and subject for this textbook'; return; }
       const btn = document.getElementById('btn-post');
       btn.textContent='Posting...'; btn.disabled=true;
       const {error} = await supabase.from('listings').insert({
         seller_id: currentUser.id, title, category: cat, description: desc,
         price, quantity: qty, discount_percent: disc,
         image_url: imgs[1]||null, image_url_2: imgs[2]||null, image_url_3: imgs[3]||null,
-        is_available: true
+        is_available: true,
+        textbook_year: cat==='Textbooks' ? tbYear : null,
+        textbook_subject: cat==='Textbooks' ? tbSubject : null
       });
       btn.textContent='Post Listing 🚀'; btn.disabled=false;
       if (error) { err.textContent='❌ '+error.message; return; }
       ['f-title','f-desc','f-price','f-qty','f-discount'].forEach(id=>document.getElementById(id).value='');
       document.getElementById('f-cat').value='';
+      document.getElementById('f-tb-year').value='';
+      document.getElementById('f-tb-subject').value='';
+      document.getElementById('f-tb-row').style.display='none';
       [1,2,3].forEach(n=>{imgs[n]=null;document.getElementById('fi-'+n).value='';document.getElementById('slot-'+n).innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>';});
       err.style.color='#2e7d32'; err.textContent='✅ Listing posted!';
       setTimeout(()=>{err.textContent=''; showTab('listings',document.querySelectorAll('.dash-tab')[1]); loadMyListings();},1500);
@@ -308,7 +355,7 @@
         const thumb = l.image_url ? '<img src="'+l.image_url+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0"/>' : '<div style="width:44px;height:44px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📦</div>';
         return '<div class="listing-row">'+thumb+
           '<div class="listing-info"><div class="listing-title">'+l.title+'</div>'+
-          '<div class="listing-meta">'+l.category+' · R'+fp+' · '+status+'</div>'+
+          '<div class="listing-meta">'+l.category+(l.textbook_year?' ('+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+')':'')+' · R'+fp+' · '+status+'</div>'+
           '<div class="listing-meta" style="margin-top:4px">Stock: <strong>'+l.quantity+'</strong> &nbsp;'+
           '<button class="btn-sm btn-toggle" style="padding:3px 10px" onclick="window._adjQty(\''+l.id+'\','+l.quantity+',1)">+ Add</button> '+
           '<button class="btn-sm btn-delete" style="padding:3px 10px" onclick="window._adjQty(\''+l.id+'\','+l.quantity+',-1)">− Remove</button>'+
