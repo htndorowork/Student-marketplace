@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Student Marketplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
+    <div class="nav-links">
+      <a href="index.html">Browse</a>
+      <a href="profile.html">Profile</a>
+      <a href="#" id="signout-btn">Sign out</a>
+    </div>
+  </nav>
+
+  <main class="main" style="max-width:800px">
+    <div id="access-denied" style="display:none">
+      <div class="form-card" style="text-align:center"><div style="font-size:40px;margin-bottom:12px">🚫</div><p style="font-weight:700">Admin access only.</p></div>
+    </div>
+
+    <div id="admin-content" style="display:none">
+      <div class="section-header" style="margin-bottom:20px">
+        <div class="section-title">Admin Panel 🛡️</div>
+        <span style="font-size:12px;background:#f5f0fe;color:#7c3aed;font-weight:700;padding:4px 12px;border-radius:50px">Admin</span>
+      </div>
+
+      <!-- PAYWALL CONTROL -->
+      <div class="form-card" style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:16px;font-weight:800;margin-bottom:4px">🔒 Listing Paywall</div>
+            <div style="font-size:13px;color:#888;font-weight:600">When ON, sellers cannot post new listings until you turn it off. Use this while waiting for PayFast verification.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="paywall-toggle" onchange="togglePaywall(this.checked)"/>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div id="paywall-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats" style="margin-bottom:24px">
+        <div class="stat"><div class="stat-num" id="a-listings">0</div><div class="stat-label">Listings</div></div>
+        <div class="stat"><div class="stat-num" id="a-sellers">0</div><div class="stat-label">Users</div></div>
+        <div class="stat"><div class="stat-num" id="a-orders">0</div><div class="stat-label">Orders</div></div>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="showTab('listings',this)">📦 Listings</button>
+        <button class="admin-tab" onclick="showTab('sellers',this)">👥 Users</button>
+        <button class="admin-tab" onclick="showTab('orders',this)">🛒 Orders</button>
+      </div>
+
+      <div id="tab-listings">
+        <input class="search-admin" type="text" placeholder="Search listings..." oninput="searchListings(this.value)"/>
+        <div id="all-listings-container"><p class="loading-msg">Loading...</p></div>
+      </div>
+      <div id="tab-sellers" style="display:none"><div id="all-sellers-container"><p class="loading-msg">Loading...</p></div></div>
+      <div id="tab-orders" style="display:none"><div id="all-orders-container"><p class="loading-msg">Loading...</p></div></div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
+    let allListings=[];
+
+    async function init(){
+      const {data:{user}}=await supabase.auth.getUser();
+      if(!user){window.location.href='login.html';return;}
+      const {data:p}=await supabase.from('profiles').select('is_admin').eq('id',user.id).single();
+      if(!p?.is_admin){document.getElementById('access-denied').style.display='block';return;}
+      document.getElementById('admin-content').style.display='block';
+      document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
+      loadPaywall();loadStats();loadListings();
+    }
+
+    async function loadPaywall(){
+      const {data}=await supabase.from('settings').select('value').eq('key','paywall_active').single();
+      const active=data?.value==='true';
+      document.getElementById('paywall-toggle').checked=active;
+      document.getElementById('paywall-status').textContent=active?'🔴 Paywall is ON — sellers cannot post listings':'🟢 Paywall is OFF — sellers can post freely';
+      document.getElementById('paywall-status').style.color=active?'#9333ea':'#2e7d32';
+    }
+
+    window.togglePaywall=async(checked)=>{
+      await supabase.from('settings').update({value:checked?'true':'false'}).eq('key','paywall_active');
+      document.getElementById('paywall-status').textContent=checked?'🔴 Paywall is ON — sellers cannot post listings':'🟢 Paywall is OFF — sellers can post freely';
+      document.getElementById('paywall-status').style.color=checked?'#9333ea':'#2e7d32';
+    };
+
+    async function loadStats(){
+      const [{count:l},{count:s},{count:o}]=await Promise.all([
+        supabase.from('listings').select('*',{count:'exact',head:true}),
+        supabase.from('profiles').select('*',{count:'exact',head:true}),
+        supabase.from('orders').select('*',{count:'exact',head:true})
+      ]);
+      document.getElementById('a-listings').textContent=l||0;
+      document.getElementById('a-sellers').textContent=s||0;
+      document.getElementById('a-orders').textContent=o||0;
+    }
+
+    async function loadListings(){
+      const {data}=await supabase.from('listings').select('*,profiles(full_name)').order('created_at',{ascending:false});
+      allListings=data||[];renderListings(allListings);
+    }
+
+    function renderListings(list){
+      const c=document.getElementById('all-listings-container');
+      if(!list.length){c.innerHTML='<div class="empty-msg">No listings 📭</div>';return;}
+      c.innerHTML=list.map(l=>{
+        const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+        const status=l.is_available?'<span style="color:#2e7d32;font-weight:700">Active</span>':'<span style="color:#aaa;font-weight:700">Hidden</span>';
+        const thumb=l.image_url?'<img src="'+l.image_url+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0"/>':'<div style="width:44px;height:44px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(CAT_EMOJI[l.category]||'📦')+'</div>';
+        return '<div class="listing-row">'+thumb+
+          '<div class="listing-info" style="flex:1"><div class="listing-title">'+l.title+'</div>'+
+          '<div class="listing-meta">'+l.category+' · R'+fp+' · Stock: '+l.quantity+' · by '+(l.profiles?.full_name||'Unknown')+' · '+status+'</div></div>'+
+          '<div class="listing-actions">'+
+          '<button class="btn-sm btn-toggle" onclick="window._atoggle(\''+l.id+'\','+l.is_available+')">'+(l.is_available?'Hide':'Show')+'</button>'+
+          '<button class="btn-sm btn-delete" onclick="window._adelete(\''+l.id+'\')">Delete</button>'+
+          '</div></div>';
+      }).join('');
+    }
+
+    async function loadSellers(){
+      const {data}=await supabase.from('profiles').select('*').order('created_at',{ascending:false});
+      const c=document.getElementById('all-sellers-container');
+      if(!data?.length){c.innerHTML='<div class="empty-msg">No users yet</div>';return;}
+      c.innerHTML=data.map(s=>'<div class="seller-row">'+
+        '<div class="seller-avatar">👤</div>'+
+        '<div class="listing-info" style="flex:1">'+
+        '<div class="listing-title">'+(s.full_name||'No name')+(s.is_admin?' <span class="badge-admin">Admin</span>':'')+' <span style="background:#f0f0f0;color:#555;font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px">'+(s.role||'buyer')+'</span></div>'+
+        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 📍 '+(s.residence||'No res')+' · '+new Date(s.created_at).toLocaleDateString('en-ZA')+'</div>'+
+        '</div>'+
+        '<button class="btn-sm btn-delete" onclick="window._deluser(\''+s.id+'\')">Remove</button>'+
+        '</div>'
+      ).join('');
+    }
+
+    async function loadOrders(){
+      const {data}=await supabase.from('orders').select('*,listings(title),profiles!orders_seller_id_fkey(full_name)').order('created_at',{ascending:false});
+      const c=document.getElementById('all-orders-container');
+      if(!data?.length){c.innerHTML='<div class="empty-msg">No orders yet</div>';return;}
+      c.innerHTML=data.map(o=>'<div class="listing-row">'+
+        '<div style="font-size:24px;flex-shrink:0">🛒</div>'+
+        '<div class="listing-info" style="flex:1">'+
+        '<div class="listing-title">'+(o.listings?.title||'Unknown')+'</div>'+
+        '<div class="listing-meta">👤 '+o.buyer_name+' · 📱 '+o.buyer_whatsapp+' · Qty: '+o.quantity+' · Seller: '+(o.profiles?.full_name||'?')+' · <span style="color:'+(o.status==='confirmed'?'#e65c00':'#2e7d32')+';font-weight:700">'+o.status.toUpperCase()+'</span></div>'+
+        '<div class="listing-meta">🕐 '+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
+        '</div>'+
+        (o.status==='confirmed'?'<button class="btn-sm btn-toggle" onclick="window._adone(\''+o.id+'\')">Mark Done</button>':'')+
+        '</div>'
+      ).join('');
+    }
+
+    window._atoggle=async(id,cur)=>{
+      const {error}=await supabase.from('listings').update({is_available:!cur}).eq('id',id);
+      if(error){alert('Error: '+error.message);return;}
+      loadListings();loadStats();
+    };
+    window._adelete=async(id)=>{
+      if(!confirm('Delete this listing permanently?'))return;
+      const {error}=await supabase.from('listings').delete().eq('id',id);
+      if(error){alert('Delete failed: '+error.message);return;}
+      loadListings();loadStats();
+    };
+    window._deluser=async(id)=>{
+      if(!confirm('Remove this user and all their listings? This cannot be undone.'))return;
+      const {e1}=await supabase.from('listings').delete().eq('seller_id',id);
+      const {error}=await supabase.from('profiles').delete().eq('id',id);
+      if(error){alert('Delete failed: '+error.message);return;}
+      loadSellers();loadStats();
+    };
+    window._adone=async(id)=>{await supabase.from('orders').update({status:'completed'}).eq('id',id);loadOrders();};
+    window.searchListings=(q)=>renderListings(allListings.filter(l=>l.title.toLowerCase().includes(q.toLowerCase())||(l.profiles?.full_name||'').toLowerCase().includes(q.toLowerCase())));
+    window.showTab=(tab,el)=>{
+      ['listings','sellers','orders'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
+      document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+      if(tab==='sellers')loadSellers();if(tab==='orders')loadOrders();
+    };
+    init();
+  </script>
+</body>
+</html>
