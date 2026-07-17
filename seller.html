@@ -9,21 +9,21 @@
   <style>
     .dash-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
     .dash-tab{border:2px solid #f0f0f0;background:#fff;padding:10px 20px;border-radius:50px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#888}
-    .dash-tab.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
+    .dash-tab.active{background:#52525b;color:#fff;border-color:#52525b}
     .upload-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
     .upload-slot{border:2.5px dashed #f0f0f0;border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fafafa;transition:border-color 0.15s;position:relative;overflow:hidden}
-    .upload-slot:hover{border-color:#7c3aed;background:#f5f0fe}
+    .upload-slot:hover{border-color:#52525b;background:#f4f4f5}
     .upload-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
     .slot-remove{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center;font-weight:700;z-index:10}
     .order-card{background:#fff;border:2px solid #f0f0f0;border-radius:16px;padding:16px;margin-bottom:12px}
-    .order-card.order-new{border-color:#7c3aed;background:#fff9f9}
+    .order-card.order-new{border-color:#52525b;background:#fff9f9}
     .order-card-title{font-size:15px;font-weight:800;margin-bottom:8px;color:#111}
     .order-detail{font-size:13px;font-weight:600;color:#555;margin-bottom:4px}
     .order-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:50px;margin-bottom:10px}
-    .badge-new{background:#f5f0fe;color:#7c3aed}
+    .badge-new{background:#f4f4f5;color:#52525b}
     .badge-done{background:#e8f5e9;color:#2e7d32}
     .paywall-screen{min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:24px}
-    .paywall-card{background:#fff;border:2.5px solid #d8c4f7;border-radius:20px;padding:40px 32px;max-width:400px;width:100%;text-align:center}
+    .paywall-card{background:#fff;border:2.5px solid #d4d4d8;border-radius:20px;padding:40px 32px;max-width:400px;width:100%;text-align:center}
     .qty-row-sm{display:flex;align-items:center;gap:8px}
     .qty-btn-sm{background:#f0f0f0;border:none;border-radius:50%;width:28px;height:28px;font-size:15px;cursor:pointer;font-weight:800;display:flex;align-items:center;justify-content:center}
     .qty-num-sm{font-size:15px;font-weight:800;min-width:28px;text-align:center}
@@ -46,7 +46,7 @@
         <div style="font-size:52px;margin-bottom:16px">🔒</div>
         <h2 style="font-size:22px;font-weight:900;margin-bottom:10px">Listings Paused</h2>
         <p style="font-size:14px;color:#888;font-weight:600;line-height:1.7;margin-bottom:20px">New listings are temporarily paused while we set up payments. Contact admin to get verified and start selling.</p>
-        <a href="mailto:urbanloom09@gmail.com" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:50px;font-weight:800;font-size:14px;text-decoration:none">📧 Contact Admin</a>
+        <a href="mailto:urbanloom09@gmail.com" style="display:inline-block;background:#52525b;color:#fff;padding:12px 28px;border-radius:50px;font-weight:800;font-size:14px;text-decoration:none">📧 Contact Admin</a>
         <div style="margin-top:16px"><a href="index.html" style="color:#aaa;font-size:13px;font-weight:700;text-decoration:none">← Back to browsing</a></div>
       </div>
     </div>
@@ -55,7 +55,7 @@
   <!-- MAIN DASHBOARD -->
   <main class="main" style="max-width:700px;display:none" id="main-dashboard">
     <div id="auth-guard" style="display:none">
-      <div class="deposit-note">You need to <a href="login.html" style="color:#7c3aed;font-weight:700">sign in</a> to access your dashboard.</div>
+      <div class="deposit-note">You need to <a href="login.html" style="color:#52525b;font-weight:700">sign in</a> to access your dashboard.</div>
     </div>
 
     <div id="seller-content" style="display:none">
@@ -161,7 +161,7 @@
             <input type="file" id="fi-2" accept="image/jpeg,image/png,image/webp" style="display:none"/>
             <input type="file" id="fi-3" accept="image/jpeg,image/png,image/webp" style="display:none"/>
             <div style="font-size:12px;color:#aaa;font-weight:600;margin-top:4px">JPG, PNG or WEBP · Max 2MB each</div>
-            <div id="upload-err" style="display:none;font-size:13px;font-weight:700;color:#9333ea;margin-top:6px"></div>
+            <div id="upload-err" style="display:none;font-size:13px;font-weight:700;color:#71717a;margin-top:6px"></div>
           </div>
           <div class="form-error" id="form-error"></div>
           <button class="btn-primary" id="btn-post">Post Listing 🚀</button>
@@ -424,7 +424,7 @@
           if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { err.textContent='❌ Only JPG/PNG/WEBP'; err.style.display='block'; return; }
           if (file.size > 2*1024*1024) { err.textContent='❌ Max 2MB per photo'; err.style.display='block'; return; }
           const slot = document.getElementById('slot-'+n);
-          slot.innerHTML = '<div style="font-size:12px;font-weight:700;color:#7c3aed;text-align:center">Uploading...</div>';
+          slot.innerHTML = '<div style="font-size:12px;font-weight:700;color:#52525b;text-align:center">Uploading...</div>';
           const fname = currentUser.id+'-'+n+'-'+Date.now()+'.'+file.name.split('.').pop();
           const {error} = await supabase.storage.from('listing-images').upload(fname,file);
           if (error) { err.textContent='❌ '+error.message; err.style.display='block'; slot.innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>'; return; }
@@ -458,7 +458,7 @@
       const flatConf = FLAT_SUBCATS[cat];
       const flatVal = document.getElementById('f-flat-subcat').value;
       const err   = document.getElementById('form-error');
-      err.style.color='#9333ea'; err.textContent='';
+      err.style.color='#71717a'; err.textContent='';
 
       // Fix 4 — check profile is complete first
       const {data:p} = await supabase.from('profiles').select('full_name,whatsapp,residence').eq('id',currentUser.id).single();
@@ -507,7 +507,7 @@
       const wa   = document.getElementById('p-whatsapp').value.trim();
       const res  = document.getElementById('p-residence').value.trim();
       const err  = document.getElementById('profile-error');
-      err.style.color='#9333ea'; err.textContent='';
+      err.style.color='#71717a'; err.textContent='';
       if (!name||!wa||!res) { err.textContent='❌ All fields are required'; return; }
       const {error} = await supabase.from('profiles').update({full_name:name,whatsapp:wa,residence:res}).eq('id',currentUser.id);
       if (error) { err.textContent='❌ '+error.message; return; }
