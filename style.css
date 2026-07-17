@@ -26,6 +26,13 @@ body { font-family: 'Nunito', sans-serif; background: #fafafa; color: #111; }
 .cats::-webkit-scrollbar { display: none; }
 .cat { padding: 14px 12px; color: #aaa; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; }
 .cat.active { color: #7c3aed; border-bottom-color: #7c3aed; }
+
+.cats-wrap { display: flex; align-items: center; background: #fff; border-bottom: 2px solid #f0f0f0; }
+.cats-wrap .cats { border-bottom: none; flex: 1; scroll-behavior: smooth; }
+.cats-arrow { flex-shrink: 0; background: #fff; border: none; color: #7c3aed; font-size: 22px; font-weight: 900; width: 34px; height: 100%; min-height: 46px; cursor: pointer; z-index: 2; }
+.cats-arrow:hover { background: #f5f0fe; }
+.cats-arrow-left { border-right: 1px solid #f0f0f0; }
+.cats-arrow-right { border-left: 1px solid #f0f0f0; }
 .cat:hover { color: #111; }
 
 .main { padding: 24px; max-width: 900px; margin: 0 auto; }

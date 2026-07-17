@@ -21,7 +21,7 @@
   <section class="hero">
     <div class="hero-dots"></div>
     <div class="hero-inner">
-      <div class="hero-tag">🎓 NWU students only</div>
+      <button class="hero-tag" id="uni-select-btn" onclick="openUniModal()" style="border:none;cursor:pointer;font-family:inherit">🎓 Select your university</button>
       <h1>Your campus.<br/>Your <span>marketplace.</span></h1>
       <p>Buy & sell with fellow students — fast, easy & safe 🙌</p>
       <div class="search-bar">
@@ -31,7 +31,9 @@
     </div>
   </section>
 
-  <div class="cats">
+  <div class="cats-wrap">
+    <button class="cats-arrow cats-arrow-left" onclick="scrollCats(-1)" aria-label="Scroll left">‹</button>
+    <div class="cats" id="cats-bar">
     <div class="cat active" onclick="selectCat('All',this)">All 🛍️</div>
     <div class="cat" id="cat-textbooks" onclick="openTextbookYears(this)">📚 Textbooks</div>
     <div class="cat" id="cat-clothing" onclick="openFlatSubcats('Clothing',this)">👗 Clothing</div>
@@ -48,19 +50,23 @@
     <div class="cat" id="cat-appliances" onclick="openFlatSubcats('Appliances',this)">🔌 Appliances</div>
     <div class="cat" id="cat-rentals" onclick="openFlatSubcats('Rentals',this)">🔁 Rentals</div>
     <div class="cat" id="cat-furniture" onclick="openFlatSubcats('Furniture',this)">🛋️ Furniture</div>
+    </div>
+    <button class="cats-arrow cats-arrow-right" onclick="scrollCats(1)" aria-label="Scroll right">›</button>
   </div>
 
   <div class="tb-panel" id="tb-panel" style="display:none"></div>
 
   <main class="main">
-    <div class="stats">
-      <div class="stat"><div class="stat-num" id="stat-listings">0</div><div class="stat-label">Listings 🔥</div></div>
-      <div class="stat"><div class="stat-num" id="stat-sellers">0</div><div class="stat-label">Sellers 💼</div></div>
-      <div class="stat"><div class="stat-num">9</div><div class="stat-label">Categories ✅</div></div>
-    </div>
-    <div class="section-header"><div class="section-title">Fresh listings 🆕</div></div>
     <div class="grid" id="listings-grid"><p class="loading-msg">Loading listings... ⏳</p></div>
   </main>
+
+  <!-- UNIVERSITY / CAMPUS SELECTOR MODAL -->
+  <div class="modal-overlay" id="uni-modal-overlay" onclick="closeUniModal()">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+      <button class="modal-close" onclick="closeUniModal()">✕</button>
+      <div style="padding:22px 20px" id="uni-modal-body"></div>
+    </div>
+  </div>
 
   <!-- LISTING MODAL -->
   <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
@@ -341,8 +347,6 @@
 
     const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence)').eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false});
     all=data||[];
-    document.getElementById('stat-listings').textContent=all.length;
-    document.getElementById('stat-sellers').textContent=new Set(all.map(l=>l.seller_id)).size;
     render(all);
 
     function render(list){
@@ -696,6 +700,90 @@
         if(e.key==='Escape')closeLightbox();
       }
     });
+
+    // ===== CATEGORY BAR SCROLL ARROWS =====
+    window.scrollCats=(dir)=>{
+      document.getElementById('cats-bar').scrollBy({left:dir*220,behavior:'smooth'});
+    };
+
+    // ===== UNIVERSITY / CAMPUS SELECTOR =====
+    const UNIVERSITIES=[
+      {name:'University of Cape Town (UCT)',campuses:['Rondebosch (Cape Town)']},
+      {name:'Stellenbosch University (SU)',campuses:['Stellenbosch','Tygerberg','Bellville Park','Saldanha']},
+      {name:'University of the Western Cape (UWC)',campuses:['Bellville']},
+      {name:'Cape Peninsula University of Technology (CPUT)',campuses:['Bellville','District Six','Granger Bay','Wellington','Mowbray']},
+      {name:'University of Fort Hare (UFH)',campuses:['Alice','East London','Bhisho']},
+      {name:'Rhodes University',campuses:['Makhanda (Grahamstown)']},
+      {name:'Nelson Mandela University (NMU)',campuses:['Gqeberha (Port Elizabeth)','George']},
+      {name:'Walter Sisulu University (WSU)',campuses:['Mthatha','Butterworth','Buffalo City (East London)','Komani (Queenstown)']},
+      {name:'University of the Free State (UFS)',campuses:['Bloemfontein','Qwaqwa','South Campus']},
+      {name:'Central University of Technology (CUT)',campuses:['Bloemfontein','Welkom']},
+      {name:'University of KwaZulu-Natal (UKZN)',campuses:['Howard College','Westville','Edgewood','Pietermaritzburg','Nelson R. Mandela School of Medicine']},
+      {name:'Durban University of Technology (DUT)',campuses:['Steve Biko','Ritson','ML Sultan','Brickfield','Indumiso','Riverside']},
+      {name:'Mangosuthu University of Technology (MUT)',campuses:['Umlazi']},
+      {name:'University of Zululand (UNIZULU)',campuses:['KwaDlangezwa','Richards Bay']},
+      {name:'University of Johannesburg (UJ)',campuses:['Auckland Park Kingsway','Auckland Park Bunting Road','Doornfontein','Soweto']},
+      {name:'University of Pretoria (UP)',campuses:['Hatfield','Groenkloof','Prinshof','Hillcrest','Onderstepoort','Mamelodi']},
+      {name:'University of South Africa (UNISA)',campuses:['Main campus (Pretoria)','Regional campus']},
+      {name:'Tshwane University of Technology (TUT)',campuses:['Pretoria','Soshanguve','Ga-Rankuwa','eMalahleni','Mbombela','Polokwane']},
+      {name:'University of the Witwatersrand (Wits)',campuses:['Braamfontein','Parktown']},
+      {name:'North-West University (NWU)',campuses:['Potchefstroom','Mahikeng','Vanderbijlpark']},
+      {name:'Vaal University of Technology (VUT)',campuses:['Vanderbijlpark','Ekurhuleni','Secunda','Upington']},
+      {name:'University of Limpopo (UL)',campuses:['Turfloop']},
+      {name:'University of Venda (UNIVEN)',campuses:['Thohoyandou']},
+      {name:'University of Mpumalanga (UMP)',campuses:['Mbombela','Siyabuswa']},
+      {name:'Sol Plaatje University (SPU)',campuses:['Kimberley']},
+      {name:'Sefako Makgatho Health Sciences University (SMU)',campuses:['Ga-Rankuwa (Pretoria)']}
+    ];
+    let uniPicked=null;
+
+    function updateUniBtnLabel(){
+      const btn=document.getElementById('uni-select-btn');
+      const saved=JSON.parse(localStorage.getItem('sm_university')||'null');
+      if(saved){ btn.textContent='🎓 '+saved.uni+' · '+saved.campus; }
+      else { btn.textContent='🎓 Select your university'; }
+    }
+    updateUniBtnLabel();
+
+    window.openUniModal=()=>{
+      uniPicked=null;
+      renderUniList();
+      document.getElementById('uni-modal-overlay').style.display='flex';
+      document.body.style.overflow='hidden';
+    };
+    window.closeUniModal=()=>{
+      document.getElementById('uni-modal-overlay').style.display='none';
+      document.body.style.overflow='';
+    };
+    function renderUniList(){
+      const body=document.getElementById('uni-modal-body');
+      body.innerHTML='<div class="tb-heading">🎓 Which university do you study at?</div>'+
+        '<div class="tb-subject-grid">'+
+        UNIVERSITIES.map((u,i)=>'<button class="tb-subject-btn" onclick="pickUni('+i+')">'+u.name+'</button>').join('')+
+        '</div>';
+    }
+    window.pickUni=(i)=>{
+      uniPicked=UNIVERSITIES[i];
+      renderCampusList();
+    };
+    function renderCampusList(){
+      const body=document.getElementById('uni-modal-body');
+      body.innerHTML='<div class="tb-crumbs">'+
+        '<span class="tb-crumb" onclick="renderUniListInModal()">Universities</span>'+
+        '<span class="tb-crumb-sep">›</span>'+
+        '<span class="tb-crumb-current">'+uniPicked.name+'</span>'+
+        '</div>'+
+        '<div class="tb-heading">Select your campus</div>'+
+        '<div class="tb-subject-grid">'+
+        uniPicked.campuses.map(c=>'<button class="tb-subject-btn" onclick="pickCampus(\''+c.replace(/'/g,"\\'")+'\')">'+c+'</button>').join('')+
+        '</div>';
+    }
+    window.renderUniListInModal=renderUniList;
+    window.pickCampus=(campus)=>{
+      localStorage.setItem('sm_university',JSON.stringify({uni:uniPicked.name,campus}));
+      updateUniBtnLabel();
+      closeUniModal();
+    };
   </script>
 </body>
 </html>
