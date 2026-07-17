@@ -97,7 +97,8 @@
                 <option>Textbooks</option><option>Clothing</option><option>Electronics</option>
                 <option>Food</option><option>Beauty</option><option>Wigs</option>
                 <option>Perfumes</option><option>Tutoring</option><option>Accommodation</option>
-                <option>Transport</option><option>Services</option>
+                <option>Transport</option><option>Services</option><option>Stationary</option>
+                <option>Appliances</option><option>Rentals</option><option>Furniture</option>
               </select>
             </div>
           </div>
@@ -305,6 +306,57 @@
       'Transport services','Dj services'
     ];
 
+    const STATIONARY_SUBCATS=[
+      'Pens (ballpoint, gel, fountain)','Pencils (HB, 2B, mechanical)','Erasers','Pencil sharpeners',
+      'Highlighters','Permanent markers','Whiteboard markers','Correction fluid/correction tape','Glue sticks',
+      'Liquid glue','Scissors','Rulers','Protractors','Compasses','Set squares','Geometry sets','Calculators',
+      'Notebooks','Exercise books','Writing pads','Loose-leaf paper','Graph paper','Index cards','Sticky notes',
+      'Page markers/sticky tabs','Folders','Lever arch files','Ring binders','Display files','Plastic sleeves',
+      'Dividers','Clipboards','Document wallets','Envelopes','Staplers','Staples','Staple removers',
+      'Paper clips','Binder clips','Rubber bands','Hole punches','Tape','Tape dispensers','Pencil cases',
+      'Desk organizers','Labels','Printer paper','Printer ink cartridges','Whiteboard erasers',
+      'Chalk (where applicable)','Book covers','Bookmarks','Flashcards','Drawing books','Sketchbooks',
+      'Coloured pencils','Crayons','Oil pastels','Watercolour paints','Paint brushes','Palettes',
+      'Charcoal pencils','Fine liners','Technical drawing pens','Craft knives (for art/design students)',
+      'Cutting mats','Tracing paper'
+    ];
+
+    const APPLIANCES_SUBCATS=[
+      'Fridge','Microwave','Electric kettle','Rice cooker','Air fryer','Toaster','Sandwich maker',
+      'Electric stove/hot plate','Induction cooker','Blender','Coffee maker','Electric fan',
+      'Portable air conditioner','Heater','Iron','Washing machine','Tumble dryer','Vacuum cleaner',
+      'Water dispenser','Hair dryer','Electric shaver','Electric toothbrush','Humidifier','Air purifier',
+      'Electric blanket','Sewing machine'
+    ];
+
+    const RENTALS_SUBCATS=[
+      'Bicycle','Electric bicycle (e-bike)','Scooter','Electric scooter (e-scooter)','Skateboard',
+      'Electric skateboard','Longboard','Roller skates','Inline skates (rollerblades)','Kick scooter',
+      'Motorcycle','Moped','Motor scooter','Car','Van','Minibus','Pickup truck (bakkie)',
+      'Campervan (for trips)','Golf cart (on some campuses)','Quad bike (where permitted)','Segway',
+      'Electric unicycle (EUC)','Laptops','Desktop computers','Tablets','Printers','Scanners','Projectors',
+      'Scientific calculators','Graphics calculators','Computer monitors','Keyboards','Wireless mice',
+      'Headphones','Webcams','Microphones','Wi-Fi routers','Pocket Wi-Fi devices','Power banks',
+      'Extension cords','Mini fridges','Microwaves','Electric kettles','Rice cookers','Air fryers',
+      'Toasters','Sandwich makers','Electric hot plates','Induction cookers','Blenders','Coffee makers',
+      'Washing machines','Tumble dryers','Vacuum cleaners','Irons','Fans','Portable heaters',
+      'Portable air conditioners','Water dispensers','Air purifiers','Humidifiers','Electric blankets',
+      'Study desks','Office chairs','Bookshelves','Wardrobes','Bed frames','Mattresses','Bedside tables',
+      'Lamps','Projectors and screens','Speakers','Extension cables','Foldable tables','Folding chairs',
+      'Gazebos','Portable fans','Portable lighting'
+    ];
+
+    const FURNITURE_SUBCATS=[
+      'Bed frame','Mattress','Mattress topper','Headboard','Bunk bed','Sofa bed','Couch','Bean bag',
+      'Study desk','Computer desk','Standing desk','Office chair','Gaming chair','Desk stool',
+      'Bedside table','Coffee table','Dining table','Folding table','Dining chairs','Folding chairs',
+      'Bookshelf','Bookcase','Storage shelves','Wardrobe','Clothing rack','Chest of drawers','Dresser',
+      'TV stand','Cabinet','Filing cabinet','Shoe rack','Coat rack','Wall shelves','Storage ottoman',
+      'Storage bench','Laundry hamper','Under-bed storage drawers','Mirror','Vanity table','Desk organizer',
+      'Floating shelves','Room divider','Laptop table','Monitor stand','Footrest','Ottoman','Recliner chair',
+      'Kitchen trolley','Bar stools','Plastic storage drawers','Storage cubes','Foldable wardrobe'
+    ];
+
     // Generic config: category -> {DB field name, dropdown label, options}
     const FLAT_SUBCATS={
       Electronics:{field:'electronics_subcategory',label:'Electronics Type *',items:ELECTRONICS_SUBCATS},
@@ -316,7 +368,11 @@
       Tutoring:{field:'tutoring_subcategory',label:'Tutoring Subject *',items:TUTORING_SUBCATS},
       Accommodation:{field:'accommodation_subcategory',label:'Accommodation Type *',items:ACCOMMODATION_SUBCATS},
       Transport:{field:'transport_subcategory',label:'Transport Type *',items:TRANSPORT_SUBCATS},
-      Services:{field:'services_subcategory',label:'Service Type *',items:SERVICES_SUBCATS}
+      Services:{field:'services_subcategory',label:'Service Type *',items:SERVICES_SUBCATS},
+      Stationary:{field:'stationary_subcategory',label:'Stationary Item *',items:STATIONARY_SUBCATS},
+      Appliances:{field:'appliances_subcategory',label:'Appliance Type *',items:APPLIANCES_SUBCATS},
+      Rentals:{field:'rentals_subcategory',label:'Rental Item *',items:RENTALS_SUBCATS},
+      Furniture:{field:'furniture_subcategory',label:'Furniture Item *',items:FURNITURE_SUBCATS}
     };
 
     document.getElementById('f-cat').addEventListener('change',e=>{

@@ -43,6 +43,10 @@ CREATE TABLE IF NOT EXISTS listings (
   accommodation_subcategory text,
   transport_subcategory text,
   services_subcategory text,
+  stationary_subcategory text,
+  appliances_subcategory text,
+  rentals_subcategory text,
+  furniture_subcategory text,
   created_at timestamp DEFAULT now()
 );
 
@@ -59,6 +63,10 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS tutoring_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS accommodation_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS transport_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS services_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS stationary_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS appliances_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS rentals_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS furniture_subcategory text;
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
