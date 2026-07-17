@@ -115,9 +115,9 @@
               </select>
             </div>
           </div>
-          <div class="form-group" id="f-ec-row" style="display:none">
-            <label>Electronics Type *</label>
-            <select id="f-ec-subcat">
+          <div class="form-group" id="f-flat-row" style="display:none">
+            <label id="f-flat-label">Type *</label>
+            <select id="f-flat-subcat">
               <option value="">Select type</option>
             </select>
           </div>
@@ -224,15 +224,84 @@
       'E-readers (such as Kindle)','Gaming consoles (PlayStation, Xbox, Nintendo Switch)',
       'Gaming accessories (controllers, gaming mice, mechanical keyboards)'
     ];
-    function populateEcSubcats(){
-      const sel=document.getElementById('f-ec-subcat');
-      sel.innerHTML='<option value="">Select type</option>'+ELECTRONICS_SUBCATS.map(s=>'<option>'+s+'</option>').join('');
-    }
-    populateEcSubcats();
+
+    const CLOTHING_SUBCATS=[
+      'T-shirt','Shirt','Blouse','Polo shirt','Tank top','Sweater','Hoodie','Jacket','Coat','Jeans',
+      'Trousers (pants)','Shorts','Skirt','Leggings','Joggers','Dress','Gown','Jumpsuit','Saree','Kimono',
+      'Hanbok','Abaya','Kilt','Raincoat','Blazer','Cardigan','Windbreaker','Overcoat','Underwear','Bra',
+      'Vest','Pajamas','Nightgown','Sneakers','Sandals','Boots','Slippers','High heels','Shoes','Hat',
+      'Cap','Scarf','Gloves','Belt','Tie','Socks'
+    ];
+
+    const FOOD_SUBCATS=[
+      'Instant noodles','Rice','Bread','Eggs','Chicken','Beef','Sausages','Mince','Tuna','Baked beans',
+      'Peanut butter','Cheese','Milk','Yogurt','Breakfast cereal','Oats','Pasta','Potatoes','Sweet potatoes',
+      'Frozen vegetables','Fresh vegetables','Fruits','Apples','Bananas','Oranges','Tomatoes','Onions',
+      'Lettuce','Avocados','Cooking oil','Butter','Margarine','Salt','Sugar','Coffee','Tea','Juice',
+      'Bottled water','Soft drinks','Energy drinks','Biscuits','Chips (crisps)','Popcorn','Chocolate',
+      'Cookies','Muffins','Pizza','Burgers','Sandwiches','Wraps','Frozen meals','Soup','Canned vegetables',
+      'Canned fruit','Instant porridge','Protein bars','Trail mix','Nuts','Dried fruit','Spices and seasonings'
+    ];
+
+    const BEAUTY_SUBCATS=[
+      'Face wash','Cleanser','Toner','Moisturizer','Sunscreen','Face serum','Face mask','Lip balm','Lipstick',
+      'Lip gloss','Lip liner','Foundation','Concealer','Powder','Blush','Bronzer','Highlighter','Primer',
+      'Setting spray','Mascara','Eyeliner','Eyeshadow','Eyebrow pencil','Eyebrow gel','False eyelashes',
+      'Makeup remover','Makeup wipes','Beauty sponge','Makeup brushes','Nail polish','Nail polish remover',
+      'Cuticle oil','Hand cream','Body lotion','Body butter','Body scrub','Shower gel','Bar soap','Shampoo',
+      'Conditioner','Hair oil','Hair serum','Hair gel','Hair wax','Hair spray','Hair mousse','Dry shampoo',
+      'Hair dye','Perfume','Body mist','Deodorant','Roll-on deodorant','Antiperspirant','Cotton pads',
+      'Cotton buds','Tweezers','Razor','Shaving cream','Wax strips','Facial cleansing brush'
+    ];
+
+    const WIGS_SUBCATS=[
+      'Straight wig','Body wave wig','Loose wave wig','Deep wave wig','Water wave wig','Curly wig',
+      'Kinky curly wig','Afro kinky wig','Yaki straight wig','Bob wig','Pixie cut wig','Long wig','Short wig',
+      'Layered wig','Bangs (fringe) wig','Lace front wig','Full lace wig','360 lace wig','HD lace wig',
+      'Transparent lace wig','Closure wig','U-part wig','V-part wig','Headband wig','Glueless wig',
+      'Human hair wig','Synthetic wig','Heat-resistant synthetic wig','Colored wig','Highlight wig',
+      'Ombre wig','Blonde wig','Black wig','Brown wig','Red wig','Burgundy wig','Custom-made wig',
+      'Machine-made wig','Hand-tied wig','Medical wig'
+    ];
+
+    const PERFUMES_SUBCATS=["Men's Perfume","Women's Perfume"];
+
+    const TUTORING_SUBCATS=[
+      'Mathematics tutoring','Statistics tutoring','Physics tutoring','Chemistry tutoring','Biology tutoring',
+      'Accounting tutoring','Economics tutoring','Finance tutoring','Computer Science tutoring',
+      'Programming tutoring','Data Science tutoring','Engineering tutoring','Business Studies tutoring',
+      'English tutoring','Academic writing tutoring','Essay writing support','Assignment guidance',
+      'Research project assistance','Test and exam preparation','Revision classes','Past paper sessions',
+      'Study skills coaching','Time management coaching','Group tutoring','One-on-one tutoring',
+      'Online tutoring','In-person tutoring','Homework help','Presentation preparation',
+      'Microsoft Excel tutoring','Microsoft Word tutoring','PowerPoint tutoring','SPSS tutoring',
+      'Python programming tutoring','Calculus tutoring','Linear Algebra tutoring','Probability tutoring',
+      'Academic mentoring','First-year support tutoring','Final-year project support'
+    ];
+
+    // Generic config: category -> {DB field name, dropdown label, options}
+    const FLAT_SUBCATS={
+      Electronics:{field:'electronics_subcategory',label:'Electronics Type *',items:ELECTRONICS_SUBCATS},
+      Clothing:{field:'clothing_subcategory',label:'Clothing Type *',items:CLOTHING_SUBCATS},
+      Food:{field:'food_subcategory',label:'Food Item *',items:FOOD_SUBCATS},
+      Beauty:{field:'beauty_subcategory',label:'Beauty Item *',items:BEAUTY_SUBCATS},
+      Wigs:{field:'wigs_subcategory',label:'Wig Type *',items:WIGS_SUBCATS},
+      Perfumes:{field:'perfumes_subcategory',label:'Perfume Type *',items:PERFUMES_SUBCATS},
+      Tutoring:{field:'tutoring_subcategory',label:'Tutoring Subject *',items:TUTORING_SUBCATS}
+    };
 
     document.getElementById('f-cat').addEventListener('change',e=>{
-      document.getElementById('f-tb-row').style.display = e.target.value==='Textbooks' ? 'grid' : 'none';
-      document.getElementById('f-ec-row').style.display = e.target.value==='Electronics' ? 'block' : 'none';
+      const v=e.target.value;
+      document.getElementById('f-tb-row').style.display = v==='Textbooks' ? 'grid' : 'none';
+      const conf=FLAT_SUBCATS[v];
+      const flatRow=document.getElementById('f-flat-row');
+      if(conf){
+        document.getElementById('f-flat-label').textContent=conf.label;
+        document.getElementById('f-flat-subcat').innerHTML='<option value="">Select type</option>'+conf.items.map(s=>'<option>'+s+'</option>').join('');
+        flatRow.style.display='block';
+      } else {
+        flatRow.style.display='none';
+      }
     });
 
     async function init() {
@@ -301,7 +370,8 @@
       const disc  = parseFloat(document.getElementById('f-discount').value) || 0;
       const tbYear = document.getElementById('f-tb-year').value;
       const tbSubject = document.getElementById('f-tb-subject').value;
-      const ecSubcat = document.getElementById('f-ec-subcat').value;
+      const flatConf = FLAT_SUBCATS[cat];
+      const flatVal = document.getElementById('f-flat-subcat').value;
       const err   = document.getElementById('form-error');
       err.style.color='#9333ea'; err.textContent='';
 
@@ -318,18 +388,21 @@
       if (!price || price<=0) { err.textContent='❌ Enter a valid price'; return; }
       if (!qty || qty<1) { err.textContent='❌ Enter quantity (at least 1)'; return; }
       if (cat==='Textbooks' && (!tbYear || !tbSubject)) { err.textContent='❌ Select a study year and subject for this textbook'; return; }
-      if (cat==='Electronics' && !ecSubcat) { err.textContent='❌ Select an electronics type'; return; }
+      if (flatConf && !flatVal) { err.textContent='❌ Select a '+flatConf.label.replace(' *','').toLowerCase(); return; }
       const btn = document.getElementById('btn-post');
       btn.textContent='Posting...'; btn.disabled=true;
-      const {error} = await supabase.from('listings').insert({
+      const payload = {
         seller_id: currentUser.id, title, category: cat, description: desc,
         price, quantity: qty, discount_percent: disc,
         image_url: imgs[1]||null, image_url_2: imgs[2]||null, image_url_3: imgs[3]||null,
         is_available: true,
         textbook_year: cat==='Textbooks' ? tbYear : null,
-        textbook_subject: cat==='Textbooks' ? tbSubject : null,
-        electronics_subcategory: cat==='Electronics' ? ecSubcat : null
-      });
+        textbook_subject: cat==='Textbooks' ? tbSubject : null
+      };
+      // set every flat-category DB field to null, then fill in the one that applies
+      Object.values(FLAT_SUBCATS).forEach(c=>{payload[c.field]=null;});
+      if (flatConf) payload[flatConf.field] = flatVal;
+      const {error} = await supabase.from('listings').insert(payload);
       btn.textContent='Post Listing 🚀'; btn.disabled=false;
       if (error) { err.textContent='❌ '+error.message; return; }
       ['f-title','f-desc','f-price','f-qty','f-discount'].forEach(id=>document.getElementById(id).value='');
@@ -337,8 +410,8 @@
       document.getElementById('f-tb-year').value='';
       document.getElementById('f-tb-subject').value='';
       document.getElementById('f-tb-row').style.display='none';
-      document.getElementById('f-ec-subcat').value='';
-      document.getElementById('f-ec-row').style.display='none';
+      document.getElementById('f-flat-subcat').value='';
+      document.getElementById('f-flat-row').style.display='none';
       [1,2,3].forEach(n=>{imgs[n]=null;document.getElementById('fi-'+n).value='';document.getElementById('slot-'+n).innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>';});
       err.style.color='#2e7d32'; err.textContent='✅ Listing posted!';
       setTimeout(()=>{err.textContent=''; showTab('listings',document.querySelectorAll('.dash-tab')[1]); loadMyListings();},1500);
@@ -386,7 +459,7 @@
         const thumb = l.image_url ? '<img src="'+l.image_url+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0"/>' : '<div style="width:44px;height:44px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📦</div>';
         return '<div class="listing-row">'+thumb+
           '<div class="listing-info"><div class="listing-title">'+l.title+'</div>'+
-          '<div class="listing-meta">'+l.category+(l.textbook_year?' ('+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+')':'')+(l.electronics_subcategory?' ('+l.electronics_subcategory+')':'')+' · R'+fp+' · '+status+'</div>'+
+          '<div class="listing-meta">'+l.category+(l.textbook_year?' ('+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+')':'')+((FLAT_SUBCATS[l.category]&&l[FLAT_SUBCATS[l.category].field])?' ('+l[FLAT_SUBCATS[l.category].field]+')':'')+' · R'+fp+' · '+status+'</div>'+
           '<div class="listing-meta" style="margin-top:4px">Stock: <strong>'+l.quantity+'</strong> &nbsp;'+
           '<button class="btn-sm btn-toggle" style="padding:3px 10px" onclick="window._adjQty(\''+l.id+'\','+l.quantity+',1)">+ Add</button> '+
           '<button class="btn-sm btn-delete" style="padding:3px 10px" onclick="window._adjQty(\''+l.id+'\','+l.quantity+',-1)">− Remove</button>'+

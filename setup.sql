@@ -34,6 +34,12 @@ CREATE TABLE IF NOT EXISTS listings (
   textbook_year text,
   textbook_subject text,
   electronics_subcategory text,
+  clothing_subcategory text,
+  food_subcategory text,
+  beauty_subcategory text,
+  wigs_subcategory text,
+  perfumes_subcategory text,
+  tutoring_subcategory text,
   created_at timestamp DEFAULT now()
 );
 
@@ -41,6 +47,12 @@ CREATE TABLE IF NOT EXISTS listings (
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS textbook_year text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS textbook_subject text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS electronics_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS clothing_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS food_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS beauty_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS wigs_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS perfumes_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS tutoring_subcategory text;
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
