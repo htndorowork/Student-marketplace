@@ -96,7 +96,8 @@
                 <option value="">Select category</option>
                 <option>Textbooks</option><option>Clothing</option><option>Electronics</option>
                 <option>Food</option><option>Beauty</option><option>Wigs</option>
-                <option>Perfumes</option><option>Tutoring</option>
+                <option>Perfumes</option><option>Tutoring</option><option>Accommodation</option>
+                <option>Transport</option><option>Services</option>
               </select>
             </div>
           </div>
@@ -279,6 +280,31 @@
       'Academic mentoring','First-year support tutoring','Final-year project support'
     ];
 
+    const ACCOMMODATION_SUBCATS=[
+      'Single room','Shared room','Bachelor (studio) apartment','One-bedroom apartment','Two-bedroom apartment',
+      'Three-bedroom apartment','Shared flat/apartment','Shared house','Commune house',
+      'Private student residence room','Ensuite room','Non-ensuite room','Self-catering apartment',
+      'Furnished apartment','Unfurnished apartment','Loft apartment','Duplex apartment'
+    ];
+
+    const TRANSPORT_SUBCATS=[
+      'Skateboard','Longboard','Penny board','Kick scooter','Electric scooter','Bicycle','Folding bicycle',
+      'Electric bicycle','Roller skates','Inline skates (Rollerblades)','Hoverboard','Electric skateboard',
+      'Unicycle','Electric unicycle','Drift trike','Mini bike','Balance bike','Ripstik','Car','Quadbike',
+      'Motorbike'
+    ];
+
+    const SERVICES_SUBCATS=[
+      'Haircuts','Braiding and hairstyling','Barber services','Makeup services','Nail services',
+      'Massage services','Personal fitness training','Lift-sharing','Airport transfers','Bus station transfers',
+      'Bicycle rentals','Scooter rentals','Grocery delivery','Food delivery','Pharmacy pickups',
+      'Parcel collection','Laundry pickup and delivery','Campus errand service','Room cleaning',
+      'Laundry and ironing','Carpet cleaning','Move-in/move-out cleaning','Graphic design','Logo design',
+      'Photography','Videography','Social media management','Website creation',
+      'Printing business cards and flyers','Water delivery','Gas refill delivery','Convenience Services',
+      'Transport services','Dj services'
+    ];
+
     // Generic config: category -> {DB field name, dropdown label, options}
     const FLAT_SUBCATS={
       Electronics:{field:'electronics_subcategory',label:'Electronics Type *',items:ELECTRONICS_SUBCATS},
@@ -287,7 +313,10 @@
       Beauty:{field:'beauty_subcategory',label:'Beauty Item *',items:BEAUTY_SUBCATS},
       Wigs:{field:'wigs_subcategory',label:'Wig Type *',items:WIGS_SUBCATS},
       Perfumes:{field:'perfumes_subcategory',label:'Perfume Type *',items:PERFUMES_SUBCATS},
-      Tutoring:{field:'tutoring_subcategory',label:'Tutoring Subject *',items:TUTORING_SUBCATS}
+      Tutoring:{field:'tutoring_subcategory',label:'Tutoring Subject *',items:TUTORING_SUBCATS},
+      Accommodation:{field:'accommodation_subcategory',label:'Accommodation Type *',items:ACCOMMODATION_SUBCATS},
+      Transport:{field:'transport_subcategory',label:'Transport Type *',items:TRANSPORT_SUBCATS},
+      Services:{field:'services_subcategory',label:'Service Type *',items:SERVICES_SUBCATS}
     };
 
     document.getElementById('f-cat').addEventListener('change',e=>{

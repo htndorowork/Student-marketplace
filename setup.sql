@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS listings (
   wigs_subcategory text,
   perfumes_subcategory text,
   tutoring_subcategory text,
+  accommodation_subcategory text,
+  transport_subcategory text,
+  services_subcategory text,
   created_at timestamp DEFAULT now()
 );
 
@@ -53,6 +56,9 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS beauty_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS wigs_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS perfumes_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS tutoring_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS accommodation_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS transport_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS services_subcategory text;
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
