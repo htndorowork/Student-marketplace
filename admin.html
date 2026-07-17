@@ -25,7 +25,7 @@
     <div id="admin-content" style="display:none">
       <div class="section-header" style="margin-bottom:20px">
         <div class="section-title">Admin Panel 🛡️</div>
-        <span style="font-size:12px;background:#f4f4f5;color:#52525b;font-weight:700;padding:4px 12px;border-radius:50px">Admin</span>
+        <span style="font-size:12px;background:#f5f0fe;color:#7c3aed;font-weight:700;padding:4px 12px;border-radius:50px">Admin</span>
       </div>
 
       <!-- PAYWALL CONTROL -->
@@ -86,13 +86,13 @@
       const active=data?.value==='true';
       document.getElementById('paywall-toggle').checked=active;
       document.getElementById('paywall-status').textContent=active?'🔴 Paywall is ON — sellers cannot post listings':'🟢 Paywall is OFF — sellers can post freely';
-      document.getElementById('paywall-status').style.color=active?'#71717a':'#2e7d32';
+      document.getElementById('paywall-status').style.color=active?'#9333ea':'#2e7d32';
     }
 
     window.togglePaywall=async(checked)=>{
       await supabase.from('settings').update({value:checked?'true':'false'}).eq('key','paywall_active');
       document.getElementById('paywall-status').textContent=checked?'🔴 Paywall is ON — sellers cannot post listings':'🟢 Paywall is OFF — sellers can post freely';
-      document.getElementById('paywall-status').style.color=checked?'#71717a':'#2e7d32';
+      document.getElementById('paywall-status').style.color=checked?'#9333ea':'#2e7d32';
     };
 
     async function loadStats(){

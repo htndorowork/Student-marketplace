@@ -79,7 +79,7 @@
               <input type="file" id="fi-1" accept="image/jpeg,image/png,image/webp" style="display:none"/>
               <input type="file" id="fi-2" accept="image/jpeg,image/png,image/webp" style="display:none"/>
               <input type="file" id="fi-3" accept="image/jpeg,image/png,image/webp" style="display:none"/>
-              <div id="upload-err" style="display:none;font-size:13px;font-weight:700;color:#71717a;margin-top:6px"></div>
+              <div id="upload-err" style="display:none;font-size:13px;font-weight:700;color:#9333ea;margin-top:6px"></div>
             </div>
             <div class="form-error" id="listing-error"></div>
             <button class="btn-primary" id="btn-post">Post Listing 🚀</button>
@@ -160,7 +160,7 @@
           if(!['image/jpeg','image/png','image/webp'].includes(file.type)){errEl.textContent='❌ Only JPG/PNG/WEBP';errEl.style.display='block';return;}
           if(file.size>2*1024*1024){errEl.textContent='❌ Max 2MB';errEl.style.display='block';return;}
           const slot=document.getElementById('slot-'+n);
-          slot.innerHTML='<div style="font-size:12px;font-weight:700;color:#52525b">Uploading...</div>';
+          slot.innerHTML='<div style="font-size:12px;font-weight:700;color:#7c3aed">Uploading...</div>';
           const fname=currentUser.id+'-'+n+'-'+Date.now()+'.'+file.name.split('.').pop();
           const {error}=await supabase.storage.from('listing-images').upload(fname,file);
           if(error){errEl.textContent='❌ '+error.message;errEl.style.display='block';slot.innerHTML='<div style="font-size:24px">📸</div>';return;}
@@ -181,7 +181,7 @@
       const qty=parseInt(document.getElementById('f-qty').value)||1;
       const discount=parseFloat(document.getElementById('f-discount').value)||0;
       const errEl=document.getElementById('listing-error');
-      errEl.style.color='#71717a';errEl.textContent='';
+      errEl.style.color='#9333ea';errEl.textContent='';
       if(!title||!cat||!price){errEl.textContent='❌ Fill in title, category and price';return;}
       const btn=document.getElementById('btn-post');btn.textContent='Posting...';btn.disabled=true;
 
@@ -205,7 +205,7 @@
       const res=document.getElementById('p-res').value.trim();
       const role=window._selectedRole||'buyer';
       const errEl=document.getElementById('profile-err');
-      errEl.style.color='#71717a';errEl.textContent='';
+      errEl.style.color='#9333ea';errEl.textContent='';
       if(!name||!wa){errEl.textContent='❌ Name and WhatsApp are required';return;}
       const {error}=await supabase.from('profiles').update({full_name:name,whatsapp:wa,residence:res,role}).eq('id',currentUser.id);
       if(error){errEl.textContent='❌ '+error.message;return;}
@@ -229,7 +229,7 @@
           '<div style="flex:1">'+status+
           '<div class="order-card-title">'+(o.listings?.title||'Unknown')+'</div>'+
           '<div class="order-detail">Qty: <strong>'+o.quantity+'</strong></div>'+
-          '<div style="font-size:13px;font-weight:800;color:#52525b;margin-bottom:8px">Contact seller to arrange:</div>'+
+          '<div style="font-size:13px;font-weight:800;color:#7c3aed;margin-bottom:8px">Contact seller to arrange:</div>'+
           '<div class="order-detail">👤 <strong>'+(o.profiles?.full_name||'Seller')+'</strong></div>'+
           (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+o.profiles.residence+'</strong></div>':'')+
           '<div class="order-detail">📱 <strong>'+(o.profiles?.whatsapp||'N/A')+'</strong></div>'+

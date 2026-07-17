@@ -91,7 +91,7 @@
       const email=document.getElementById('login-email').value;
       const password=document.getElementById('login-password').value;
       const err=document.getElementById('login-error');
-      err.style.color='#71717a';err.textContent='';
+      err.style.color='#9333ea';err.textContent='';
       const {error}=await supabase.auth.signInWithPassword({email,password});
       if(error){err.textContent='❌ '+error.message;return;}
       window.location.href='profile.html';
@@ -105,7 +105,7 @@
       const password=document.getElementById('signup-password').value;
       const err=document.getElementById('signup-error');
       const role=window.selectedRole||'buyer';
-      err.style.color='#71717a';err.textContent='';
+      err.style.color='#9333ea';err.textContent='';
       if(!name||!wa||!email||!password){err.textContent='❌ Please fill in all fields';return;}
       if(role==='seller'&&!res){err.textContent='❌ Sellers must enter their residence';return;}
       const {data,error}=await supabase.auth.signUp({email,password});

@@ -93,8 +93,8 @@
           </div>
           <span id="modal-stock-note" style="font-size:12px;color:#888;font-weight:600"></span>
         </div>
-        <div id="modal-signin-note" style="display:none;background:#f4f4f5;border:2px solid #d4d4d8;border-radius:12px;padding:12px;text-align:center;margin-bottom:12px;font-size:13px;font-weight:700;color:#71717a">
-          🔒 <a href="login.html" style="color:#52525b;text-decoration:none">Sign in</a> to order this item
+        <div id="modal-signin-note" style="display:none;background:#f5f0fe;border:2px solid #d8c4f7;border-radius:12px;padding:12px;text-align:center;margin-bottom:12px;font-size:13px;font-weight:700;color:#9333ea">
+          🔒 <a href="login.html" style="color:#7c3aed;text-decoration:none">Sign in</a> to order this item
         </div>
         <button class="btn-order" id="btn-add-to-cart">🛒 Add to Cart</button>
         <button class="btn-order-cart" id="btn-order-now">Order Now</button>
@@ -401,7 +401,7 @@
       slides.style.transform='translateX(0)';
       document.getElementById('modal-badge').innerHTML='<span class="badge" style="background:'+c.bg+';color:'+c.text+'">'+l.category+'</span>';
       document.getElementById('modal-title').textContent=l.title;
-      document.getElementById('modal-price').innerHTML=l.discount_percent>0?'<span style="text-decoration:line-through;color:#aaa;font-size:14px">R'+l.price+'</span> <span style="color:#52525b;font-weight:900;font-size:20px">R'+fp+'</span>':'<span style="font-size:22px;font-weight:900">R'+fp+'</span>';
+      document.getElementById('modal-price').innerHTML=l.discount_percent>0?'<span style="text-decoration:line-through;color:#aaa;font-size:14px">R'+l.price+'</span> <span style="color:#7c3aed;font-weight:900;font-size:20px">R'+fp+'</span>':'<span style="font-size:22px;font-weight:900">R'+fp+'</span>';
       document.getElementById('modal-desc').textContent=l.description||'No description.';
       const flatConf2=FLAT_SUBCATS[l.category];
       const flatVal2=flatConf2?l[flatConf2.field]:null;
