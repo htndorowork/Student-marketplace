@@ -348,6 +348,7 @@
     const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence)').eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false});
     all=data||[];
     render(all);
+    const pendingOpenId=new URLSearchParams(location.search).get('open');
 
     function render(list){
       const g=document.getElementById('listings-grid');
@@ -405,7 +406,7 @@
       document.getElementById('modal-desc').textContent=l.description||'No description.';
       const flatConf2=FLAT_SUBCATS[l.category];
       const flatVal2=flatConf2?l[flatConf2.field]:null;
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'');
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+'<div style="margin-top:8px"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit this seller\'s store</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -784,6 +785,9 @@
       updateUniBtnLabel();
       closeUniModal();
     };
+
+    // Auto-open a listing if we arrived here via a store.html link (?open=<id>)
+    if(pendingOpenId && all.some(l=>l.id===pendingOpenId)) window._open(pendingOpenId);
   </script>
 </body>
 </html>

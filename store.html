@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seller Store — Student Marketplace 🎓</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .store-header { background:#fff; border-bottom:2px solid #f0f0f0; padding:32px 20px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+    .store-logo { width:88px; height:88px; border-radius:50%; background:#f4f4f5; display:flex; align-items:center; justify-content:center; font-size:36px; overflow:hidden; flex-shrink:0; border:3px solid #f0f0f0; }
+    .store-logo img { width:100%; height:100%; object-fit:cover; }
+    .store-name { font-size:22px; font-weight:900; color:#111; }
+    .store-bio { font-size:14px; color:#666; font-weight:600; margin-top:4px; max-width:520px; }
+    .store-meta { font-size:13px; color:#888; font-weight:700; margin-top:8px; }
+    .store-stats-row { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+    .store-stat-pill { background:#f4f4f5; border-radius:50px; padding:7px 16px; font-size:12.5px; font-weight:800; color:#444; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
+    <div class="nav-links">
+      <a href="index.html">Browse</a>
+      <a href="profile.html" id="nav-profile" style="display:none">My Profile</a>
+      <a href="login.html" id="nav-auth">Sign in</a>
+      <div class="nav-cart" onclick="location.href='index.html'" title="Cart">🛒</div>
+    </div>
+  </nav>
+
+  <div class="store-header" id="store-header">
+    <p class="loading-msg">Loading store... ⏳</p>
+  </div>
+
+  <main class="main">
+    <div class="section-header"><div class="section-title" id="store-listings-title">Listings 🛍️</div></div>
+    <div class="grid" id="store-listings-grid"><p class="loading-msg">Loading listings... ⏳</p></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-title">Student Marketplace 🎓</div>
+    <div class="footer-sub">The student marketplace for all</div>
+    <div class="footer-links">
+      <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
+      <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
+      <a class="footer-link" href="index.html">Browse listings</a>
+    </div>
+    <div class="footer-copy">© 2025 Student Marketplace · Built for all students</div>
+  </footer>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient(
+      'https://kqsqtasykdtpdrkqyaxp.supabase.co',
+      'sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ'
+    );
+
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Rentals:'🔁',Furniture:'🛋️'};
+    const CAT_COLOR={Textbooks:{bg:'#fff8e1'},Clothing:{bg:'#fce4ec'},Electronics:{bg:'#e8eaf6'},Food:{bg:'#e8f5e9'},Beauty:{bg:'#fce4ec'},Wigs:{bg:'#f3e5f5'},Perfumes:{bg:'#e0f7fa'},Tutoring:{bg:'#e1f5ee'},Accommodation:{bg:'#fff3e0'},Transport:{bg:'#e0f2f1'},Services:{bg:'#ede7f6'},Stationary:{bg:'#fffde7'},Appliances:{bg:'#eceff1'},Rentals:{bg:'#f1f8e9'},Furniture:{bg:'#efebe9'}};
+
+    const {data:{user}}=await supabase.auth.getUser();
+    if(user){
+      document.getElementById('nav-auth').textContent='Sign out';
+      document.getElementById('nav-auth').href='#';
+      document.getElementById('nav-auth').onclick=async()=>{await supabase.auth.signOut();location.reload();};
+      document.getElementById('nav-profile').style.display='inline';
+    }
+
+    const sellerId = new URLSearchParams(location.search).get('seller');
+    const headerEl = document.getElementById('store-header');
+    const gridEl = document.getElementById('store-listings-grid');
+
+    if (!sellerId) {
+      headerEl.innerHTML = '<p class="loading-msg">No seller specified 🤔</p>';
+      gridEl.innerHTML = '';
+    } else {
+      const [{data:profile},{data:listings},{data:reviews},{count:salesCount}] = await Promise.all([
+        supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url').eq('id',sellerId).single(),
+        supabase.from('listings').select('*').eq('seller_id',sellerId).eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false}),
+        supabase.from('reviews').select('rating').eq('seller_id',sellerId),
+        supabase.from('orders').select('id',{count:'exact',head:true}).eq('seller_id',sellerId).eq('status','completed')
+      ]);
+
+      if (!profile) {
+        headerEl.innerHTML = '<p class="loading-msg">Store not found 🤔</p>';
+        gridEl.innerHTML = '';
+      } else {
+        const displayName = profile.store_name || profile.full_name || 'Seller Store';
+        const ratingTxt = (reviews && reviews.length) ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1)+' ⭐ ('+reviews.length+')' : 'No ratings yet';
+        headerEl.innerHTML =
+          '<div class="store-logo">'+(profile.store_logo_url?'<img src="'+profile.store_logo_url+'"/>':'🏪')+'</div>'+
+          '<div>'+
+          '<div class="store-name">'+displayName+'</div>'+
+          (profile.store_bio?'<div class="store-bio">'+profile.store_bio+'</div>':'')+
+          (profile.residence?'<div class="store-meta">📍 '+profile.residence+'</div>':'')+
+          '<div class="store-stats-row">'+
+          '<div class="store-stat-pill">📦 '+(listings?.length||0)+' listings</div>'+
+          '<div class="store-stat-pill">💰 '+(salesCount||0)+' sales</div>'+
+          '<div class="store-stat-pill">'+ratingTxt+'</div>'+
+          '</div></div>';
+
+        document.getElementById('store-listings-title').textContent = displayName+"'s listings 🛍️";
+
+        if (!listings || !listings.length) {
+          gridEl.innerHTML = '<p class="loading-msg">This seller has no active listings right now 🚀</p>';
+        } else {
+          gridEl.innerHTML = listings.map(l=>{
+            const c=CAT_COLOR[l.category]||{bg:'#f5f5f5'};
+            const e=CAT_EMOJI[l.category]||'🛍️';
+            const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+            const db=l.discount_percent>0?'<div class="discount-tag">-'+l.discount_percent+'% OFF</div>':'';
+            const img=l.image_url?'<img src="'+l.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:44px">${e}</span>`;
+            const stock=l.quantity>5?'<div class="card-stock">'+l.quantity+' in stock</div>':'<div class="card-stock low">Only '+l.quantity+' left!</div>';
+            return '<div class="card" onclick="location.href=\'index.html?open='+l.id+'\'">'+
+              '<div class="card-img" style="background:'+c.bg+'">'+db+img+'</div>'+
+              '<div class="card-body">'+
+              '<div class="card-title">'+l.title+'</div>'+
+              stock+
+              '<div class="card-footer"><span class="price">R'+fp+'</span></div>'+
+              '</div></div>';
+          }).join('');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

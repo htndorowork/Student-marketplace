@@ -219,11 +219,29 @@
       const {data}=await supabase.from('orders').select('*,listings(title,price,image_url,category),profiles!orders_seller_id_fkey(full_name,whatsapp,residence)').eq('buyer_id',currentUser.id).order('created_at',{ascending:false});
       const container=document.getElementById('orders-container');
       if(!data?.length){container.innerHTML='<p class="loading-msg">No orders yet — go browse! 🛍️</p>';return;}
+
+      const completedIds=data.filter(o=>o.status==='completed').map(o=>o.id);
+      let myReviews={};
+      if(completedIds.length){
+        const {data:revs}=await supabase.from('reviews').select('order_id,rating').eq('buyer_id',currentUser.id).in('order_id',completedIds);
+        (revs||[]).forEach(r=>{myReviews[r.order_id]=r.rating;});
+      }
+
       container.innerHTML=data.map(o=>{
         const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
         const e=CAT_EMOJI[o.listings?.category]||'📦';
         const img=o.listings?.image_url?'<img src="'+o.listings.image_url+'" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0"/>':`<div style="width:52px;height:52px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${e}</div>`;
         const status=o.status==='confirmed'?'<span class="order-badge badge-new">🆕 Confirmed</span>':'<span class="order-badge badge-done">✅ Completed</span>';
+        let ratingHtml='';
+        if(o.status==='completed'){
+          if(myReviews[o.id]){
+            ratingHtml='<div class="order-detail" style="margin-top:6px">⭐ You rated this seller: <strong>'+myReviews[o.id]+'/5</strong></div>';
+          } else {
+            ratingHtml='<div class="order-detail" style="margin-top:6px">Rate this seller: '+
+              [1,2,3,4,5].map(n=>'<span style="cursor:pointer;font-size:18px" onclick="window._rateSeller(\''+o.id+'\',\''+o.seller_id+'\','+n+')">☆</span>').join('')+
+              '</div>';
+          }
+        }
         return '<div class="order-card '+(o.status==='confirmed'?'order-new':'')+'">'+
           '<div style="display:flex;gap:12px;align-items:flex-start">'+img+
           '<div style="flex:1">'+status+
@@ -234,9 +252,16 @@
           (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+o.profiles.residence+'</strong></div>':'')+
           '<div class="order-detail">📱 <strong>'+(o.profiles?.whatsapp||'N/A')+'</strong></div>'+
           '<div class="order-detail" style="color:#aaa;font-size:12px;margin-top:6px">'+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
+          ratingHtml+
           '</div></div></div>';
       }).join('');
     }
+
+    window._rateSeller=async(orderId,sellerId,rating)=>{
+      const {error}=await supabase.from('reviews').insert({order_id:orderId,seller_id:sellerId,buyer_id:currentUser.id,rating});
+      if(error){alert('Could not submit rating: '+error.message);return;}
+      loadBuyerOrders();
+    };
 
     async function loadMyListings(){
       const container=document.getElementById('stab-mylistings');

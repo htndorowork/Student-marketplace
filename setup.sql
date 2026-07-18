@@ -13,9 +13,17 @@ CREATE TABLE IF NOT EXISTS profiles (
   residence text,
   role text DEFAULT 'buyer',
   is_admin boolean DEFAULT false,
+  store_name text,
+  store_bio text,
+  store_logo_url text,
   created_at timestamp DEFAULT now(),
   PRIMARY KEY (id)
 );
+
+-- Safe to re-run
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS store_name text;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS store_bio text;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS store_logo_url text;
 
 -- Listings
 CREATE TABLE IF NOT EXISTS listings (
@@ -90,6 +98,17 @@ CREATE TABLE IF NOT EXISTS cart_items (
   created_at timestamp DEFAULT now()
 );
 
+-- Reviews (one per completed order, buyer rates the seller)
+CREATE TABLE IF NOT EXISTS reviews (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  order_id uuid UNIQUE,
+  seller_id uuid,
+  buyer_id uuid,
+  rating integer NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment text,
+  created_at timestamp DEFAULT now()
+);
+
 -- Settings (paywall control)
 CREATE TABLE IF NOT EXISTS settings (
   key text PRIMARY KEY,
@@ -121,6 +140,22 @@ ALTER TABLE listings
 ADD CONSTRAINT listings_seller_id_fkey
 FOREIGN KEY (seller_id) REFERENCES profiles(id) ON DELETE CASCADE;
 
+ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_order_id_fkey;
+ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_seller_id_fkey;
+ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_buyer_id_fkey;
+
+ALTER TABLE reviews
+ADD CONSTRAINT reviews_order_id_fkey
+FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+
+ALTER TABLE reviews
+ADD CONSTRAINT reviews_seller_id_fkey
+FOREIGN KEY (seller_id) REFERENCES profiles(id) ON DELETE CASCADE;
+
+ALTER TABLE reviews
+ADD CONSTRAINT reviews_buyer_id_fkey
+FOREIGN KEY (buyer_id) REFERENCES profiles(id) ON DELETE SET NULL;
+
 -- ===================== ROW LEVEL SECURITY =====================
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -128,6 +163,7 @@ ALTER TABLE listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cart_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
 -- Drop any old policies (safe if they don't exist)
 DROP POLICY IF EXISTS "profiles_read" ON profiles;
@@ -154,6 +190,9 @@ DROP POLICY IF EXISTS "cart_manage" ON cart_items;
 
 DROP POLICY IF EXISTS "settings_read" ON settings;
 DROP POLICY IF EXISTS "settings_write" ON settings;
+
+DROP POLICY IF EXISTS "reviews_read" ON reviews;
+DROP POLICY IF EXISTS "reviews_insert" ON reviews;
 
 -- PROFILES policies
 CREATE POLICY "profiles_read" ON profiles FOR SELECT USING (true);
@@ -196,6 +235,13 @@ FOR ALL USING (auth.uid() = buyer_id) WITH CHECK (auth.uid() = buyer_id);
 CREATE POLICY "settings_read" ON settings FOR SELECT USING (true);
 CREATE POLICY "settings_write" ON settings FOR ALL USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
+);
+
+-- REVIEWS policies
+CREATE POLICY "reviews_read" ON reviews FOR SELECT USING (true);
+CREATE POLICY "reviews_insert" ON reviews FOR INSERT WITH CHECK (
+  auth.uid() = buyer_id AND
+  EXISTS (SELECT 1 FROM orders WHERE id = order_id AND buyer_id = auth.uid() AND status = 'completed')
 );
 
 -- ===================== AUTO-CREATE PROFILE ON SIGNUP =====================
