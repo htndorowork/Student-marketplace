@@ -342,6 +342,8 @@
       document.getElementById('nav-auth').href='#';
       document.getElementById('nav-auth').onclick=async()=>{await supabase.auth.signOut();location.reload();};
       document.getElementById('nav-profile').style.display='inline';
+      const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
+      if(p?.role==='seller') document.getElementById('nav-profile').href='seller.html';
       loadCart();
     }
 

@@ -64,6 +64,8 @@
       document.getElementById('nav-auth').href='#';
       document.getElementById('nav-auth').onclick=async()=>{await supabase.auth.signOut();location.reload();};
       document.getElementById('nav-profile').style.display='inline';
+      const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
+      if(p?.role==='seller') document.getElementById('nav-profile').href='seller.html';
     }
 
     const sellerId = new URLSearchParams(location.search).get('seller');
@@ -74,11 +76,10 @@
       headerEl.innerHTML = '<p class="loading-msg">No seller specified 🤔</p>';
       gridEl.innerHTML = '';
     } else {
-      const [{data:profile},{data:listings},{data:reviews},{count:salesCount}] = await Promise.all([
+      const [{data:profile},{data:listings},{data:reviews}] = await Promise.all([
         supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url').eq('id',sellerId).single(),
         supabase.from('listings').select('*').eq('seller_id',sellerId).eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false}),
-        supabase.from('reviews').select('rating').eq('seller_id',sellerId),
-        supabase.from('orders').select('id',{count:'exact',head:true}).eq('seller_id',sellerId).eq('status','completed')
+        supabase.from('reviews').select('rating').eq('seller_id',sellerId)
       ]);
 
       if (!profile) {
@@ -95,7 +96,6 @@
           (profile.residence?'<div class="store-meta">📍 '+profile.residence+'</div>':'')+
           '<div class="store-stats-row">'+
           '<div class="store-stat-pill">📦 '+(listings?.length||0)+' listings</div>'+
-          '<div class="store-stat-pill">💰 '+(salesCount||0)+' sales</div>'+
           '<div class="store-stat-pill">'+ratingTxt+'</div>'+
           '</div></div>';
 

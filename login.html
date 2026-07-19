@@ -47,7 +47,7 @@
         </div>
         <div class="form-group"><label>Full Name *</label><input type="text" id="signup-name" placeholder="Thabo Mokoena"/></div>
         <div class="form-group"><label>WhatsApp Number *</label><input type="text" id="signup-whatsapp" placeholder="0812345678"/></div>
-        <div class="form-group seller-only" style="display:none"><label>Residence *</label><input type="text" id="signup-residence" placeholder="e.g. Heroes Residence"/></div>
+        <div class="form-group seller-only" style="display:none"><label>Residence</label><input type="text" id="signup-residence" placeholder="e.g. Heroes Residence"/></div>
         <div class="form-group"><label>Email *</label><input type="email" id="signup-email" placeholder="your@email.com"/></div>
         <div class="form-group">
           <label>Password *</label>
@@ -94,7 +94,9 @@
       err.style.color='#9333ea';err.textContent='';
       const {error}=await supabase.auth.signInWithPassword({email,password});
       if(error){err.textContent='❌ '+error.message;return;}
-      window.location.href='profile.html';
+      const {data:{user}}=await supabase.auth.getUser();
+      const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
+      window.location.href = p?.role==='seller' ? 'seller.html' : 'profile.html';
     };
 
     document.getElementById('btn-signup').onclick=async()=>{
@@ -107,7 +109,6 @@
       const role=window.selectedRole||'buyer';
       err.style.color='#9333ea';err.textContent='';
       if(!name||!wa||!email||!password){err.textContent='❌ Please fill in all fields';return;}
-      if(role==='seller'&&!res){err.textContent='❌ Sellers must enter their residence';return;}
       const {data,error}=await supabase.auth.signUp({email,password});
       if(error){err.textContent='❌ '+error.message;return;}
       if(data.user){
