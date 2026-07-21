@@ -12,6 +12,7 @@
     <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
     <div class="nav-links">
       <a href="index.html">Browse</a>
+      <a href="#" id="nav-favorites" onclick="toggleFavoritesView();return false" style="display:none">❤️ Favorites</a>
       <a href="profile.html" id="nav-profile" style="display:none">My Profile</a>
       <a href="login.html" id="nav-auth">Sign in</a>
       <div class="nav-cart" onclick="openCart()" title="Cart">🛒<span class="cart-badge" id="cart-badge" style="display:none">0</span></div>
@@ -57,6 +58,24 @@
   <div class="tb-panel" id="tb-panel" style="display:none"></div>
 
   <main class="main">
+    <div id="recently-viewed-section" style="display:none;margin-bottom:18px">
+      <div class="section-header"><div class="section-title" style="font-size:15px">🕐 Recently viewed</div></div>
+      <div class="grid" id="recently-viewed-grid"></div>
+    </div>
+
+    <div class="filter-toolbar">
+      <select id="sort-select" onchange="doFilter()">
+        <option value="newest">Newest first</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+      </select>
+      <input type="number" id="price-min" placeholder="Min R" onchange="doFilter()"/>
+      <input type="number" id="price-max" placeholder="Max R" onchange="doFilter()"/>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#555;cursor:pointer">
+        <input type="checkbox" id="my-campus-only" onchange="doFilter()" style="width:15px;height:15px"/> Only my campus
+      </label>
+    </div>
+
     <div class="grid" id="listings-grid"><p class="loading-msg">Loading listings... ⏳</p></div>
   </main>
 
@@ -98,6 +117,40 @@
         </div>
         <button class="btn-order" id="btn-add-to-cart">🛒 Add to Cart</button>
         <button class="btn-order-cart" id="btn-order-now">Order Now</button>
+        <div id="modal-similar-section" style="display:none;margin-top:18px">
+          <div style="font-size:13px;font-weight:800;color:#888;margin-bottom:8px">You might also like</div>
+          <div class="grid" id="modal-similar-grid" style="grid-template-columns:repeat(2,1fr);gap:8px"></div>
+        </div>
+        <div style="text-align:center;margin-top:12px">
+          <a href="#" onclick="event.preventDefault();openReportModal()" style="font-size:12px;color:#aaa;font-weight:700;text-decoration:none">🚩 Report this listing</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT MODAL -->
+  <div class="modal-overlay" id="report-modal-overlay" onclick="closeReportModal()">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:420px">
+      <button class="modal-close" onclick="closeReportModal()">✕</button>
+      <div style="padding:22px 20px">
+        <div class="tb-heading">🚩 Report this listing</div>
+        <div class="form-group">
+          <label>Reason</label>
+          <select id="report-reason">
+            <option>Scam or fraud</option>
+            <option>Prohibited item</option>
+            <option>Misleading listing</option>
+            <option>Inappropriate content</option>
+            <option>Seller unresponsive / no-show</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Details (optional)</label>
+          <textarea id="report-details" rows="3" placeholder="Tell us more..."></textarea>
+        </div>
+        <div class="form-error" id="report-error"></div>
+        <button class="btn-primary" onclick="submitReport()">Submit Report</button>
       </div>
     </div>
   </div>
@@ -146,6 +199,9 @@
       <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="index.html">Browse listings</a>
+      <a class="footer-link" href="terms.html">Terms</a>
+      <a class="footer-link" href="privacy.html">Privacy</a>
+      <a class="footer-link" href="guidelines.html">Guidelines</a>
     </div>
     <div class="footer-copy">© 2025 Student Marketplace · Built for all students</div>
   </footer>
@@ -337,17 +393,21 @@
     // Init
     const {data:{user}}=await supabase.auth.getUser();
     currentUser=user;
+    let myFavorites=new Set();
     if(user){
       document.getElementById('nav-auth').textContent='Sign out';
       document.getElementById('nav-auth').href='#';
       document.getElementById('nav-auth').onclick=async()=>{await supabase.auth.signOut();location.reload();};
       document.getElementById('nav-profile').style.display='inline';
+      document.getElementById('nav-favorites').style.display='inline';
       const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
       if(p?.role==='seller') document.getElementById('nav-profile').href='seller.html';
+      const {data:favs}=await supabase.from('favorites').select('listing_id').eq('user_id',user.id);
+      myFavorites=new Set((favs||[]).map(f=>f.listing_id));
       loadCart();
     }
 
-    const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until)').eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false});
+    const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until)').eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('created_at',{ascending:false});
     const today=new Date().toISOString().slice(0,10);
     all=(data||[]).filter(l=>{
       const p=l.profiles;
@@ -355,12 +415,30 @@
       const overdue = p.subscription_paid_until && p.subscription_paid_until < today;
       return !(p.is_blocked===true || overdue);
     });
+
+    // Verified-seller badge: sellers with 5+ completed sales
+    let verifiedSellers=new Set();
+    const sellerIds=[...new Set(all.map(l=>l.seller_id))];
+    if(sellerIds.length){
+      const {data:completedOrders}=await supabase.from('orders').select('seller_id').eq('status','completed').in('seller_id',sellerIds);
+      const counts={};
+      (completedOrders||[]).forEach(o=>{counts[o.seller_id]=(counts[o.seller_id]||0)+1;});
+      verifiedSellers=new Set(Object.keys(counts).filter(id=>counts[id]>=5));
+    }
+
     render(all);
+    renderRecentlyViewed();
     const pendingOpenId=new URLSearchParams(location.search).get('open');
 
     function render(list){
       const g=document.getElementById('listings-grid');
-      if(!list.length){g.innerHTML='<p class="loading-msg">No listings yet 🚀</p>';return;}
+      if(!list.length){
+        g.innerHTML='<div class="loading-msg" style="text-align:center">'+
+          '<p>No listings match your filters 🤔</p>'+
+          '<button class="btn-primary" style="margin-top:10px;padding:10px 24px;border-radius:50px" onclick="resetFilters()">Reset filters</button>'+
+          '</div>';
+        return;
+      }
       g.innerHTML=list.map(l=>{
         const c=CAT_COLOR[l.category]||{bg:'#f5f5f5',text:'#555'};
         const e=CAT_EMOJI[l.category]||'🛍️';
@@ -372,17 +450,66 @@
         const flatVal=flatConf?l[flatConf.field]:null;
         const tbTag=(l.category==='Textbooks'&&l.textbook_year)?'<div class="card-residence">🎓 '+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+'</div>':(flatVal?'<div class="card-residence">'+flatConf.emoji+' '+flatVal+'</div>':'');
         const outOfStock=l.quantity<=0;
+        const isFav=myFavorites.has(l.id);
+        const heart=currentUser?'<button class="fav-heart" onclick="event.stopPropagation();window._toggleFav(\''+l.id+'\')">'+(isFav?'❤️':'🤍')+'</button>':'';
+        const condTag=l.condition?'<span class="condition-tag">'+l.condition+'</span>':'';
+        const negTag=l.is_negotiable?'<span class="negotiable-tag">💬 Negotiable</span>':'';
+        const verifiedTag=verifiedSellers.has(l.seller_id)?'<span class="verified-badge">✅ Verified</span>':'';
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
-          '<div class="card-img" style="background:'+c.bg+'">'+db+img+'</div>'+
+          '<div class="card-img" style="background:'+c.bg+'">'+db+heart+img+'</div>'+
           '<div class="card-body">'+
           '<div class="card-title">'+l.title+'</div>'+
-          '<div class="card-seller">👤 '+(l.profiles?.full_name||'Seller')+'</div>'+
+          '<div class="card-seller">👤 '+(l.profiles?.full_name||'Seller')+verifiedTag+'</div>'+
           (l.profiles?.residence?'<div class="card-residence">📍 '+l.profiles.residence+'</div>':'')+
           tbTag+
+          '<div>'+condTag+negTag+'</div>'+
           stock+
           '<div class="card-footer"><span class="price">R'+fp+'</span>'+
           '<button class="btn-add-cart" '+(outOfStock?'disabled':'')+' onclick="event.stopPropagation();window._quickAdd(\''+l.id+'\')">'+(outOfStock?'Out of stock':'+ Cart')+'</button>'+
           '</div></div></div>';
+      }).join('');
+    }
+    window.resetFilters=()=>{
+      document.getElementById('search-input').value='';
+      document.getElementById('price-min').value='';
+      document.getElementById('price-max').value='';
+      document.getElementById('sort-select').value='newest';
+      document.getElementById('my-campus-only').checked=false;
+      showFavoritesOnly=false;
+      selectCat('All',document.querySelector('.cat'));
+    };
+    window._toggleFav=async(id)=>{
+      if(!currentUser){location.href='login.html';return;}
+      if(myFavorites.has(id)){
+        myFavorites.delete(id);
+        await supabase.from('favorites').delete().eq('user_id',currentUser.id).eq('listing_id',id);
+      } else {
+        myFavorites.add(id);
+        await supabase.from('favorites').insert({user_id:currentUser.id,listing_id:id});
+      }
+      doFilter();
+    };
+    let showFavoritesOnly=false;
+    window.toggleFavoritesView=()=>{
+      if(!currentUser){location.href='login.html';return;}
+      showFavoritesOnly=!showFavoritesOnly;
+      document.getElementById('nav-favorites').style.color=showFavoritesOnly?'#7c3aed':'';
+      doFilter();
+    };
+    function renderRecentlyViewed(){
+      let recent=JSON.parse(localStorage.getItem('sm_recently_viewed')||'[]');
+      const items=recent.map(id=>all.find(l=>l.id===id)).filter(Boolean).slice(0,8);
+      const section=document.getElementById('recently-viewed-section');
+      if(!items.length){section.style.display='none';return;}
+      section.style.display='block';
+      document.getElementById('recently-viewed-grid').innerHTML=items.map(l=>{
+        const c=CAT_COLOR[l.category]||{bg:'#f5f5f5'};
+        const e=CAT_EMOJI[l.category]||'🛍️';
+        const img=l.image_url?'<img src="'+l.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
+        return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
+          '<div class="card-img" style="background:'+c.bg+'">'+img+'</div>'+
+          '<div class="card-body"><div class="card-title">'+l.title+'</div>'+
+          '<div class="card-footer"><span class="price">R'+(l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price)+'</span></div></div></div>';
       }).join('');
     }
 
@@ -415,7 +542,8 @@
       const flatConf2=FLAT_SUBCATS[l.category];
       const flatVal2=flatConf2?l[flatConf2.field]:null;
       const deliveryTxt = l.profiles?.university ? (l.profiles.deliver_all_campuses ? 'All '+l.profiles.university+' campuses' : (l.profiles.delivery_campuses||[]).join(', ')||l.profiles.university) : null;
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit this seller\'s store</a></div>';
+      const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+l.condition+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit this seller\'s store</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -431,6 +559,54 @@
       }
       document.getElementById('modal-overlay').style.display='flex';
       document.body.style.overflow='hidden';
+
+      // Track recently viewed
+      let recent=JSON.parse(localStorage.getItem('sm_recently_viewed')||'[]');
+      recent=recent.filter(x=>x!==id);
+      recent.unshift(id);
+      localStorage.setItem('sm_recently_viewed',JSON.stringify(recent.slice(0,12)));
+
+      // Similar listings (same category, excluding this one)
+      const similar=all.filter(x=>x.category===l.category&&x.id!==l.id).slice(0,4);
+      const simSection=document.getElementById('modal-similar-section');
+      if(similar.length){
+        simSection.style.display='block';
+        document.getElementById('modal-similar-grid').innerHTML=similar.map(s=>{
+          const sc=CAT_COLOR[s.category]||{bg:'#f5f5f5'};
+          const se=CAT_EMOJI[s.category]||'🛍️';
+          const simg=s.image_url?'<img src="'+s.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:28px">${se}</span>`;
+          return '<div class="card" onclick="window._open(\''+s.id+'\')" style="cursor:pointer">'+
+            '<div class="card-img" style="background:'+sc.bg+';height:90px">'+simg+'</div>'+
+            '<div class="card-body" style="padding:8px"><div class="card-title" style="font-size:12px">'+s.title+'</div>'+
+            '<div class="card-footer"><span class="price" style="font-size:13px">R'+(s.discount_percent>0?Math.round(s.price*(1-s.discount_percent/100)):s.price)+'</span></div></div></div>';
+        }).join('');
+      } else {
+        simSection.style.display='none';
+      }
+    };
+
+    // ===== REPORT LISTING =====
+    window.openReportModal=()=>{
+      if(!currentUser){location.href='login.html';return;}
+      document.getElementById('report-error').textContent='';
+      document.getElementById('report-modal-overlay').style.display='flex';
+    };
+    window.closeReportModal=()=>{document.getElementById('report-modal-overlay').style.display='none';};
+    window.submitReport=async()=>{
+      const err=document.getElementById('report-error');
+      err.style.color='#9333ea';err.textContent='';
+      if(!currentListing){err.textContent='❌ No listing selected';return;}
+      const {error}=await supabase.from('reports').insert({
+        reporter_id:currentUser.id,
+        listing_id:currentListing.id,
+        reported_user_id:currentListing.seller_id,
+        reason:document.getElementById('report-reason').value,
+        details:document.getElementById('report-details').value.trim()||null
+      });
+      if(error){err.textContent='❌ '+error.message;return;}
+      err.style.color='#2e7d32';err.textContent='✅ Report submitted. Thanks for helping keep the marketplace safe!';
+      document.getElementById('report-details').value='';
+      setTimeout(closeReportModal,1800);
     };
 
     window.slideGallery=(dir)=>{
@@ -604,6 +780,32 @@
         f=f.filter(l=>l.category===cat);
       }
       if(q)f=f.filter(l=>l.title.toLowerCase().includes(q)||(l.description||'').toLowerCase().includes(q));
+
+      if(showFavoritesOnly) f=f.filter(l=>myFavorites.has(l.id));
+
+      const minP=parseFloat(document.getElementById('price-min').value);
+      const maxP=parseFloat(document.getElementById('price-max').value);
+      if(!isNaN(minP)) f=f.filter(l=>(l.discount_percent>0?l.price*(1-l.discount_percent/100):l.price)>=minP);
+      if(!isNaN(maxP)) f=f.filter(l=>(l.discount_percent>0?l.price*(1-l.discount_percent/100):l.price)<=maxP);
+
+      if(document.getElementById('my-campus-only').checked){
+        const saved=JSON.parse(localStorage.getItem('sm_university')||'null');
+        if(saved){
+          f=f.filter(l=>{
+            const p=l.profiles;
+            if(!p?.university) return false;
+            if(p.university!==saved.uni) return false;
+            return p.deliver_all_campuses || (p.delivery_campuses||[]).includes(saved.campus);
+          });
+        }
+      }
+
+      const sortMode=document.getElementById('sort-select').value;
+      f=[...f];
+      if(sortMode==='price_asc') f.sort((a,b)=>(a.discount_percent>0?a.price*(1-a.discount_percent/100):a.price)-(b.discount_percent>0?b.price*(1-b.discount_percent/100):b.price));
+      else if(sortMode==='price_desc') f.sort((a,b)=>(b.discount_percent>0?b.price*(1-b.discount_percent/100):b.price)-(a.discount_percent>0?a.price*(1-a.discount_percent/100):a.price));
+      else f.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+
       render(f);
     };
     window.filterListings=window.doFilter;

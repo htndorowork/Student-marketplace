@@ -41,12 +41,18 @@
 
       <div class="dash-tabs">
         <button class="dash-tab active" onclick="showTab('orders',this)">📦 My Orders</button>
+        <button class="dash-tab" onclick="showTab('favorites',this)">❤️ Favorites</button>
         <button class="dash-tab" onclick="showTab('edit',this)">✏️ Edit Profile</button>
       </div>
 
       <!-- ORDERS -->
       <div id="tab-orders">
         <div id="orders-container"><p class="loading-msg">Loading orders... ⏳</p></div>
+      </div>
+
+      <!-- FAVORITES -->
+      <div id="tab-favorites" style="display:none">
+        <div class="grid" id="favorites-container"><p class="loading-msg">Loading favorites... ⏳</p></div>
       </div>
 
       <!-- EDIT PROFILE -->
@@ -64,6 +70,10 @@
           </div>
           <div class="form-error" id="profile-err"></div>
           <button class="btn-primary" id="btn-save-profile">Save Profile ✅</button>
+          <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0">
+            <button class="btn-sm btn-delete" onclick="requestAccountDeletion()">🗑️ Delete my account</button>
+            <p style="font-size:11px;color:#aaa;font-weight:600;margin-top:6px">This removes your profile data. Contact support to fully close your account and remove your listings/orders.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -76,13 +86,16 @@
       <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="index.html">Browse listings</a>
+      <a class="footer-link" href="terms.html">Terms</a>
+      <a class="footer-link" href="privacy.html">Privacy</a>
+      <a class="footer-link" href="guidelines.html">Guidelines</a>
     </div>
     <div class="footer-copy">© 2025 Student Marketplace</div>
   </footer>
 
   <script>
     function setRole(r){document.getElementById('r-buyer').classList.toggle('active',r==='buyer');document.getElementById('r-seller').classList.toggle('active',r==='seller');window._selectedRole=r;}
-    function showTab(t,el){['orders','edit'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'block':'none');document.querySelectorAll('.dash-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
+    function showTab(t,el){['orders','favorites','edit'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'block':'none');document.querySelectorAll('.dash-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(t==='favorites')window._loadFavorites();}
     window.showTab=showTab;window.setRole=setRole;
   </script>
   <script type="module">
@@ -161,7 +174,10 @@
             ratingHtml='<div class="order-detail" style="margin-top:6px">⭐ You rated this seller: <strong>'+myReviews[o.id]+'/5</strong></div>';
           } else {
             ratingHtml='<div class="order-detail" style="margin-top:6px">Rate this seller: '+
-              [1,2,3,4,5].map(n=>'<span style="cursor:pointer;font-size:18px" onclick="window._rateSeller(\''+o.id+'\',\''+o.seller_id+'\','+n+')">☆</span>').join('')+
+              [1,2,3,4,5].map(n=>'<span style="cursor:pointer;font-size:18px" onclick="window._starClick(this,'+n+')">☆</span>').join('')+
+              '<input type="hidden" class="rate-val" value="0"/>'+
+              '<textarea class="rate-comment" placeholder="Optional comment..." rows="2" style="width:100%;margin-top:6px;font-family:inherit;font-size:12px;padding:6px;border:2px solid #f0f0f0;border-radius:8px"></textarea>'+
+              '<button class="btn-sm btn-toggle" style="margin-top:4px" onclick="window._submitRating(this,\''+o.id+'\',\''+o.seller_id+'\')">Submit rating</button>'+
               '</div>';
           }
         }
@@ -180,10 +196,44 @@
       }).join('');
     }
 
-    window._rateSeller=async(orderId,sellerId,rating)=>{
-      const {error}=await supabase.from('reviews').insert({order_id:orderId,seller_id:sellerId,buyer_id:currentUser.id,rating});
+    window._starClick=(el,n)=>{
+      const wrap=el.parentElement;
+      wrap.querySelectorAll('.rate-val')[0].value=n;
+      wrap.querySelectorAll('span').forEach((s,i)=>s.textContent=(i<n)?'⭐':'☆');
+    };
+    window._submitRating=async(btn,orderId,sellerId)=>{
+      const wrap=btn.parentElement;
+      const rating=parseInt(wrap.querySelector('.rate-val').value)||0;
+      const comment=wrap.querySelector('.rate-comment').value.trim();
+      if(!rating){alert('Tap a star to choose a rating first');return;}
+      const {error}=await supabase.from('reviews').insert({order_id:orderId,seller_id:sellerId,buyer_id:currentUser.id,rating,comment:comment||null});
       if(error){alert('Could not submit rating: '+error.message);return;}
       loadBuyerOrders();
+    };
+
+    window._loadFavorites=async()=>{
+      const c=document.getElementById('favorites-container');
+      c.innerHTML='<p class="loading-msg">Loading favorites... ⏳</p>';
+      const {data:favs}=await supabase.from('favorites').select('listing_id,listings(*)').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+      const items=(favs||[]).map(f=>f.listings).filter(Boolean);
+      if(!items.length){c.innerHTML='<p class="loading-msg">No favorites yet — heart a listing while browsing! ❤️</p>';return;}
+      const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Rentals:'🔁',Furniture:'🛋️'};
+      c.innerHTML=items.map(l=>{
+        const e=CAT_EMOJI[l.category]||'🛍️';
+        const img=l.image_url?'<img src="'+l.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
+        const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+        return '<div class="card" onclick="location.href=\'index.html?open='+l.id+'\'">'+
+          '<div class="card-img" style="background:#f5f5f5">'+img+'</div>'+
+          '<div class="card-body"><div class="card-title">'+l.title+'</div>'+
+          '<div class="card-footer"><span class="price">R'+fp+'</span></div></div></div>';
+      }).join('');
+    };
+
+    window.requestAccountDeletion=async()=>{
+      if(!confirm('This clears your saved name, WhatsApp number and residence from our system, and signs you out. Your past orders stay on record for the sellers you dealt with. To fully delete your login and all data, email us afterwards using the Report an issue link. Continue?'))return;
+      await supabase.from('profiles').update({full_name:null,whatsapp:null,residence:null}).eq('id',currentUser.id);
+      await supabase.auth.signOut();
+      window.location.href='index.html';
     };
 
     init();

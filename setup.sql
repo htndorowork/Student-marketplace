@@ -51,6 +51,11 @@ CREATE TABLE IF NOT EXISTS listings (
   image_url_4 text,
   image_url_5 text,
   image_url_6 text,
+  condition text,
+  is_negotiable boolean DEFAULT false,
+  delivery_fee numeric DEFAULT 0,
+  is_draft boolean DEFAULT false,
+  is_sold boolean DEFAULT false,
   is_available boolean DEFAULT true,
   textbook_year text,
   textbook_subject text,
@@ -91,6 +96,11 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS furniture_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_4 text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_5 text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_6 text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS condition text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS is_negotiable boolean DEFAULT false;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS delivery_fee numeric DEFAULT 0;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS is_draft boolean DEFAULT false;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS is_sold boolean DEFAULT false;
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
@@ -122,6 +132,48 @@ CREATE TABLE IF NOT EXISTS reviews (
   buyer_id uuid,
   rating integer NOT NULL CHECK (rating BETWEEN 1 AND 5),
   comment text,
+  created_at timestamp DEFAULT now()
+);
+
+-- Buyer reviews (one per completed order, seller rates the buyer)
+CREATE TABLE IF NOT EXISTS buyer_reviews (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  order_id uuid UNIQUE,
+  seller_id uuid,
+  buyer_id uuid,
+  rating integer NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment text,
+  created_at timestamp DEFAULT now()
+);
+
+-- Favorites / wishlist
+CREATE TABLE IF NOT EXISTS favorites (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid,
+  listing_id uuid,
+  created_at timestamp DEFAULT now(),
+  UNIQUE(user_id, listing_id)
+);
+
+-- Reports (a listing or a seller/user)
+CREATE TABLE IF NOT EXISTS reports (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  reporter_id uuid,
+  listing_id uuid,
+  reported_user_id uuid,
+  reason text NOT NULL,
+  details text,
+  status text DEFAULT 'open',
+  created_at timestamp DEFAULT now()
+);
+
+-- Admin audit log
+CREATE TABLE IF NOT EXISTS admin_audit_log (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  admin_id uuid,
+  action text NOT NULL,
+  target_id uuid,
+  details text,
   created_at timestamp DEFAULT now()
 );
 
@@ -172,6 +224,28 @@ ALTER TABLE reviews
 ADD CONSTRAINT reviews_buyer_id_fkey
 FOREIGN KEY (buyer_id) REFERENCES profiles(id) ON DELETE SET NULL;
 
+ALTER TABLE buyer_reviews DROP CONSTRAINT IF EXISTS buyer_reviews_order_id_fkey;
+ALTER TABLE buyer_reviews DROP CONSTRAINT IF EXISTS buyer_reviews_seller_id_fkey;
+ALTER TABLE buyer_reviews DROP CONSTRAINT IF EXISTS buyer_reviews_buyer_id_fkey;
+ALTER TABLE buyer_reviews ADD CONSTRAINT buyer_reviews_order_id_fkey FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+ALTER TABLE buyer_reviews ADD CONSTRAINT buyer_reviews_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES profiles(id) ON DELETE SET NULL;
+ALTER TABLE buyer_reviews ADD CONSTRAINT buyer_reviews_buyer_id_fkey FOREIGN KEY (buyer_id) REFERENCES profiles(id) ON DELETE CASCADE;
+
+ALTER TABLE favorites DROP CONSTRAINT IF EXISTS favorites_user_id_fkey;
+ALTER TABLE favorites DROP CONSTRAINT IF EXISTS favorites_listing_id_fkey;
+ALTER TABLE favorites ADD CONSTRAINT favorites_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+ALTER TABLE favorites ADD CONSTRAINT favorites_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE;
+
+ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_reporter_id_fkey;
+ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_listing_id_fkey;
+ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_reported_user_id_fkey;
+ALTER TABLE reports ADD CONSTRAINT reports_reporter_id_fkey FOREIGN KEY (reporter_id) REFERENCES profiles(id) ON DELETE SET NULL;
+ALTER TABLE reports ADD CONSTRAINT reports_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE;
+ALTER TABLE reports ADD CONSTRAINT reports_reported_user_id_fkey FOREIGN KEY (reported_user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+
+ALTER TABLE admin_audit_log DROP CONSTRAINT IF EXISTS admin_audit_log_admin_id_fkey;
+ALTER TABLE admin_audit_log ADD CONSTRAINT admin_audit_log_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES profiles(id) ON DELETE SET NULL;
+
 -- ===================== ROW LEVEL SECURITY =====================
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -180,6 +254,10 @@ ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cart_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE buyer_reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
 
 -- Drop any old policies (safe if they don't exist)
 DROP POLICY IF EXISTS "profiles_read" ON profiles;
@@ -210,6 +288,18 @@ DROP POLICY IF EXISTS "settings_write" ON settings;
 DROP POLICY IF EXISTS "reviews_read" ON reviews;
 DROP POLICY IF EXISTS "reviews_insert" ON reviews;
 
+DROP POLICY IF EXISTS "buyer_reviews_read" ON buyer_reviews;
+DROP POLICY IF EXISTS "buyer_reviews_insert" ON buyer_reviews;
+
+DROP POLICY IF EXISTS "favorites_manage" ON favorites;
+
+DROP POLICY IF EXISTS "reports_insert" ON reports;
+DROP POLICY IF EXISTS "reports_read_admin" ON reports;
+DROP POLICY IF EXISTS "reports_update_admin" ON reports;
+
+DROP POLICY IF EXISTS "audit_log_read_admin" ON admin_audit_log;
+DROP POLICY IF EXISTS "audit_log_insert_admin" ON admin_audit_log;
+
 -- PROFILES policies
 CREATE POLICY "profiles_read" ON profiles FOR SELECT USING (true);
 CREATE POLICY "profiles_insert" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
@@ -230,7 +320,9 @@ CREATE POLICY "listings_insert" ON listings FOR INSERT WITH CHECK (
   )
 );
 CREATE POLICY "listings_update_seller" ON listings FOR UPDATE USING (
-  auth.uid() = seller_id AND is_available = true
+  auth.uid() = seller_id
+) WITH CHECK (
+  auth.uid() = seller_id
 );
 CREATE POLICY "listings_update_admin" ON listings FOR UPDATE USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
@@ -266,6 +358,33 @@ CREATE POLICY "reviews_read" ON reviews FOR SELECT USING (true);
 CREATE POLICY "reviews_insert" ON reviews FOR INSERT WITH CHECK (
   auth.uid() = buyer_id AND
   EXISTS (SELECT 1 FROM orders WHERE id = order_id AND buyer_id = auth.uid() AND status = 'completed')
+);
+
+-- BUYER_REVIEWS policies (seller rates the buyer)
+CREATE POLICY "buyer_reviews_read" ON buyer_reviews FOR SELECT USING (true);
+CREATE POLICY "buyer_reviews_insert" ON buyer_reviews FOR INSERT WITH CHECK (
+  auth.uid() = seller_id AND
+  EXISTS (SELECT 1 FROM orders WHERE id = order_id AND seller_id = auth.uid() AND status = 'completed')
+);
+
+-- FAVORITES policies (fully private to the user)
+CREATE POLICY "favorites_manage" ON favorites FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- REPORTS policies
+CREATE POLICY "reports_insert" ON reports FOR INSERT WITH CHECK (auth.uid() = reporter_id);
+CREATE POLICY "reports_read_admin" ON reports FOR SELECT USING (
+  auth.uid() = reporter_id OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
+);
+CREATE POLICY "reports_update_admin" ON reports FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
+);
+
+-- ADMIN AUDIT LOG policies
+CREATE POLICY "audit_log_read_admin" ON admin_audit_log FOR SELECT USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
+);
+CREATE POLICY "audit_log_insert_admin" ON admin_audit_log FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
 
 -- ===================== AUTO-CREATE PROFILE ON SIGNUP =====================

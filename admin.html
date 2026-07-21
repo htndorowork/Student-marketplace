@@ -55,11 +55,14 @@
         <button class="admin-tab" onclick="showTab('sellers',this)">👥 Users</button>
         <button class="admin-tab" onclick="showTab('paid',this)">✅ Paid Sellers</button>
         <button class="admin-tab" onclick="showTab('unpaid',this)">❌ Unpaid Sellers</button>
+        <button class="admin-tab" onclick="showTab('reports',this)">🚩 Reports</button>
+        <button class="admin-tab" onclick="showTab('analytics',this)">📊 Analytics</button>
         <button class="admin-tab" onclick="showTab('orders',this)">🛒 Orders</button>
       </div>
 
       <div id="tab-listings">
         <input class="search-admin" type="text" placeholder="Search listings..." oninput="searchListings(this.value)"/>
+        <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportListingsCSV()">⬇️ Export CSV</button>
         <div id="all-listings-container"><p class="loading-msg">Loading...</p></div>
       </div>
       <div id="tab-sellers" style="display:none"><div id="all-sellers-container"><p class="loading-msg">Loading...</p></div></div>
@@ -69,9 +72,20 @@
       </div>
       <div id="tab-unpaid" style="display:none">
         <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">These sellers are automatically blocked from posting and hidden from buyers until marked as paid.</p>
+        <button class="btn-sm btn-delete" style="margin-bottom:12px" onclick="blockAllOverdue()">🚫 Block all overdue sellers now</button>
         <div id="unpaid-sellers-container"><p class="loading-msg">Loading...</p></div>
       </div>
-      <div id="tab-orders" style="display:none"><div id="all-orders-container"><p class="loading-msg">Loading...</p></div></div>
+      <div id="tab-reports" style="display:none">
+        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Listings and sellers flagged by buyers.</p>
+        <div id="reports-container"><p class="loading-msg">Loading...</p></div>
+      </div>
+      <div id="tab-analytics" style="display:none">
+        <div id="analytics-container"><p class="loading-msg">Loading...</p></div>
+      </div>
+      <div id="tab-orders" style="display:none">
+        <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportOrdersCSV()">⬇️ Export CSV</button>
+        <div id="all-orders-container"><p class="loading-msg">Loading...</p></div>
+      </div>
     </div>
   </main>
 
@@ -80,12 +94,14 @@
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
     const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
     let allListings=[];
+    let currentAdminId=null;
 
     async function init(){
       const {data:{user}}=await supabase.auth.getUser();
       if(!user){window.location.href='login.html';return;}
       const {data:p}=await supabase.from('profiles').select('is_admin').eq('id',user.id).single();
       if(!p?.is_admin){document.getElementById('access-denied').style.display='block';return;}
+      currentAdminId=user.id;
       document.getElementById('admin-content').style.display='block';
       document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
       loadPaywall();loadStats();loadListings();
@@ -210,17 +226,104 @@
       }).join('');
     }
 
+    async function logAction(action,targetId,details){
+      try{ await supabase.from('admin_audit_log').insert({admin_id:currentAdminId,action,target_id:targetId,details}); }catch(e){}
+    }
+
     window._markPaid=async(id)=>{
       const paidUntil=new Date(); paidUntil.setDate(paidUntil.getDate()+30);
       const {error}=await supabase.from('profiles').update({subscription_paid_until:paidUntil.toISOString().slice(0,10),is_blocked:false}).eq('id',id);
       if(error){alert('Error: '+error.message);return;}
+      logAction('mark_paid',id,'Extended subscription 30 days');
       loadPaidSellers();loadUnpaidSellers();
     };
     window._blockSeller=async(id)=>{
       if(!confirm('Temporarily block this seller? Their listings will be hidden from buyers and they cannot post new ones until unblocked.'))return;
       const {error}=await supabase.from('profiles').update({is_blocked:true}).eq('id',id);
       if(error){alert('Error: '+error.message);return;}
+      logAction('block_seller',id,'Manually blocked');
       loadPaidSellers();loadUnpaidSellers();
+    };
+    window.blockAllOverdue=async()=>{
+      if(!confirm('Block every seller whose subscription has expired? This hides their listings from buyers immediately.'))return;
+      const today=new Date().toISOString().slice(0,10);
+      const {data}=await supabase.from('profiles').select('id').eq('role','seller').lt('subscription_paid_until',today);
+      const ids=(data||[]).map(s=>s.id);
+      if(!ids.length){alert('No overdue sellers to block.');return;}
+      await supabase.from('profiles').update({is_blocked:true}).in('id',ids);
+      logAction('bulk_block_overdue',null,ids.length+' sellers blocked');
+      loadPaidSellers();loadUnpaidSellers();
+    };
+
+    async function loadReports(){
+      const c=document.getElementById('reports-container');
+      const {data}=await supabase.from('reports').select('*,listings(title),reported:profiles!reports_reported_user_id_fkey(full_name)').order('created_at',{ascending:false});
+      if(!data?.length){c.innerHTML='<div class="empty-msg">No reports filed 🎉</div>';return;}
+      c.innerHTML=data.map(r=>'<div class="seller-row">'+
+        '<div class="listing-info" style="flex:1">'+
+        '<div class="listing-title">'+r.reason+(r.status==='open'?' <span style="color:#9333ea;font-weight:800">(open)</span>':' <span style="color:#2e7d32;font-weight:800">(resolved)</span>')+'</div>'+
+        '<div class="listing-meta">📦 Listing: '+(r.listings?.title||'—')+' · 👤 Reported: '+(r.reported?.full_name||'Unknown')+'</div>'+
+        (r.details?'<div class="listing-meta">💬 '+r.details+'</div>':'')+
+        '<div class="listing-meta" style="color:#aaa">'+new Date(r.created_at).toLocaleDateString('en-ZA')+'</div>'+
+        '</div>'+
+        (r.status==='open'?'<button class="btn-sm btn-toggle" onclick="window._resolveReport(\''+r.id+'\')">Mark Resolved</button>':'')+
+        '</div>'
+      ).join('');
+    }
+    window._resolveReport=async(id)=>{
+      await supabase.from('reports').update({status:'resolved'}).eq('id',id);
+      logAction('resolve_report',id,null);
+      loadReports();
+    };
+
+    async function loadAnalytics(){
+      const c=document.getElementById('analytics-container');
+      c.innerHTML='<p class="loading-msg">Crunching numbers...</p>';
+      const [{data:listings},{data:orders},{count:userCount}] = await Promise.all([
+        supabase.from('listings').select('category,created_at,seller_id'),
+        supabase.from('orders').select('status,created_at'),
+        supabase.from('profiles').select('id',{count:'exact',head:true})
+      ]);
+      const byCategory={};
+      (listings||[]).forEach(l=>{byCategory[l.category]=(byCategory[l.category]||0)+1;});
+      const topCats=Object.entries(byCategory).sort((a,b)=>b[1]-a[1]).slice(0,8);
+      const completedCount=(orders||[]).filter(o=>o.status==='completed').length;
+      const sevenDaysAgo=new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate()-7);
+      const newListings7d=(listings||[]).filter(l=>new Date(l.created_at)>=sevenDaysAgo).length;
+      const uniqueSellers=new Set((listings||[]).map(l=>l.seller_id)).size;
+
+      c.innerHTML=
+        '<div class="stats" style="margin-bottom:20px">'+
+        '<div class="stat"><div class="stat-num">'+(listings?.length||0)+'</div><div class="stat-label">Total Listings</div></div>'+
+        '<div class="stat"><div class="stat-num">'+userCount+'</div><div class="stat-label">Total Users</div></div>'+
+        '<div class="stat"><div class="stat-num">'+completedCount+'</div><div class="stat-label">Completed Orders</div></div>'+
+        '</div>'+
+        '<div class="stats" style="margin-bottom:20px">'+
+        '<div class="stat"><div class="stat-num">'+newListings7d+'</div><div class="stat-label">New Listings (7d)</div></div>'+
+        '<div class="stat"><div class="stat-num">'+uniqueSellers+'</div><div class="stat-label">Active Sellers</div></div>'+
+        '<div class="stat"><div class="stat-num">'+(orders?.length||0)+'</div><div class="stat-label">Total Orders</div></div>'+
+        '</div>'+
+        '<div class="form-card"><h3 style="font-size:15px;font-weight:800;margin-bottom:12px">Listings by Category</h3>'+
+        topCats.map(([cat,n])=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px;font-weight:700"><span>'+cat+'</span><span style="color:#7c3aed">'+n+'</span></div>').join('')+
+        '</div>';
+    }
+
+    function toCSV(rows,headers){
+      const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+      return headers.map(esc).join(',')+'\n'+rows.map(r=>headers.map(h=>esc(r[h])).join(',')).join('\n');
+    }
+    function downloadCSV(content,filename){
+      const blob=new Blob([content],{type:'text/csv'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    window.exportListingsCSV=()=>{
+      downloadCSV(toCSV(allListings,['id','title','category','price','quantity','condition','is_available','created_at']),'listings.csv');
+    };
+    window.exportOrdersCSV=async()=>{
+      const {data}=await supabase.from('orders').select('*');
+      downloadCSV(toCSV(data||[],['id','buyer_name','buyer_whatsapp','quantity','status','created_at']),'orders.csv');
     };
 
     window._atoggle=async(id,cur)=>{
@@ -232,6 +335,7 @@
       if(!confirm('Delete this listing permanently?'))return;
       const {error}=await supabase.from('listings').delete().eq('id',id);
       if(error){alert('Delete failed: '+error.message);return;}
+      logAction('delete_listing',id,null);
       loadListings();loadStats();
     };
     window._deluser=async(id)=>{
@@ -239,16 +343,19 @@
       const {e1}=await supabase.from('listings').delete().eq('seller_id',id);
       const {error}=await supabase.from('profiles').delete().eq('id',id);
       if(error){alert('Delete failed: '+error.message);return;}
+      logAction('delete_user',id,null);
       loadSellers();loadStats();
     };
     window._adone=async(id)=>{await supabase.from('orders').update({status:'completed'}).eq('id',id);loadOrders();};
     window.searchListings=(q)=>renderListings(allListings.filter(l=>l.title.toLowerCase().includes(q.toLowerCase())||(l.profiles?.full_name||'').toLowerCase().includes(q.toLowerCase())));
     window.showTab=(tab,el)=>{
-      ['listings','sellers','paid','unpaid','orders'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
+      ['listings','sellers','paid','unpaid','reports','analytics','orders'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
       document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
       if(tab==='sellers')loadSellers();
       if(tab==='paid')loadPaidSellers();
       if(tab==='unpaid')loadUnpaidSellers();
+      if(tab==='reports')loadReports();
+      if(tab==='analytics')loadAnalytics();
       if(tab==='orders')loadOrders();
     };
     init();

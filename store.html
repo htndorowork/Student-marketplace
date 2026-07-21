@@ -35,6 +35,11 @@
   <main class="main">
     <div class="section-header"><div class="section-title" id="store-listings-title">Listings 🛍️</div></div>
     <div class="grid" id="store-listings-grid"><p class="loading-msg">Loading listings... ⏳</p></div>
+
+    <div id="store-reviews-section" style="display:none;margin-top:28px">
+      <div class="section-header"><div class="section-title">Reviews ⭐</div></div>
+      <div id="store-reviews-list"></div>
+    </div>
   </main>
 
   <footer class="footer">
@@ -44,6 +49,9 @@
       <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="index.html">Browse listings</a>
+      <a class="footer-link" href="terms.html">Terms</a>
+      <a class="footer-link" href="privacy.html">Privacy</a>
+      <a class="footer-link" href="guidelines.html">Guidelines</a>
     </div>
     <div class="footer-copy">© 2025 Student Marketplace · Built for all students</div>
   </footer>
@@ -76,10 +84,11 @@
       headerEl.innerHTML = '<p class="loading-msg">No seller specified 🤔</p>';
       gridEl.innerHTML = '';
     } else {
-      const [{data:profile},{data:listings},{data:reviews}] = await Promise.all([
+      const [{data:profile},{data:listings},{data:reviews},{count:salesCountForBadge}] = await Promise.all([
         supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until').eq('id',sellerId).single(),
-        supabase.from('listings').select('*').eq('seller_id',sellerId).eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false}),
-        supabase.from('reviews').select('rating').eq('seller_id',sellerId)
+        supabase.from('listings').select('*').eq('seller_id',sellerId).eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('created_at',{ascending:false}),
+        supabase.from('reviews').select('rating,comment,created_at').eq('seller_id',sellerId).order('created_at',{ascending:false}),
+        supabase.from('orders').select('id',{count:'exact',head:true}).eq('seller_id',sellerId).eq('status','completed')
       ]);
 
       const today=new Date().toISOString().slice(0,10);
@@ -94,10 +103,11 @@
       } else {
         const displayName = profile.store_name || profile.full_name || 'Seller Store';
         const ratingTxt = (reviews && reviews.length) ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1)+' ⭐ ('+reviews.length+')' : 'No ratings yet';
+        const verifiedTag = (salesCountForBadge||0)>=5 ? '<span class="verified-badge">✅ Verified Seller</span>' : '';
         headerEl.innerHTML =
           '<div class="store-logo">'+(profile.store_logo_url?'<img src="'+profile.store_logo_url+'"/>':'🏪')+'</div>'+
           '<div>'+
-          '<div class="store-name">'+displayName+'</div>'+
+          '<div class="store-name">'+displayName+verifiedTag+'</div>'+
           (profile.store_bio?'<div class="store-bio">'+profile.store_bio+'</div>':'')+
           (profile.residence?'<div class="store-meta">📍 '+profile.residence+'</div>':'')+
           (profile.university?'<div class="store-meta">🚚 Delivers to: '+(profile.deliver_all_campuses?'All '+profile.university+' campuses':(profile.delivery_campuses||[]).join(', ')||profile.university)+'</div>':'')+
@@ -118,14 +128,29 @@
             const db=l.discount_percent>0?'<div class="discount-tag">-'+l.discount_percent+'% OFF</div>':'';
             const img=l.image_url?'<img src="'+l.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:44px">${e}</span>`;
             const stock=l.quantity>5?'<div class="card-stock">'+l.quantity+' in stock</div>':'<div class="card-stock low">Only '+l.quantity+' left!</div>';
+            const condTag=l.condition?'<span class="condition-tag">'+l.condition+'</span>':'';
+            const negTag=l.is_negotiable?'<span class="negotiable-tag">💬 Negotiable</span>':'';
             return '<div class="card" onclick="location.href=\'index.html?open='+l.id+'\'">'+
               '<div class="card-img" style="background:'+c.bg+'">'+db+img+'</div>'+
               '<div class="card-body">'+
               '<div class="card-title">'+l.title+'</div>'+
+              '<div>'+condTag+negTag+'</div>'+
               stock+
               '<div class="card-footer"><span class="price">R'+fp+'</span></div>'+
               '</div></div>';
           }).join('');
+        }
+
+        const withComments = (reviews||[]).filter(r=>r.comment && r.comment.trim());
+        if (withComments.length) {
+          document.getElementById('store-reviews-section').style.display='block';
+          document.getElementById('store-reviews-list').innerHTML = withComments.map(r=>
+            '<div style="background:#fff;border:2px solid #f0f0f0;border-radius:14px;padding:14px 16px;margin-bottom:10px">'+
+            '<div style="font-weight:800;color:#e65c00">'+'⭐'.repeat(r.rating)+'</div>'+
+            '<div style="font-size:13px;color:#555;font-weight:600;margin-top:4px">'+r.comment+'</div>'+
+            '<div style="font-size:11px;color:#aaa;font-weight:700;margin-top:4px">'+new Date(r.created_at).toLocaleDateString('en-ZA')+'</div>'+
+            '</div>'
+          ).join('');
         }
       }
     }

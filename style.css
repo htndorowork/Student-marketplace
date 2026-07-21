@@ -33,6 +33,14 @@ body { font-family: 'Nunito', sans-serif; background: #fafafa; color: #111; }
 .cats-arrow:hover { background: #f5f0fe; }
 .cats-arrow-left { border-right: 1px solid #f0f0f0; }
 .cats-arrow-right { border-left: 1px solid #f0f0f0; }
+
+.filter-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.filter-toolbar select, .filter-toolbar input[type="number"] { padding: 9px 12px; border: 2px solid #f0f0f0; border-radius: 10px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #444; background: #fff; }
+.filter-toolbar input[type="number"] { width: 90px; }
+.fav-heart { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; }
+.condition-tag { display: inline-block; background: #f0f0f0; color: #555; font-size: 10.5px; font-weight: 800; padding: 2px 9px; border-radius: 50px; margin-top: 4px; }
+.verified-badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 10.5px; font-weight: 800; padding: 2px 9px; border-radius: 50px; margin-left: 6px; }
+.negotiable-tag { display: inline-block; background: #fff3e0; color: #e65c00; font-size: 10.5px; font-weight: 800; padding: 2px 9px; border-radius: 50px; margin-top: 4px; margin-left: 4px; }
 .cat:hover { color: #111; }
 
 .main { padding: 24px; max-width: 900px; margin: 0 auto; }
