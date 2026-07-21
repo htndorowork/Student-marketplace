@@ -347,8 +347,14 @@
       loadCart();
     }
 
-    const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence)').eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false});
-    all=data||[];
+    const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until)').eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false});
+    const today=new Date().toISOString().slice(0,10);
+    all=(data||[]).filter(l=>{
+      const p=l.profiles;
+      if(!p) return true;
+      const overdue = p.subscription_paid_until && p.subscription_paid_until < today;
+      return !(p.is_blocked===true || overdue);
+    });
     render(all);
     const pendingOpenId=new URLSearchParams(location.search).get('open');
 
@@ -387,7 +393,7 @@
       const e=CAT_EMOJI[l.category]||'🛍️';
       const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
       // Build gallery
-      const imgs=[l.image_url,l.image_url_2,l.image_url_3].filter(Boolean);
+      const imgs=[l.image_url,l.image_url_2,l.image_url_3,l.image_url_4,l.image_url_5,l.image_url_6].filter(Boolean);
       const slides=document.getElementById('gallery-slides');
       const dots=document.getElementById('gallery-dots');
       if(imgs.length){
@@ -408,7 +414,8 @@
       document.getElementById('modal-desc').textContent=l.description||'No description.';
       const flatConf2=FLAT_SUBCATS[l.category];
       const flatVal2=flatConf2?l[flatConf2.field]:null;
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+'<div style="margin-top:8px"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit this seller\'s store</a></div>';
+      const deliveryTxt = l.profiles?.university ? (l.profiles.deliver_all_campuses ? 'All '+l.profiles.university+' campuses' : (l.profiles.delivery_campuses||[]).join(', ')||l.profiles.university) : null;
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit this seller\'s store</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -427,7 +434,7 @@
     };
 
     window.slideGallery=(dir)=>{
-      const imgs=[currentListing?.image_url,currentListing?.image_url_2,currentListing?.image_url_3].filter(Boolean);
+      const imgs=[currentListing?.image_url,currentListing?.image_url_2,currentListing?.image_url_3,currentListing?.image_url_4,currentListing?.image_url_5,currentListing?.image_url_6].filter(Boolean);
       if(imgs.length<=1)return;
       galleryIdx=(galleryIdx+dir+imgs.length)%imgs.length;
       document.getElementById('gallery-slides').style.transform='translateX(-'+galleryIdx*100+'%)';
@@ -675,7 +682,7 @@
     let lbImgs=[], lbIdx=0;
     window.openLightbox=(idx)=>{
       if(!currentListing)return;
-      lbImgs=[currentListing.image_url,currentListing.image_url_2,currentListing.image_url_3].filter(Boolean);
+      lbImgs=[currentListing.image_url,currentListing.image_url_2,currentListing.image_url_3,currentListing.image_url_4,currentListing.image_url_5,currentListing.image_url_6].filter(Boolean);
       if(!lbImgs.length)return;
       lbIdx=idx||0;
       renderLightbox();

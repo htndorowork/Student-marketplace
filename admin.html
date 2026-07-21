@@ -53,6 +53,8 @@
       <div class="admin-tabs">
         <button class="admin-tab active" onclick="showTab('listings',this)">📦 Listings</button>
         <button class="admin-tab" onclick="showTab('sellers',this)">👥 Users</button>
+        <button class="admin-tab" onclick="showTab('paid',this)">✅ Paid Sellers</button>
+        <button class="admin-tab" onclick="showTab('unpaid',this)">❌ Unpaid Sellers</button>
         <button class="admin-tab" onclick="showTab('orders',this)">🛒 Orders</button>
       </div>
 
@@ -61,6 +63,14 @@
         <div id="all-listings-container"><p class="loading-msg">Loading...</p></div>
       </div>
       <div id="tab-sellers" style="display:none"><div id="all-sellers-container"><p class="loading-msg">Loading...</p></div></div>
+      <div id="tab-paid" style="display:none">
+        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Sellers whose monthly subscription is active and not blocked.</p>
+        <div id="paid-sellers-container"><p class="loading-msg">Loading...</p></div>
+      </div>
+      <div id="tab-unpaid" style="display:none">
+        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">These sellers are automatically blocked from posting and hidden from buyers until marked as paid.</p>
+        <div id="unpaid-sellers-container"><p class="loading-msg">Loading...</p></div>
+      </div>
       <div id="tab-orders" style="display:none"><div id="all-orders-container"><p class="loading-msg">Loading...</p></div></div>
     </div>
   </main>
@@ -159,6 +169,60 @@
       ).join('');
     }
 
+    async function loadPaidSellers(){
+      const {data}=await supabase.from('profiles').select('*').eq('role','seller').order('full_name');
+      const today=new Date().toISOString().slice(0,10);
+      const paid=(data||[]).filter(s=>!s.is_blocked && s.subscription_paid_until && s.subscription_paid_until>=today);
+      const c=document.getElementById('paid-sellers-container');
+      if(!paid.length){c.innerHTML='<div class="empty-msg">No sellers with an active paid subscription 📭</div>';return;}
+      c.innerHTML=paid.map(s=>'<div class="seller-row">'+
+        '<div class="seller-avatar">'+(s.store_logo_url?'<img src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
+        '<div class="listing-info" style="flex:1">'+
+        '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
+        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
+        '<div class="listing-meta" style="color:#2e7d32;font-weight:700">✅ Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</div>'+
+        '</div>'+
+        '<button class="btn-sm btn-delete" onclick="window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
+        '</div>'
+      ).join('');
+    }
+
+    async function loadUnpaidSellers(){
+      const {data}=await supabase.from('profiles').select('*').eq('role','seller').order('full_name');
+      const today=new Date().toISOString().slice(0,10);
+      const unpaid=(data||[]).filter(s=>s.is_blocked || !s.subscription_paid_until || s.subscription_paid_until<today);
+      const c=document.getElementById('unpaid-sellers-container');
+      if(!unpaid.length){c.innerHTML='<div class="empty-msg">All sellers are paid up 🎉</div>';return;}
+      c.innerHTML=unpaid.map(s=>{
+        let reason;
+        if(s.is_blocked) reason='<span style="color:#9333ea;font-weight:700">🚫 Blocked by admin</span>';
+        else if(!s.subscription_paid_until) reason='<span style="color:#9333ea;font-weight:700">⚠️ No subscription on file</span>';
+        else reason='<span style="color:#9333ea;font-weight:700">⏰ Expired '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</span>';
+        return '<div class="seller-row">'+
+          '<div class="seller-avatar">'+(s.store_logo_url?'<img src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
+          '<div class="listing-info" style="flex:1">'+
+          '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
+          '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
+          '<div class="listing-meta">'+reason+'</div>'+
+          '</div>'+
+          '<button class="btn-sm btn-toggle" onclick="window._markPaid(\''+s.id+'\')">✅ Mark Paid (+30d)</button>'+
+          '</div>';
+      }).join('');
+    }
+
+    window._markPaid=async(id)=>{
+      const paidUntil=new Date(); paidUntil.setDate(paidUntil.getDate()+30);
+      const {error}=await supabase.from('profiles').update({subscription_paid_until:paidUntil.toISOString().slice(0,10),is_blocked:false}).eq('id',id);
+      if(error){alert('Error: '+error.message);return;}
+      loadPaidSellers();loadUnpaidSellers();
+    };
+    window._blockSeller=async(id)=>{
+      if(!confirm('Temporarily block this seller? Their listings will be hidden from buyers and they cannot post new ones until unblocked.'))return;
+      const {error}=await supabase.from('profiles').update({is_blocked:true}).eq('id',id);
+      if(error){alert('Error: '+error.message);return;}
+      loadPaidSellers();loadUnpaidSellers();
+    };
+
     window._atoggle=async(id,cur)=>{
       const {error}=await supabase.from('listings').update({is_available:!cur}).eq('id',id);
       if(error){alert('Error: '+error.message);return;}
@@ -180,9 +244,12 @@
     window._adone=async(id)=>{await supabase.from('orders').update({status:'completed'}).eq('id',id);loadOrders();};
     window.searchListings=(q)=>renderListings(allListings.filter(l=>l.title.toLowerCase().includes(q.toLowerCase())||(l.profiles?.full_name||'').toLowerCase().includes(q.toLowerCase())));
     window.showTab=(tab,el)=>{
-      ['listings','sellers','orders'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
+      ['listings','sellers','paid','unpaid','orders'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
       document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
-      if(tab==='sellers')loadSellers();if(tab==='orders')loadOrders();
+      if(tab==='sellers')loadSellers();
+      if(tab==='paid')loadPaidSellers();
+      if(tab==='unpaid')loadUnpaidSellers();
+      if(tab==='orders')loadOrders();
     };
     init();
   </script>

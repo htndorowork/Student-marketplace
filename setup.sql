@@ -16,6 +16,11 @@ CREATE TABLE IF NOT EXISTS profiles (
   store_name text,
   store_bio text,
   store_logo_url text,
+  university text,
+  delivery_campuses text[] DEFAULT '{}',
+  deliver_all_campuses boolean DEFAULT false,
+  subscription_paid_until date,
+  is_blocked boolean DEFAULT false,
   created_at timestamp DEFAULT now(),
   PRIMARY KEY (id)
 );
@@ -24,6 +29,11 @@ CREATE TABLE IF NOT EXISTS profiles (
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS store_name text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS store_bio text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS store_logo_url text;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS university text;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS delivery_campuses text[] DEFAULT '{}';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS deliver_all_campuses boolean DEFAULT false;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_paid_until date;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_blocked boolean DEFAULT false;
 
 -- Listings
 CREATE TABLE IF NOT EXISTS listings (
@@ -38,6 +48,9 @@ CREATE TABLE IF NOT EXISTS listings (
   image_url text,
   image_url_2 text,
   image_url_3 text,
+  image_url_4 text,
+  image_url_5 text,
+  image_url_6 text,
   is_available boolean DEFAULT true,
   textbook_year text,
   textbook_subject text,
@@ -75,6 +88,9 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS stationary_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS appliances_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS rentals_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS furniture_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_4 text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_5 text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_6 text;
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
@@ -204,7 +220,15 @@ CREATE POLICY "profiles_delete_admin" ON profiles FOR DELETE USING (
 
 -- LISTINGS policies
 CREATE POLICY "listings_read" ON listings FOR SELECT USING (true);
-CREATE POLICY "listings_insert" ON listings FOR INSERT WITH CHECK (auth.uid() = seller_id);
+CREATE POLICY "listings_insert" ON listings FOR INSERT WITH CHECK (
+  auth.uid() = seller_id AND
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE id = auth.uid()
+    AND COALESCE(is_blocked,false) = false
+    AND (subscription_paid_until IS NULL OR subscription_paid_until >= CURRENT_DATE)
+  )
+);
 CREATE POLICY "listings_update_seller" ON listings FOR UPDATE USING (
   auth.uid() = seller_id AND is_available = true
 );

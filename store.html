@@ -77,11 +77,17 @@
       gridEl.innerHTML = '';
     } else {
       const [{data:profile},{data:listings},{data:reviews}] = await Promise.all([
-        supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url').eq('id',sellerId).single(),
+        supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until').eq('id',sellerId).single(),
         supabase.from('listings').select('*').eq('seller_id',sellerId).eq('is_available',true).gt('quantity',0).order('created_at',{ascending:false}),
         supabase.from('reviews').select('rating').eq('seller_id',sellerId)
       ]);
 
+      const today=new Date().toISOString().slice(0,10);
+      const overdue = profile?.subscription_paid_until && profile.subscription_paid_until < today;
+      if (profile && (profile.is_blocked===true || overdue)) {
+        headerEl.innerHTML = '<p class="loading-msg">This store is temporarily unavailable 🚧</p>';
+        gridEl.innerHTML = '';
+      } else
       if (!profile) {
         headerEl.innerHTML = '<p class="loading-msg">Store not found 🤔</p>';
         gridEl.innerHTML = '';
@@ -94,6 +100,7 @@
           '<div class="store-name">'+displayName+'</div>'+
           (profile.store_bio?'<div class="store-bio">'+profile.store_bio+'</div>':'')+
           (profile.residence?'<div class="store-meta">📍 '+profile.residence+'</div>':'')+
+          (profile.university?'<div class="store-meta">🚚 Delivers to: '+(profile.deliver_all_campuses?'All '+profile.university+' campuses':(profile.delivery_campuses||[]).join(', ')||profile.university)+'</div>':'')+
           '<div class="store-stats-row">'+
           '<div class="store-stat-pill">📦 '+(listings?.length||0)+' listings</div>'+
           '<div class="store-stat-pill">'+ratingTxt+'</div>'+

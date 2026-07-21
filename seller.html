@@ -143,7 +143,7 @@
             <input type="number" id="f-discount" placeholder="0" min="0" max="90"/>
           </div>
           <div class="form-group">
-            <label>Photos — up to 3 (optional)</label>
+            <label>Photos — up to 6 (optional)</label>
             <div class="upload-grid">
               <div class="upload-slot" id="slot-1" onclick="document.getElementById('fi-1').click()">
                 <div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo 1</div>
@@ -157,10 +157,25 @@
                 <div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo 3</div>
                 <button class="slot-remove" id="sr-3" onclick="window.removeImg(event,3)">✕</button>
               </div>
+              <div class="upload-slot" id="slot-4" onclick="document.getElementById('fi-4').click()">
+                <div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo 4</div>
+                <button class="slot-remove" id="sr-4" onclick="window.removeImg(event,4)">✕</button>
+              </div>
+              <div class="upload-slot" id="slot-5" onclick="document.getElementById('fi-5').click()">
+                <div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo 5</div>
+                <button class="slot-remove" id="sr-5" onclick="window.removeImg(event,5)">✕</button>
+              </div>
+              <div class="upload-slot" id="slot-6" onclick="document.getElementById('fi-6').click()">
+                <div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo 6</div>
+                <button class="slot-remove" id="sr-6" onclick="window.removeImg(event,6)">✕</button>
+              </div>
             </div>
             <input type="file" id="fi-1" accept="image/jpeg,image/png,image/webp" style="display:none"/>
             <input type="file" id="fi-2" accept="image/jpeg,image/png,image/webp" style="display:none"/>
             <input type="file" id="fi-3" accept="image/jpeg,image/png,image/webp" style="display:none"/>
+            <input type="file" id="fi-4" accept="image/jpeg,image/png,image/webp" style="display:none"/>
+            <input type="file" id="fi-5" accept="image/jpeg,image/png,image/webp" style="display:none"/>
+            <input type="file" id="fi-6" accept="image/jpeg,image/png,image/webp" style="display:none"/>
             <div style="font-size:12px;color:#aaa;font-weight:600;margin-top:4px">JPG, PNG or WEBP · Max 2MB each</div>
             <div id="upload-err" style="display:none;font-size:13px;font-weight:700;color:#9333ea;margin-top:6px"></div>
           </div>
@@ -206,6 +221,17 @@
           <div class="form-group"><label>Full Name *</label><input type="text" id="p-name" placeholder="Thabo Mokoena"/></div>
           <div class="form-group"><label>WhatsApp *</label><input type="text" id="p-whatsapp" placeholder="0812345678"/></div>
           <div class="form-group"><label>Residence</label><input type="text" id="p-residence" placeholder="e.g. Heroes Residence, NWU Potchefstroom"/></div>
+          <div class="form-group">
+            <label>Which university do you sell to? *</label>
+            <select id="p-university"><option value="">Select university</option></select>
+          </div>
+          <div class="form-group" id="p-campuses-group" style="display:none">
+            <label>Which campuses can you deliver to? *</label>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin-bottom:8px;cursor:pointer">
+              <input type="checkbox" id="p-campus-all" onchange="toggleAllCampuses(this.checked)" style="width:16px;height:16px"/> All campuses
+            </label>
+            <div id="p-campus-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+          </div>
           <div class="form-error" id="profile-error"></div>
           <button class="btn-primary" id="btn-save">Save Profile ✅</button>
         </div>
@@ -221,7 +247,7 @@
     );
 
     let currentUser = null;
-    const imgs = {1:null,2:null,3:null};
+    const imgs = {1:null,2:null,3:null,4:null,5:null,6:null};
 
     const TB_TAXONOMY={
       'Economic and Management Sciences (EMS)':['Accounting & Auditing','Statistics','Business & Financial Management','Actuarial Science & Quantitative Finance'],
@@ -419,6 +445,65 @@
       }
     });
 
+    // ===== UNIVERSITY / CAMPUS DELIVERY COVERAGE =====
+    const UNIVERSITIES=[
+      {name:'University of Cape Town (UCT)',campuses:['Rondebosch (Cape Town)']},
+      {name:'Stellenbosch University (SU)',campuses:['Stellenbosch','Tygerberg','Bellville Park','Saldanha']},
+      {name:'University of the Western Cape (UWC)',campuses:['Bellville']},
+      {name:'Cape Peninsula University of Technology (CPUT)',campuses:['Bellville','District Six','Granger Bay','Wellington','Mowbray']},
+      {name:'University of Fort Hare (UFH)',campuses:['Alice','East London','Bhisho']},
+      {name:'Rhodes University',campuses:['Makhanda (Grahamstown)']},
+      {name:'Nelson Mandela University (NMU)',campuses:['Gqeberha (Port Elizabeth)','George']},
+      {name:'Walter Sisulu University (WSU)',campuses:['Mthatha','Butterworth','Buffalo City (East London)','Komani (Queenstown)']},
+      {name:'University of the Free State (UFS)',campuses:['Bloemfontein','Qwaqwa','South Campus']},
+      {name:'Central University of Technology (CUT)',campuses:['Bloemfontein','Welkom']},
+      {name:'University of KwaZulu-Natal (UKZN)',campuses:['Howard College','Westville','Edgewood','Pietermaritzburg','Nelson R. Mandela School of Medicine']},
+      {name:'Durban University of Technology (DUT)',campuses:['Steve Biko','Ritson','ML Sultan','Brickfield','Indumiso','Riverside']},
+      {name:'Mangosuthu University of Technology (MUT)',campuses:['Umlazi']},
+      {name:'University of Zululand (UNIZULU)',campuses:['KwaDlangezwa','Richards Bay']},
+      {name:'University of Johannesburg (UJ)',campuses:['Auckland Park Kingsway','Auckland Park Bunting Road','Doornfontein','Soweto']},
+      {name:'University of Pretoria (UP)',campuses:['Hatfield','Groenkloof','Prinshof','Hillcrest','Onderstepoort','Mamelodi']},
+      {name:'University of South Africa (UNISA)',campuses:['Main campus (Pretoria)','Regional campus']},
+      {name:'Tshwane University of Technology (TUT)',campuses:['Pretoria','Soshanguve','Ga-Rankuwa','eMalahleni','Mbombela','Polokwane']},
+      {name:'University of the Witwatersrand (Wits)',campuses:['Braamfontein','Parktown']},
+      {name:'North-West University (NWU)',campuses:['Potchefstroom','Mahikeng','Vanderbijlpark']},
+      {name:'Vaal University of Technology (VUT)',campuses:['Vanderbijlpark','Ekurhuleni','Secunda','Upington']},
+      {name:'University of Limpopo (UL)',campuses:['Turfloop']},
+      {name:'University of Venda (UNIVEN)',campuses:['Thohoyandou']},
+      {name:'University of Mpumalanga (UMP)',campuses:['Mbombela','Siyabuswa']},
+      {name:'Sol Plaatje University (SPU)',campuses:['Kimberley']},
+      {name:'Sefako Makgatho Health Sciences University (SMU)',campuses:['Ga-Rankuwa (Pretoria)']}
+    ];
+    let selectedCampuses=[];
+
+    document.getElementById('p-university').innerHTML='<option value="">Select university</option>'+
+      UNIVERSITIES.map(u=>'<option>'+u.name+'</option>').join('');
+
+    function renderCampusChoices(uniName, preSelected, allFlag){
+      const group=document.getElementById('p-campuses-group');
+      const uni=UNIVERSITIES.find(u=>u.name===uniName);
+      if(!uni){ group.style.display='none'; return; }
+      group.style.display='block';
+      selectedCampuses = allFlag ? [...uni.campuses] : (preSelected||[]);
+      document.getElementById('p-campus-all').checked = !!allFlag;
+      const list=document.getElementById('p-campus-list');
+      list.innerHTML=uni.campuses.map(c=>'<button type="button" class="tb-subject-btn'+(selectedCampuses.includes(c)?' active':'')+'" onclick="toggleCampus(\''+c.replace(/'/g,"\\'")+'\')">'+c+'</button>').join('');
+      list.style.opacity = allFlag ? '0.5' : '1';
+      list.style.pointerEvents = allFlag ? 'none' : 'auto';
+    }
+    document.getElementById('p-university').addEventListener('change',e=>{
+      renderCampusChoices(e.target.value, [], false);
+    });
+    window.toggleAllCampuses=(checked)=>{
+      const uniName=document.getElementById('p-university').value;
+      renderCampusChoices(uniName, selectedCampuses, checked);
+    };
+    window.toggleCampus=(c)=>{
+      if(selectedCampuses.includes(c)) selectedCampuses=selectedCampuses.filter(x=>x!==c);
+      else selectedCampuses.push(c);
+      renderCampusChoices(document.getElementById('p-university').value, selectedCampuses, false);
+    };
+
     async function init() {
       const {data:{user}} = await supabase.auth.getUser();
 
@@ -444,10 +529,27 @@
         document.getElementById('p-name').value = p.full_name||'';
         document.getElementById('p-whatsapp').value = p.whatsapp||'';
         document.getElementById('p-residence').value = p.residence||'';
+        document.getElementById('p-university').value = p.university||'';
+        if (p.university) renderCampusChoices(p.university, p.delivery_campuses||[], p.deliver_all_campuses);
         if (p.is_admin) document.getElementById('admin-link').style.display = 'inline';
+
+        // Subscription / block check
+        const today = new Date().toISOString().slice(0,10);
+        const overdue = p.subscription_paid_until && p.subscription_paid_until < today;
+        const blocked = p.is_blocked === true || overdue;
+        if (blocked) {
+          const banner = document.createElement('div');
+          banner.style.cssText = 'background:#2d1b4e;color:#fff;padding:14px 20px;font-weight:800;font-size:13px;text-align:center';
+          banner.textContent = p.is_blocked
+            ? '🚫 Your store is temporarily blocked by the admin. Contact support for help.'
+            : '⏰ Your monthly subscription has expired. Please renew to keep posting and stay visible to buyers.';
+          document.body.insertBefore(banner, document.body.firstChild);
+          document.getElementById('btn-post').disabled = true;
+          document.getElementById('btn-post').style.opacity = '0.5';
+        }
       }
 
-      [1,2,3].forEach(n => {
+      [1,2,3,4,5,6].forEach(n => {
         document.getElementById('fi-'+n).addEventListener('change', async e => {
           const file = e.target.files[0]; if(!file) return;
           const err = document.getElementById('upload-err'); err.style.display='none';
@@ -492,9 +594,14 @@
       err.style.color='#9333ea'; err.textContent='';
 
       // Fix 4 — check profile is complete first
-      const {data:p} = await supabase.from('profiles').select('full_name,whatsapp,residence').eq('id',currentUser.id).single();
+      const {data:p} = await supabase.from('profiles').select('full_name,whatsapp,residence,university,delivery_campuses,deliver_all_campuses').eq('id',currentUser.id).single();
       if (!p?.full_name || !p?.whatsapp) {
         err.textContent='❌ Please complete your profile (name & WhatsApp) before listing. Go to the Profile tab.';
+        showTab('profile', document.querySelectorAll('.dash-tab')[4]);
+        return;
+      }
+      if (!p?.university || (!p?.deliver_all_campuses && !(p?.delivery_campuses||[]).length)) {
+        err.textContent='❌ Set which university & campuses you deliver to before listing. Go to the Profile tab.';
         showTab('profile', document.querySelectorAll('.dash-tab')[4]);
         return;
       }
@@ -511,6 +618,7 @@
         seller_id: currentUser.id, title, category: cat, description: desc,
         price, quantity: qty, discount_percent: disc,
         image_url: imgs[1]||null, image_url_2: imgs[2]||null, image_url_3: imgs[3]||null,
+        image_url_4: imgs[4]||null, image_url_5: imgs[5]||null, image_url_6: imgs[6]||null,
         is_available: true,
         textbook_year: cat==='Textbooks' ? tbYear : null,
         textbook_subject: cat==='Textbooks' ? tbSubject : null
@@ -528,7 +636,7 @@
       document.getElementById('f-tb-row').style.display='none';
       document.getElementById('f-flat-subcat').value='';
       document.getElementById('f-flat-row').style.display='none';
-      [1,2,3].forEach(n=>{imgs[n]=null;document.getElementById('fi-'+n).value='';document.getElementById('slot-'+n).innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>';});
+      [1,2,3,4,5,6].forEach(n=>{imgs[n]=null;document.getElementById('fi-'+n).value='';document.getElementById('slot-'+n).innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>';});
       err.style.color='#2e7d32'; err.textContent='✅ Listing posted!';
       setTimeout(()=>{err.textContent=''; showTab('listings',document.querySelectorAll('.dash-tab')[1]); loadMyListings();},1500);
     }
@@ -537,10 +645,26 @@
       const name = document.getElementById('p-name').value.trim();
       const wa   = document.getElementById('p-whatsapp').value.trim();
       const res  = document.getElementById('p-residence').value.trim();
+      const uni  = document.getElementById('p-university').value;
+      const allCampuses = document.getElementById('p-campus-all').checked;
       const err  = document.getElementById('profile-error');
       err.style.color='#9333ea'; err.textContent='';
       if (!name||!wa) { err.textContent='❌ Name and WhatsApp are required'; return; }
-      const {error} = await supabase.from('profiles').update({full_name:name,whatsapp:wa,residence:res}).eq('id',currentUser.id);
+      if (!uni) { err.textContent='❌ Select which university you sell to'; return; }
+      if (!allCampuses && !selectedCampuses.length) { err.textContent='❌ Select at least one campus you can deliver to (or choose "All campuses")'; return; }
+
+      // First-time sellers get an automatic 30-day free trial before subscription is required
+      const {data:existing} = await supabase.from('profiles').select('subscription_paid_until').eq('id',currentUser.id).single();
+      const updatePayload = {
+        full_name:name, whatsapp:wa, residence:res,
+        university:uni, delivery_campuses:selectedCampuses, deliver_all_campuses:allCampuses
+      };
+      if (!existing?.subscription_paid_until) {
+        const trialEnd = new Date(); trialEnd.setDate(trialEnd.getDate()+30);
+        updatePayload.subscription_paid_until = trialEnd.toISOString().slice(0,10);
+      }
+
+      const {error} = await supabase.from('profiles').update(updatePayload).eq('id',currentUser.id);
       if (error) { err.textContent='❌ '+error.message; return; }
       document.getElementById('seller-name').textContent='Hi, '+name+' 👋';
       err.style.color='#2e7d32'; err.textContent='✅ Profile saved!';
