@@ -101,6 +101,7 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS is_negotiable boolean DEFAULT fals
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS delivery_fee numeric DEFAULT 0;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS is_draft boolean DEFAULT false;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS is_sold boolean DEFAULT false;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS renewed_at timestamp DEFAULT now();
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
@@ -161,9 +162,22 @@ CREATE TABLE IF NOT EXISTS reports (
   reporter_id uuid,
   listing_id uuid,
   reported_user_id uuid,
+  order_id uuid,
   reason text NOT NULL,
   details text,
   status text DEFAULT 'open',
+  created_at timestamp DEFAULT now()
+);
+
+-- Messages (in-app chat between a buyer and seller, optionally tied to a listing)
+CREATE TABLE IF NOT EXISTS messages (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  listing_id uuid,
+  buyer_id uuid NOT NULL,
+  seller_id uuid NOT NULL,
+  sender_id uuid NOT NULL,
+  content text NOT NULL,
+  is_read boolean DEFAULT false,
   created_at timestamp DEFAULT now()
 );
 
@@ -239,9 +253,19 @@ ALTER TABLE favorites ADD CONSTRAINT favorites_listing_id_fkey FOREIGN KEY (list
 ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_reporter_id_fkey;
 ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_listing_id_fkey;
 ALTER TABLE reports DROP CONSTRAINT IF EXISTS reports_reported_user_id_fkey;
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS order_id uuid;
 ALTER TABLE reports ADD CONSTRAINT reports_reporter_id_fkey FOREIGN KEY (reporter_id) REFERENCES profiles(id) ON DELETE SET NULL;
 ALTER TABLE reports ADD CONSTRAINT reports_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE;
 ALTER TABLE reports ADD CONSTRAINT reports_reported_user_id_fkey FOREIGN KEY (reported_user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+
+ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_listing_id_fkey;
+ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_buyer_id_fkey;
+ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_seller_id_fkey;
+ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_sender_id_fkey;
+ALTER TABLE messages ADD CONSTRAINT messages_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE SET NULL;
+ALTER TABLE messages ADD CONSTRAINT messages_buyer_id_fkey FOREIGN KEY (buyer_id) REFERENCES profiles(id) ON DELETE CASCADE;
+ALTER TABLE messages ADD CONSTRAINT messages_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES profiles(id) ON DELETE CASCADE;
+ALTER TABLE messages ADD CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES profiles(id) ON DELETE CASCADE;
 
 ALTER TABLE admin_audit_log DROP CONSTRAINT IF EXISTS admin_audit_log_admin_id_fkey;
 ALTER TABLE admin_audit_log ADD CONSTRAINT admin_audit_log_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES profiles(id) ON DELETE SET NULL;
@@ -258,6 +282,7 @@ ALTER TABLE buyer_reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 -- Drop any old policies (safe if they don't exist)
 DROP POLICY IF EXISTS "profiles_read" ON profiles;
@@ -299,6 +324,10 @@ DROP POLICY IF EXISTS "reports_update_admin" ON reports;
 
 DROP POLICY IF EXISTS "audit_log_read_admin" ON admin_audit_log;
 DROP POLICY IF EXISTS "audit_log_insert_admin" ON admin_audit_log;
+
+DROP POLICY IF EXISTS "messages_read" ON messages;
+DROP POLICY IF EXISTS "messages_insert" ON messages;
+DROP POLICY IF EXISTS "messages_update" ON messages;
 
 -- PROFILES policies
 CREATE POLICY "profiles_read" ON profiles FOR SELECT USING (true);
@@ -386,6 +415,13 @@ CREATE POLICY "audit_log_read_admin" ON admin_audit_log FOR SELECT USING (
 CREATE POLICY "audit_log_insert_admin" ON admin_audit_log FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
+
+-- MESSAGES policies
+CREATE POLICY "messages_read" ON messages FOR SELECT USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
+CREATE POLICY "messages_insert" ON messages FOR INSERT WITH CHECK (
+  auth.uid() = sender_id AND (auth.uid() = buyer_id OR auth.uid() = seller_id)
+);
+CREATE POLICY "messages_update" ON messages FOR UPDATE USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
 
 -- ===================== AUTO-CREATE PROFILE ON SIGNUP =====================
 

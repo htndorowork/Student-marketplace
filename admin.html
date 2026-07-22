@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin — Student Marketplace</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+    <meta property="og:title" content="Admin — Student Marketplace"/>
+  <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
+  <meta property="og:type" content="website"/>
+  <meta name="twitter:card" content="summary"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -140,11 +144,17 @@
     function renderListings(list){
       const c=document.getElementById('all-listings-container');
       if(!list.length){c.innerHTML='<div class="empty-msg">No listings 📭</div>';return;}
-      c.innerHTML=list.map(l=>{
+      c.innerHTML='<div style="margin-bottom:10px;display:flex;gap:8px;align-items:center">'+
+        '<button class="btn-sm btn-toggle" onclick="toggleSelectAllListings()">Select all</button>'+
+        '<button class="btn-sm btn-delete" onclick="bulkDeleteListings()">🗑️ Delete selected</button>'+
+        '</div>'+
+        list.map(l=>{
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
         const status=l.is_available?'<span style="color:#2e7d32;font-weight:700">Active</span>':'<span style="color:#aaa;font-weight:700">Hidden</span>';
         const thumb=l.image_url?'<img src="'+l.image_url+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0"/>':'<div style="width:44px;height:44px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(CAT_EMOJI[l.category]||'📦')+'</div>';
-        return '<div class="listing-row">'+thumb+
+        return '<div class="listing-row">'+
+          '<input type="checkbox" class="listing-select" value="'+l.id+'" style="width:16px;height:16px;flex-shrink:0"/>'+
+          thumb+
           '<div class="listing-info" style="flex:1"><div class="listing-title">'+l.title+'</div>'+
           '<div class="listing-meta">'+l.category+' · R'+fp+' · Stock: '+l.quantity+' · by '+(l.profiles?.full_name||'Unknown')+' · '+status+'</div></div>'+
           '<div class="listing-actions">'+
@@ -153,6 +163,20 @@
           '</div></div>';
       }).join('');
     }
+    window.toggleSelectAllListings=()=>{
+      const boxes=document.querySelectorAll('.listing-select');
+      const allChecked=[...boxes].every(b=>b.checked);
+      boxes.forEach(b=>b.checked=!allChecked);
+    };
+    window.bulkDeleteListings=async()=>{
+      const ids=[...document.querySelectorAll('.listing-select:checked')].map(b=>b.value);
+      if(!ids.length){alert('Select at least one listing first.');return;}
+      if(!confirm('Delete '+ids.length+' selected listing(s)? This cannot be undone.'))return;
+      const {error}=await supabase.from('listings').delete().in('id',ids);
+      if(error){alert('Error: '+error.message);return;}
+      logAction('bulk_delete_listings',null,ids.length+' listings deleted');
+      loadListings();loadStats();
+    };
 
     async function loadSellers(){
       const {data}=await supabase.from('profiles').select('*').order('created_at',{ascending:false});
@@ -238,10 +262,12 @@
       loadPaidSellers();loadUnpaidSellers();
     };
     window._blockSeller=async(id)=>{
+      const reason=prompt('Why are you blocking this seller? (shown only in the admin audit log)');
+      if(reason===null)return;
       if(!confirm('Temporarily block this seller? Their listings will be hidden from buyers and they cannot post new ones until unblocked.'))return;
       const {error}=await supabase.from('profiles').update({is_blocked:true}).eq('id',id);
       if(error){alert('Error: '+error.message);return;}
-      logAction('block_seller',id,'Manually blocked');
+      logAction('block_seller',id,reason||'No reason given');
       loadPaidSellers();loadUnpaidSellers();
     };
     window.blockAllOverdue=async()=>{

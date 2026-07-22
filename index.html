@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student Marketplace 🎓</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+    <meta property="og:title" content="Student Marketplace 🎓"/>
+  <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
+  <meta property="og:type" content="website"/>
+  <meta name="twitter:card" content="summary"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -13,6 +17,7 @@
     <div class="nav-links">
       <a href="index.html">Browse</a>
       <a href="#" id="nav-favorites" onclick="toggleFavoritesView();return false" style="display:none">❤️ Favorites</a>
+      <a href="messages.html" id="nav-messages" style="display:none">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
       <a href="profile.html" id="nav-profile" style="display:none">My Profile</a>
       <a href="login.html" id="nav-auth">Sign in</a>
       <div class="nav-cart" onclick="openCart()" title="Cart">🛒<span class="cart-badge" id="cart-badge" style="display:none">0</span></div>
@@ -25,9 +30,12 @@
       <button class="hero-tag" id="uni-select-btn" onclick="openUniModal()" style="border:none;cursor:pointer;font-family:inherit">🎓 Select your university</button>
       <h1>Your campus.<br/>Your <span>marketplace.</span></h1>
       <p>Buy & sell with fellow students — fast, easy & safe 🙌</p>
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="What are you looking for? 👀" onkeydown="if(event.key==='Enter')doFilter()"/>
-        <button onclick="doFilter()">Search 🔍</button>
+      <div style="position:relative;max-width:500px;margin:0 auto">
+        <div class="search-bar" style="max-width:none;margin:0">
+          <input type="text" id="search-input" placeholder="What are you looking for? 👀" autocomplete="off" onkeydown="if(event.key==='Enter'){hideSuggestions();doFilter()}" oninput="showSuggestions(this.value)" onblur="setTimeout(hideSuggestions,150)"/>
+          <button onclick="hideSuggestions();doFilter()">Search 🔍</button>
+        </div>
+        <div id="search-suggestions" class="search-suggestions" style="display:none"></div>
       </div>
     </div>
   </section>
@@ -76,7 +84,12 @@
       </label>
     </div>
 
-    <div class="grid" id="listings-grid"><p class="loading-msg">Loading listings... ⏳</p></div>
+    <div class="grid" id="listings-grid">
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+    </div>
   </main>
 
   <!-- UNIVERSITY / CAMPUS SELECTOR MODAL -->
@@ -199,6 +212,7 @@
       <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="index.html">Browse listings</a>
+      <a class="footer-link" href="faq.html">How It Works</a>
       <a class="footer-link" href="terms.html">Terms</a>
       <a class="footer-link" href="privacy.html">Privacy</a>
       <a class="footer-link" href="guidelines.html">Guidelines</a>
@@ -400,6 +414,10 @@
       document.getElementById('nav-auth').onclick=async()=>{await supabase.auth.signOut();location.reload();};
       document.getElementById('nav-profile').style.display='inline';
       document.getElementById('nav-favorites').style.display='inline';
+      document.getElementById('nav-messages').style.display='inline';
+      supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).neq('sender_id',user.id).eq('is_read',false).then(({count})=>{
+        if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
+      });
       const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
       if(p?.role==='seller') document.getElementById('nav-profile').href='seller.html';
       const {data:favs}=await supabase.from('favorites').select('listing_id').eq('user_id',user.id);
@@ -407,7 +425,7 @@
       loadCart();
     }
 
-    const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until)').eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('created_at',{ascending:false});
+    const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until)').eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('renewed_at',{ascending:false,nullsFirst:false});
     const today=new Date().toISOString().slice(0,10);
     all=(data||[]).filter(l=>{
       const p=l.profiles;
@@ -543,7 +561,7 @@
       const flatVal2=flatConf2?l[flatConf2.field]:null;
       const deliveryTxt = l.profiles?.university ? (l.profiles.deliver_all_campuses ? 'All '+l.profiles.university+' campuses' : (l.profiles.delivery_campuses||[]).join(', ')||l.profiles.university) : null;
       const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+l.condition+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit this seller\'s store</a></div>';
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -804,11 +822,28 @@
       f=[...f];
       if(sortMode==='price_asc') f.sort((a,b)=>(a.discount_percent>0?a.price*(1-a.discount_percent/100):a.price)-(b.discount_percent>0?b.price*(1-b.discount_percent/100):b.price));
       else if(sortMode==='price_desc') f.sort((a,b)=>(b.discount_percent>0?b.price*(1-b.discount_percent/100):b.price)-(a.discount_percent>0?a.price*(1-a.discount_percent/100):a.price));
-      else f.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+      else f.sort((a,b)=>new Date(b.renewed_at||b.created_at)-new Date(a.renewed_at||a.created_at));
 
       render(f);
     };
     window.filterListings=window.doFilter;
+
+    // ===== SEARCH AUTOCOMPLETE =====
+    window.showSuggestions=(q)=>{
+      const box=document.getElementById('search-suggestions');
+      q=(q||'').trim().toLowerCase();
+      if(q.length<2){box.style.display='none';return;}
+      const matches=[...new Set(all.filter(l=>l.title.toLowerCase().includes(q)).map(l=>l.title))].slice(0,6);
+      if(!matches.length){box.style.display='none';return;}
+      box.innerHTML=matches.map(t=>'<div class="search-suggestion-item" onmousedown="pickSuggestion(\''+t.replace(/'/g,"\\'")+'\')">🔍 '+t+'</div>').join('');
+      box.style.display='block';
+    };
+    window.hideSuggestions=()=>{document.getElementById('search-suggestions').style.display='none';};
+    window.pickSuggestion=(t)=>{
+      document.getElementById('search-input').value=t;
+      hideSuggestions();
+      doFilter();
+    };
 
     // ===== GENERIC FLAT SUBCATEGORY DRILL-DOWN (Clothing, Electronics, Food, Beauty, Wigs, Perfumes, Tutoring) =====
     window.openFlatSubcats=(catName,el)=>{

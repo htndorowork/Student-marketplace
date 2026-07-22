@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Messages — Student Marketplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .msg-wrap { max-width: 900px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 280px 1fr; gap: 16px; min-height: 60vh; }
+    @media (max-width: 700px) { .msg-wrap { grid-template-columns: 1fr; } }
+    .thread-list { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; overflow: hidden; max-height: 70vh; overflow-y: auto; }
+    .thread-item { padding: 14px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+    .thread-item:hover, .thread-item.active { background: #f5f0fe; }
+    .thread-name { font-weight: 800; font-size: 13.5px; color: #111; }
+    .thread-preview { font-size: 12px; color: #888; font-weight: 600; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .thread-unread { display: inline-block; background: #7c3aed; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 50px; margin-left: 6px; }
+    .chat-panel { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; display: flex; flex-direction: column; min-height: 60vh; }
+    .chat-header { padding: 14px 18px; border-bottom: 2px solid #f5f5f5; font-weight: 800; font-size: 14px; }
+    .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .bubble { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+    .bubble.me { align-self: flex-end; background: #7c3aed; color: #fff; border-bottom-right-radius: 4px; }
+    .bubble.them { align-self: flex-start; background: #f5f5f5; color: #333; border-bottom-left-radius: 4px; }
+    .bubble-time { font-size: 10px; opacity: 0.7; margin-top: 4px; }
+    .chat-input-row { display: flex; gap: 8px; padding: 12px; border-top: 2px solid #f5f5f5; }
+    .chat-input-row input { flex: 1; border: 2px solid #f0f0f0; border-radius: 50px; padding: 10px 16px; font-family: inherit; font-size: 13px; }
+    .chat-input-row button { background: #7c3aed; color: #fff; border: none; padding: 10px 20px; border-radius: 50px; font-family: inherit; font-weight: 800; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
+    <div class="nav-links">
+      <a href="index.html">Browse</a>
+      <a href="profile.html" id="nav-profile">My Profile</a>
+    </div>
+  </nav>
+
+  <div class="msg-wrap">
+    <div class="thread-list" id="thread-list"><p class="loading-msg">Loading conversations... ⏳</p></div>
+    <div class="chat-panel" id="chat-panel">
+      <div class="chat-header" id="chat-header">Select a conversation</div>
+      <div class="chat-messages" id="chat-messages"><p class="loading-msg" style="margin:auto">Pick a conversation on the left, or message a seller from a listing 💬</p></div>
+      <div class="chat-input-row" id="chat-input-row" style="display:none">
+        <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMessage()"/>
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
+
+    let currentUser=null, activeThread=null, pollTimer=null;
+
+    const {data:{user}} = await supabase.auth.getUser();
+    if(!user){ window.location.href='login.html'; }
+    currentUser=user;
+
+    async function loadThreads(){
+      const {data} = await supabase.from('messages').select('*,listings(title)').or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).order('created_at',{ascending:false});
+      const msgs = data||[];
+      // Group into threads by buyer_id + seller_id + listing_id
+      const threadMap = {};
+      msgs.forEach(m=>{
+        const key = m.buyer_id+'|'+m.seller_id+'|'+(m.listing_id||'none');
+        if(!threadMap[key]) threadMap[key] = {buyer_id:m.buyer_id, seller_id:m.seller_id, listing_id:m.listing_id, listingTitle:m.listings?.title, messages:[]};
+        threadMap[key].messages.push(m);
+      });
+      const threads = Object.values(threadMap);
+
+      // Fetch counterpart names
+      const counterpartIds = [...new Set(threads.map(t=>t.buyer_id===user.id?t.seller_id:t.buyer_id))];
+      let names={};
+      if(counterpartIds.length){
+        const {data:profs} = await supabase.from('profiles').select('id,full_name,store_name').in('id',counterpartIds);
+        (profs||[]).forEach(p=>{names[p.id]=p.store_name||p.full_name||'User';});
+      }
+
+      const list = document.getElementById('thread-list');
+      if(!threads.length){ list.innerHTML='<p class="loading-msg">No conversations yet</p>'; return; }
+      threads.sort((a,b)=>new Date(b.messages[0].created_at)-new Date(a.messages[0].created_at));
+      list.innerHTML = threads.map((t,i)=>{
+        const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
+        const unread = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).length;
+        const last = t.messages[0];
+        return '<div class="thread-item" data-idx="'+i+'" onclick="openThread('+i+')">'+
+          '<div class="thread-name">'+(names[counterpartId]||'User')+(t.listingTitle?' · '+t.listingTitle:'')+(unread?'<span class="thread-unread">'+unread+'</span>':'')+'</div>'+
+          '<div class="thread-preview">'+(last.sender_id===user.id?'You: ':'')+last.content+'</div>'+
+          '</div>';
+      }).join('');
+      window._threads = threads;
+      window._names = names;
+    }
+
+    window.openThread = async (idx) => {
+      const t = window._threads[idx];
+      activeThread = t;
+      document.querySelectorAll('.thread-item').forEach(el=>el.classList.remove('active'));
+      document.querySelector('.thread-item[data-idx="'+idx+'"]')?.classList.add('active');
+      const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
+      document.getElementById('chat-header').textContent = (window._names[counterpartId]||'User')+(t.listingTitle?' · '+t.listingTitle:'');
+      document.getElementById('chat-input-row').style.display='flex';
+      renderMessages();
+      // Mark unread as read
+      const unreadIds = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).map(m=>m.id);
+      if(unreadIds.length) await supabase.from('messages').update({is_read:true}).in('id',unreadIds);
+    };
+
+    function renderMessages(){
+      const box = document.getElementById('chat-messages');
+      const sorted = [...activeThread.messages].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+      box.innerHTML = sorted.map(m=>
+        '<div class="bubble '+(m.sender_id===user.id?'me':'them')+'">'+m.content+
+        '<div class="bubble-time">'+new Date(m.created_at).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'})+'</div></div>'
+      ).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    window.sendMessage = async () => {
+      const input = document.getElementById('chat-input');
+      const content = input.value.trim();
+      if(!content || !activeThread) return;
+      const payload = {
+        buyer_id: activeThread.buyer_id, seller_id: activeThread.seller_id,
+        listing_id: activeThread.listing_id, sender_id: user.id, content
+      };
+      const {data,error} = await supabase.from('messages').insert(payload).select().single();
+      if(error){ alert('Could not send: '+error.message); return; }
+      input.value='';
+      activeThread.messages.unshift(data);
+      renderMessages();
+    };
+
+    // Start a new thread from ?seller=&listing= params
+    const params = new URLSearchParams(location.search);
+    const toSeller = params.get('seller');
+    const listingId = params.get('listing');
+    if (toSeller && toSeller!==user.id) {
+      const {data:sellerProfile} = await supabase.from('profiles').select('full_name,store_name').eq('id',toSeller).single();
+      activeThread = { buyer_id:user.id, seller_id:toSeller, listing_id:listingId||null, messages:[] };
+      document.getElementById('chat-header').textContent = sellerProfile?.store_name||sellerProfile?.full_name||'Seller';
+      document.getElementById('chat-input-row').style.display='flex';
+      document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
+    }
+
+    await loadThreads();
+    // If we started a thread via URL params and it already exists, open the matching one instead of a blank one
+    if (toSeller) {
+      const idx = (window._threads||[]).findIndex(t=>t.seller_id===toSeller && t.buyer_id===user.id && (t.listing_id||null)===(listingId||null));
+      if (idx>-1) window.openThread(idx);
+    }
+
+    pollTimer = setInterval(loadThreads, 10000);
+  </script>
+</body>
+</html>

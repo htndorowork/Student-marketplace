@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Profile — Student Marketplace</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+    <meta property="og:title" content="My Profile — Student Marketplace"/>
+  <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
+  <meta property="og:type" content="website"/>
+  <meta name="twitter:card" content="summary"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -12,6 +16,7 @@
     <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
     <div class="nav-links">
       <a href="index.html">Browse</a>
+      <a href="messages.html" id="nav-messages">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
       <a href="seller.html" id="nav-seller" style="display:none">Sell</a>
       <a href="admin.html" id="nav-admin" style="display:none">Admin</a>
       <a href="#" id="signout-btn">Sign out</a>
@@ -70,8 +75,22 @@
           </div>
           <div class="form-error" id="profile-err"></div>
           <button class="btn-primary" id="btn-save-profile">Save Profile ✅</button>
+
+          <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0">
+            <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔐 Two-Factor Authentication</h3>
+            <div id="mfa-status" style="font-size:13px;color:#888;font-weight:600;margin-bottom:10px">Checking status...</div>
+            <div id="mfa-enroll-box" style="display:none">
+              <div id="mfa-qr" style="margin-bottom:10px"></div>
+              <div class="form-group"><label>Enter the 6-digit code from your authenticator app</label><input type="text" id="mfa-code" placeholder="123456" maxlength="6"/></div>
+              <button class="btn-sm btn-toggle" onclick="verifyMfa()">Verify & Enable</button>
+              <button class="btn-sm btn-delete" onclick="cancelMfaEnroll()">Cancel</button>
+            </div>
+            <button class="btn-sm btn-toggle" id="btn-mfa-toggle" style="display:none"></button>
+          </div>
+
           <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0">
             <button class="btn-sm btn-delete" onclick="requestAccountDeletion()">🗑️ Delete my account</button>
+            <button class="btn-sm btn-toggle" onclick="signOutEverywhere()" style="margin-left:8px">🔒 Sign out of all devices</button>
             <p style="font-size:11px;color:#aaa;font-weight:600;margin-top:6px">This removes your profile data. Contact support to fully close your account and remove your listings/orders.</p>
           </div>
         </div>
@@ -86,6 +105,7 @@
       <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="index.html">Browse listings</a>
+      <a class="footer-link" href="faq.html">How It Works</a>
       <a class="footer-link" href="terms.html">Terms</a>
       <a class="footer-link" href="privacy.html">Privacy</a>
       <a class="footer-link" href="guidelines.html">Guidelines</a>
@@ -107,6 +127,9 @@
       const {data:{user}}=await supabase.auth.getUser();
       if(!user){document.getElementById('auth-guard').style.display='block';return;}
       currentUser=user;
+      supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).neq('sender_id',user.id).eq('is_read',false).then(({count})=>{
+        if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
+      });
       document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
       const {data:p}=await supabase.from('profiles').select('*').eq('id',user.id).single();
 
@@ -129,6 +152,7 @@
       }
       document.getElementById('btn-save-profile').onclick=saveProfile;
       loadBuyerOrders();
+      refreshMfaStatus();
     }
 
     async function saveProfile(){
@@ -167,7 +191,7 @@
         const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
         const e=CAT_EMOJI[o.listings?.category]||'📦';
         const img=o.listings?.image_url?'<img src="'+o.listings.image_url+'" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0"/>':`<div style="width:52px;height:52px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${e}</div>`;
-        const status=o.status==='confirmed'?'<span class="order-badge badge-new">🆕 Confirmed</span>':'<span class="order-badge badge-done">✅ Completed</span>';
+        const status=o.status==='confirmed'?'<span class="order-badge badge-new">🆕 Confirmed</span>':o.status==='cancelled'?'<span class="order-badge" style="background:#f0f0f0;color:#888">🚫 Cancelled</span>':'<span class="order-badge badge-done">✅ Completed</span>';
         let ratingHtml='';
         if(o.status==='completed'){
           if(myReviews[o.id]){
@@ -181,6 +205,9 @@
               '</div>';
           }
         }
+        const cancelBtn = o.status==='confirmed' ? '<button class="btn-sm btn-delete" style="margin-top:8px" onclick="window._cancelOrder(\''+o.id+'\')">Cancel Order</button>' : '';
+        const receiptBtn = o.status==='completed' ? '<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
+        const disputeBtn = o.status==='completed' ? '<button class="btn-sm btn-toggle" style="margin-top:8px;margin-left:6px" onclick="window._requestDispute(\''+o.id+'\',\''+(o.listings?.title||'').replace(/'/g,"\\'")+'\')">🚩 Report a problem</button>' : '';
         return '<div class="order-card '+(o.status==='confirmed'?'order-new':'')+'">'+
           '<div style="display:flex;gap:12px;align-items:flex-start">'+img+
           '<div style="flex:1">'+status+
@@ -191,10 +218,28 @@
           (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+o.profiles.residence+'</strong></div>':'')+
           '<div class="order-detail">📱 <strong>'+(o.profiles?.whatsapp||'N/A')+'</strong></div>'+
           '<div class="order-detail" style="color:#aaa;font-size:12px;margin-top:6px">'+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
-          ratingHtml+
+          ratingHtml+cancelBtn+receiptBtn+disputeBtn+
           '</div></div></div>';
       }).join('');
     }
+
+    window._cancelOrder=async(id)=>{
+      if(!confirm('Cancel this order? The seller will see it as cancelled.'))return;
+      const {error}=await supabase.from('orders').update({status:'cancelled'}).eq('id',id);
+      if(error){alert('Error: '+error.message);return;}
+      loadBuyerOrders();
+    };
+    window._requestDispute=async(orderId,listingTitle)=>{
+      const details=prompt('Briefly describe the problem with this order ("'+listingTitle+'"):');
+      if(details===null) return;
+      const {data:o}=await supabase.from('orders').select('seller_id,listing_id').eq('id',orderId).single();
+      const {error}=await supabase.from('reports').insert({
+        reporter_id:currentUser.id, order_id:orderId, listing_id:o?.listing_id||null, reported_user_id:o?.seller_id||null,
+        reason:'Dispute or refund request', details:details||null
+      });
+      if(error){alert('Could not submit: '+error.message);return;}
+      alert('Thanks — our team will review this and reach out if needed.');
+    };
 
     window._starClick=(el,n)=>{
       const wrap=el.parentElement;
@@ -229,11 +274,67 @@
       }).join('');
     };
 
+    window.signOutEverywhere=async()=>{
+      if(!confirm('This signs you out on every device where you\'re logged in, not just this one. Continue?'))return;
+      await supabase.auth.signOut({scope:'global'});
+      window.location.href='login.html';
+    };
+
     window.requestAccountDeletion=async()=>{
       if(!confirm('This clears your saved name, WhatsApp number and residence from our system, and signs you out. Your past orders stay on record for the sellers you dealt with. To fully delete your login and all data, email us afterwards using the Report an issue link. Continue?'))return;
       await supabase.from('profiles').update({full_name:null,whatsapp:null,residence:null}).eq('id',currentUser.id);
       await supabase.auth.signOut();
       window.location.href='index.html';
+    };
+
+    let pendingMfaFactorId=null;
+
+    async function refreshMfaStatus(){
+      const {data} = await supabase.auth.mfa.listFactors();
+      const verified = (data?.totp||[]).filter(f=>f.status==='verified');
+      const statusEl = document.getElementById('mfa-status');
+      const btn = document.getElementById('btn-mfa-toggle');
+      document.getElementById('mfa-enroll-box').style.display='none';
+      if(verified.length){
+        statusEl.textContent='✅ Two-factor authentication is enabled.';
+        btn.textContent='Disable 2FA';
+        btn.style.display='inline-block';
+        btn.onclick=()=>disableMfa(verified[0].id);
+      } else {
+        statusEl.textContent='2FA adds an extra layer of security using an authenticator app (Google Authenticator, Authy, etc).';
+        btn.textContent='Enable 2FA';
+        btn.style.display='inline-block';
+        btn.onclick=startMfaEnroll;
+      }
+    }
+    window.startMfaEnroll=async()=>{
+      const {data,error}=await supabase.auth.mfa.enroll({factorType:'totp'});
+      if(error){alert('Could not start 2FA setup: '+error.message);return;}
+      pendingMfaFactorId=data.id;
+      document.getElementById('mfa-qr').innerHTML=data.totp.qr_code;
+      document.getElementById('mfa-enroll-box').style.display='block';
+    };
+    window.cancelMfaEnroll=async()=>{
+      if(pendingMfaFactorId) await supabase.auth.mfa.unenroll({factorId:pendingMfaFactorId});
+      pendingMfaFactorId=null;
+      document.getElementById('mfa-enroll-box').style.display='none';
+    };
+    window.verifyMfa=async()=>{
+      const code=document.getElementById('mfa-code').value.trim();
+      if(!code||!pendingMfaFactorId){alert('Enter the 6-digit code first');return;}
+      const {data:ch,error:chErr}=await supabase.auth.mfa.challenge({factorId:pendingMfaFactorId});
+      if(chErr){alert('Error: '+chErr.message);return;}
+      const {error}=await supabase.auth.mfa.verify({factorId:pendingMfaFactorId,challengeId:ch.id,code});
+      if(error){alert('Invalid code, try again: '+error.message);return;}
+      pendingMfaFactorId=null;
+      alert('✅ 2FA enabled!');
+      refreshMfaStatus();
+    };
+    window.disableMfa=async(factorId)=>{
+      if(!confirm('Turn off two-factor authentication?'))return;
+      const {error}=await supabase.auth.mfa.unenroll({factorId});
+      if(error){alert('Error: '+error.message);return;}
+      refreshMfaStatus();
     };
 
     init();
