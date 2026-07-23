@@ -208,10 +208,12 @@
         const cancelBtn = o.status==='confirmed' ? '<button class="btn-sm btn-delete" style="margin-top:8px" onclick="window._cancelOrder(\''+o.id+'\')">Cancel Order</button>' : '';
         const receiptBtn = o.status==='completed' ? '<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
         const disputeBtn = o.status==='completed' ? '<button class="btn-sm btn-toggle" style="margin-top:8px;margin-left:6px" onclick="window._requestDispute(\''+o.id+'\',\''+(o.listings?.title||'').replace(/'/g,"\\'")+'\')">🚩 Report a problem</button>' : '';
+        const viewItem = o.listing_id ? "window._viewOrderedItem('"+o.listing_id+"')" : '';
         return '<div class="order-card '+(o.status==='confirmed'?'order-new':'')+'">'+
-          '<div style="display:flex;gap:12px;align-items:flex-start">'+img+
+          '<div style="display:flex;gap:12px;align-items:flex-start">'+
+          (viewItem?'<div onclick="'+viewItem+'" style="cursor:pointer">'+img+'</div>':img)+
           '<div style="flex:1">'+status+
-          '<div class="order-card-title">'+(o.listings?.title||'Unknown')+'</div>'+
+          '<div class="order-card-title"'+(viewItem?' onclick="'+viewItem+'" style="cursor:pointer"':'')+'>'+(o.listings?.title||'Unknown')+(viewItem?' 👁️':'')+'</div>'+
           '<div class="order-detail">Qty: <strong>'+o.quantity+'</strong></div>'+
           '<div style="font-size:13px;font-weight:800;color:#7c3aed;margin-bottom:8px">Contact seller to arrange:</div>'+
           '<div class="order-detail">👤 <strong>'+(o.profiles?.full_name||'Seller')+'</strong></div>'+
@@ -222,6 +224,10 @@
           '</div></div></div>';
       }).join('');
     }
+
+    window._viewOrderedItem=(listingId)=>{
+      window.location.href='index.html?open='+listingId;
+    };
 
     window._cancelOrder=async(id)=>{
       if(!confirm('Cancel this order? The seller will see it as cancelled.'))return;

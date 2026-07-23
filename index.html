@@ -66,11 +66,6 @@
   <div class="tb-panel" id="tb-panel" style="display:none"></div>
 
   <main class="main">
-    <div id="recently-viewed-section" style="display:none;margin-bottom:18px">
-      <div class="section-header"><div class="section-title" style="font-size:15px">🕐 Recently viewed</div></div>
-      <div class="grid" id="recently-viewed-grid"></div>
-    </div>
-
     <div class="filter-toolbar">
       <select id="sort-select" onchange="doFilter()">
         <option value="newest">Newest first</option>
@@ -89,6 +84,11 @@
       <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
       <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
       <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+    </div>
+
+    <div id="recently-viewed-section" style="display:none;margin-top:28px">
+      <div class="section-header"><div class="section-title" id="recently-viewed-title" style="font-size:15px">🕐 Recently viewed</div></div>
+      <div class="grid" id="recently-viewed-grid"></div>
     </div>
   </main>
 
@@ -516,10 +516,13 @@
     };
     function renderRecentlyViewed(){
       let recent=JSON.parse(localStorage.getItem('sm_recently_viewed')||'[]');
-      const items=recent.map(id=>all.find(l=>l.id===id)).filter(Boolean).slice(0,8);
+      let items=recent.map(id=>all.find(l=>l.id===id)).filter(Boolean);
+      if(cat!=='All') items=items.filter(l=>l.category===cat);
+      items=items.slice(0,8);
       const section=document.getElementById('recently-viewed-section');
       if(!items.length){section.style.display='none';return;}
       section.style.display='block';
+      document.getElementById('recently-viewed-title').textContent = cat==='All' ? '🕐 Recently viewed' : '🕐 Recently viewed in '+cat;
       document.getElementById('recently-viewed-grid').innerHTML=items.map(l=>{
         const c=CAT_COLOR[l.category]||{bg:'#f5f5f5'};
         const e=CAT_EMOJI[l.category]||'🛍️';
@@ -825,6 +828,7 @@
       else f.sort((a,b)=>new Date(b.renewed_at||b.created_at)-new Date(a.renewed_at||a.created_at));
 
       render(f);
+      renderRecentlyViewed();
     };
     window.filterListings=window.doFilter;
 

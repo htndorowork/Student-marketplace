@@ -155,14 +155,18 @@
         return '<div class="listing-row">'+
           '<input type="checkbox" class="listing-select" value="'+l.id+'" style="width:16px;height:16px;flex-shrink:0"/>'+
           thumb+
-          '<div class="listing-info" style="flex:1"><div class="listing-title">'+l.title+'</div>'+
+          '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+l.seller_id+'\')" title="View seller\'s store"><div class="listing-title">'+l.title+'</div>'+
           '<div class="listing-meta">'+l.category+' · R'+fp+' · Stock: '+l.quantity+' · by '+(l.profiles?.full_name||'Unknown')+' · '+status+'</div></div>'+
           '<div class="listing-actions">'+
-          '<button class="btn-sm btn-toggle" onclick="window._atoggle(\''+l.id+'\','+l.is_available+')">'+(l.is_available?'Hide':'Show')+'</button>'+
-          '<button class="btn-sm btn-delete" onclick="window._adelete(\''+l.id+'\')">Delete</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._atoggle(\''+l.id+'\','+l.is_available+')">'+(l.is_available?'Hide':'Show')+'</button>'+
+          '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._adelete(\''+l.id+'\')">Delete</button>'+
           '</div></div>';
       }).join('');
     }
+    window._viewStore=(sellerId)=>{
+      if(!sellerId){alert('No seller info available for this row.');return;}
+      window.open('store.html?seller='+sellerId,'_blank');
+    };
     window.toggleSelectAllListings=()=>{
       const boxes=document.querySelectorAll('.listing-select');
       const allChecked=[...boxes].every(b=>b.checked);
@@ -182,14 +186,17 @@
       const {data}=await supabase.from('profiles').select('*').order('created_at',{ascending:false});
       const c=document.getElementById('all-sellers-container');
       if(!data?.length){c.innerHTML='<div class="empty-msg">No users yet</div>';return;}
-      c.innerHTML=data.map(s=>'<div class="seller-row">'+
+      c.innerHTML=data.map(s=>{
+        const isSeller = s.role==='seller';
+        return '<div class="seller-row">'+
         '<div class="seller-avatar">👤</div>'+
-        '<div class="listing-info" style="flex:1">'+
+        '<div class="listing-info" style="flex:1'+(isSeller?';cursor:pointer':'')+'"'+(isSeller?' onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store"':'')+'>'+
         '<div class="listing-title">'+(s.full_name||'No name')+(s.is_admin?' <span class="badge-admin">Admin</span>':'')+' <span style="background:#f0f0f0;color:#555;font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px">'+(s.role||'buyer')+'</span></div>'+
         '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 📍 '+(s.residence||'No res')+' · '+new Date(s.created_at).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
-        '<button class="btn-sm btn-delete" onclick="window._deluser(\''+s.id+'\')">Remove</button>'+
-        '</div>'
+        '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._deluser(\''+s.id+'\')">Remove</button>'+
+        '</div>';
+      }
       ).join('');
     }
 
@@ -199,12 +206,12 @@
       if(!data?.length){c.innerHTML='<div class="empty-msg">No orders yet</div>';return;}
       c.innerHTML=data.map(o=>'<div class="listing-row">'+
         '<div style="font-size:24px;flex-shrink:0">🛒</div>'+
-        '<div class="listing-info" style="flex:1">'+
+        '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+o.seller_id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(o.listings?.title||'Unknown')+'</div>'+
         '<div class="listing-meta">👤 '+o.buyer_name+' · 📱 '+o.buyer_whatsapp+' · Qty: '+o.quantity+' · Seller: '+(o.profiles?.full_name||'?')+' · <span style="color:'+(o.status==='confirmed'?'#e65c00':'#2e7d32')+';font-weight:700">'+o.status.toUpperCase()+'</span></div>'+
         '<div class="listing-meta">🕐 '+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
-        (o.status==='confirmed'?'<button class="btn-sm btn-toggle" onclick="window._adone(\''+o.id+'\')">Mark Done</button>':'')+
+        (o.status==='confirmed'?'<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._adone(\''+o.id+'\')">Mark Done</button>':'')+
         '</div>'
       ).join('');
     }
@@ -217,12 +224,12 @@
       if(!paid.length){c.innerHTML='<div class="empty-msg">No sellers with an active paid subscription 📭</div>';return;}
       c.innerHTML=paid.map(s=>'<div class="seller-row">'+
         '<div class="seller-avatar">'+(s.store_logo_url?'<img src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
-        '<div class="listing-info" style="flex:1">'+
+        '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
         '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
         '<div class="listing-meta" style="color:#2e7d32;font-weight:700">✅ Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
-        '<button class="btn-sm btn-delete" onclick="window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
+        '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
         '</div>'
       ).join('');
     }
@@ -240,12 +247,12 @@
         else reason='<span style="color:#9333ea;font-weight:700">⏰ Expired '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</span>';
         return '<div class="seller-row">'+
           '<div class="seller-avatar">'+(s.store_logo_url?'<img src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
-          '<div class="listing-info" style="flex:1">'+
+          '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
           '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
           '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
-          '<button class="btn-sm btn-toggle" onclick="window._markPaid(\''+s.id+'\')">✅ Mark Paid (+30d)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\')">✅ Mark Paid (+30d)</button>'+
           '</div>';
       }).join('');
     }
