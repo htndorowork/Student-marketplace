@@ -12,9 +12,10 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <script>if(localStorage.getItem('sm_dark')==='1')document.body.classList.add('dark');</script>
   <nav class="nav">
     <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
-    <div class="nav-links"><a href="index.html">← Browse</a></div>
+    <div class="nav-links"><a href="index.html">← Browse</a><button class="dark-toggle-btn" onclick="toggleDarkMode()" id="dark-toggle-btn" title="Toggle dark mode">🌙</button></div>
   </nav>
   <main class="auth-main">
     <div class="auth-card">
@@ -154,6 +155,15 @@
       err.textContent='✅ Account created! Sign in now.';
       setTimeout(()=>showTab('login'),1500);
     };
+  </script>
+  <script>
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark');
+      const isDark=document.body.classList.contains('dark');
+      localStorage.setItem('sm_dark',isDark?'1':'0');
+      document.getElementById('dark-toggle-btn').textContent=isDark?'\u2600\ufe0f':'\ud83c\udf19';
+    }
+    document.getElementById('dark-toggle-btn').textContent=document.body.classList.contains('dark')?'\u2600\ufe0f':'\ud83c\udf19';
   </script>
 </body>
 </html>

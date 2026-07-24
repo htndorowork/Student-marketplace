@@ -12,15 +12,20 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <script>if(localStorage.getItem('sm_dark')==='1')document.body.classList.add('dark');</script>
   <nav class="nav">
     <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
     <div class="nav-links">
       <a href="index.html">Browse</a>
       <a href="messages.html" id="nav-messages">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
+      <div style="position:relative;display:inline-block" id="notif-wrap">
+        <a href="#" id="nav-notif" onclick="toggleNotifDropdown();return false">🔔<span class="inline-badge" id="notif-badge" style="display:none">0</span></a>
+        <div id="notif-dropdown" class="notif-dropdown" style="display:none"></div>
+      </div>
       <a href="seller.html" id="nav-seller" style="display:none">Sell</a>
       <a href="admin.html" id="nav-admin" style="display:none">Admin</a>
       <a href="#" id="signout-btn">Sign out</a>
-    </div>
+    <button class="dark-toggle-btn" onclick="toggleDarkMode()" id="dark-toggle-btn" title="Toggle dark mode">🌙</button></div>
   </nav>
 
   <main class="main" style="max-width:700px">
@@ -130,6 +135,7 @@
       supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).neq('sender_id',user.id).eq('is_read',false).then(({count})=>{
         if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
       });
+      loadNotifications();
       document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
       const {data:p}=await supabase.from('profiles').select('*').eq('id',user.id).single();
 
@@ -190,7 +196,7 @@
       container.innerHTML=data.map(o=>{
         const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
         const e=CAT_EMOJI[o.listings?.category]||'📦';
-        const img=o.listings?.image_url?'<img src="'+o.listings.image_url+'" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0"/>':`<div style="width:52px;height:52px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${e}</div>`;
+        const img=o.listings?.image_url?'<img loading="lazy" src="'+o.listings.image_url+'" alt="'+(o.listings.title||'').replace(/"/g,'')+'" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0"/>':`<div style="width:52px;height:52px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${e}</div>`;
         const status=o.status==='confirmed'?'<span class="order-badge badge-new">🆕 Confirmed</span>':o.status==='cancelled'?'<span class="order-badge" style="background:#f0f0f0;color:#888">🚫 Cancelled</span>':'<span class="order-badge badge-done">✅ Completed</span>';
         let ratingHtml='';
         if(o.status==='completed'){
@@ -271,7 +277,7 @@
       const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Rentals:'🔁',Furniture:'🛋️'};
       c.innerHTML=items.map(l=>{
         const e=CAT_EMOJI[l.category]||'🛍️';
-        const img=l.image_url?'<img src="'+l.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
+        const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
         return '<div class="card" onclick="location.href=\'index.html?open='+l.id+'\'">'+
           '<div class="card-img" style="background:#f5f5f5">'+img+'</div>'+
@@ -343,7 +349,46 @@
       refreshMfaStatus();
     };
 
+    async function loadNotifications(){
+      if(!currentUser)return;
+      const {data}=await supabase.from('notifications').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(20);
+      window._notifs=data||[];
+      const unread=(data||[]).filter(n=>!n.is_read).length;
+      const badge=document.getElementById('notif-badge');
+      if(unread>0){badge.textContent=unread;badge.style.display='inline-flex';}
+      else badge.style.display='none';
+    }
+    window.toggleNotifDropdown=async()=>{
+      const dd=document.getElementById('notif-dropdown');
+      if(dd.style.display==='block'){dd.style.display='none';return;}
+      await loadNotifications();
+      const notifs=window._notifs||[];
+      dd.innerHTML=notifs.length
+        ? notifs.map(n=>'<div class="notif-item'+(n.is_read?'':' unread')+'" onclick="window._openNotif(\''+n.id+'\',\''+(n.listing_id||'')+'\')">'+n.message+'<div style="font-size:10px;color:#aaa;margin-top:3px">'+new Date(n.created_at).toLocaleDateString('en-ZA')+'</div></div>').join('')
+        : '<div class="notif-empty">No notifications yet 🔔</div>';
+      dd.style.display='block';
+    };
+    window._openNotif=async(id,listingId)=>{
+      await supabase.from('notifications').update({is_read:true}).eq('id',id);
+      document.getElementById('notif-dropdown').style.display='none';
+      if(listingId) window.location.href='index.html?open='+listingId;
+      else loadNotifications();
+    };
+    document.addEventListener('click',(e)=>{
+      const wrap=document.getElementById('notif-wrap');
+      if(wrap && !wrap.contains(e.target)) document.getElementById('notif-dropdown').style.display='none';
+    });
+
     init();
+  </script>
+  <script>
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark');
+      const isDark=document.body.classList.contains('dark');
+      localStorage.setItem('sm_dark',isDark?'1':'0');
+      document.getElementById('dark-toggle-btn').textContent=isDark?'\u2600\ufe0f':'\ud83c\udf19';
+    }
+    document.getElementById('dark-toggle-btn').textContent=document.body.classList.contains('dark')?'\u2600\ufe0f':'\ud83c\udf19';
   </script>
 </body>
 </html>

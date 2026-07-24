@@ -12,13 +12,14 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <script>if(localStorage.getItem('sm_dark')==='1')document.body.classList.add('dark');</script>
   <nav class="nav">
     <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
     <div class="nav-links">
       <a href="index.html">Browse</a>
       <a href="profile.html">Profile</a>
       <a href="#" id="signout-btn">Sign out</a>
-    </div>
+    <button class="dark-toggle-btn" onclick="toggleDarkMode()" id="dark-toggle-btn" title="Toggle dark mode">🌙</button></div>
   </nav>
 
   <main class="main" style="max-width:800px">
@@ -93,6 +94,25 @@
     </div>
   </main>
 
+  <!-- ADMIN LISTING EDIT MODAL -->
+  <div class="modal-overlay" id="edit-modal-overlay" onclick="closeEditModal()">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:440px">
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+      <div style="padding:22px 20px">
+        <div class="tb-heading">✏️ Edit Listing</div>
+        <div class="form-group"><label>Title</label><input type="text" id="ae-title"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>Price (R)</label><input type="number" id="ae-price"/></div>
+          <div class="form-group"><label>Quantity</label><input type="number" id="ae-qty"/></div>
+        </div>
+        <div class="form-group"><label>Discount %</label><input type="number" id="ae-discount"/></div>
+        <div class="form-group"><label>Description</label><textarea id="ae-desc" rows="3"></textarea></div>
+        <div class="form-error" id="ae-error"></div>
+        <button class="btn-primary" onclick="saveAdminEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
@@ -151,18 +171,51 @@
         list.map(l=>{
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
         const status=l.is_available?'<span style="color:#2e7d32;font-weight:700">Active</span>':'<span style="color:#aaa;font-weight:700">Hidden</span>';
-        const thumb=l.image_url?'<img src="'+l.image_url+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0"/>':'<div style="width:44px;height:44px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(CAT_EMOJI[l.category]||'📦')+'</div>';
+        const thumb=l.image_url?'<img loading="lazy" src="'+l.image_url+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0"/>':'<div style="width:44px;height:44px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(CAT_EMOJI[l.category]||'📦')+'</div>';
         return '<div class="listing-row">'+
           '<input type="checkbox" class="listing-select" value="'+l.id+'" style="width:16px;height:16px;flex-shrink:0"/>'+
           thumb+
           '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+l.seller_id+'\')" title="View seller\'s store"><div class="listing-title">'+l.title+'</div>'+
           '<div class="listing-meta">'+l.category+' · R'+fp+' · Stock: '+l.quantity+' · by '+(l.profiles?.full_name||'Unknown')+' · '+status+'</div></div>'+
           '<div class="listing-actions">'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._aEditListing(\''+l.id+'\')">Edit</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._atoggle(\''+l.id+'\','+l.is_available+')">'+(l.is_available?'Hide':'Show')+'</button>'+
           '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._adelete(\''+l.id+'\')">Delete</button>'+
           '</div></div>';
       }).join('');
     }
+    let editingAdminListingId=null;
+    window._aEditListing=async(id)=>{
+      const {data:l}=await supabase.from('listings').select('*').eq('id',id).single();
+      if(!l)return;
+      editingAdminListingId=id;
+      document.getElementById('ae-title').value=l.title||'';
+      document.getElementById('ae-price').value=l.price||'';
+      document.getElementById('ae-qty').value=l.quantity||1;
+      document.getElementById('ae-discount').value=l.discount_percent||'';
+      document.getElementById('ae-desc').value=l.description||'';
+      document.getElementById('ae-error').textContent='';
+      document.getElementById('edit-modal-overlay').style.display='flex';
+    };
+    window.closeEditModal=()=>{document.getElementById('edit-modal-overlay').style.display='none';};
+    window.saveAdminEdit=async()=>{
+      const err=document.getElementById('ae-error');
+      err.style.color='#9333ea';err.textContent='';
+      const title=document.getElementById('ae-title').value.trim();
+      const price=parseFloat(document.getElementById('ae-price').value);
+      const qty=parseInt(document.getElementById('ae-qty').value);
+      if(!title||!price||price<=0||!qty||qty<0){err.textContent='❌ Check title/price/quantity';return;}
+      const {error}=await supabase.from('listings').update({
+        title, price, quantity:qty,
+        discount_percent:parseFloat(document.getElementById('ae-discount').value)||0,
+        description:document.getElementById('ae-desc').value.trim()
+      }).eq('id',editingAdminListingId);
+      if(error){err.textContent='❌ '+error.message;return;}
+      logAction('edit_listing',editingAdminListingId,'Admin edited listing details');
+      closeEditModal();
+      loadListings();
+    };
+
     window._viewStore=(sellerId)=>{
       if(!sellerId){alert('No seller info available for this row.');return;}
       window.open('store.html?seller='+sellerId,'_blank');
@@ -194,11 +247,28 @@
         '<div class="listing-title">'+(s.full_name||'No name')+(s.is_admin?' <span class="badge-admin">Admin</span>':'')+' <span style="background:#f0f0f0;color:#555;font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px">'+(s.role||'buyer')+'</span></div>'+
         '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 📍 '+(s.residence||'No res')+' · '+new Date(s.created_at).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
+        '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._toggleRole(\''+s.id+'\',\''+(s.role||'buyer')+'\')">Make '+(isSeller?'Buyer':'Seller')+'</button>'+
+        '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._toggleAdmin(\''+s.id+'\','+!!s.is_admin+')">'+(s.is_admin?'Remove Admin':'Make Admin')+'</button>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._deluser(\''+s.id+'\')">Remove</button>'+
         '</div>';
       }
       ).join('');
     }
+    window._toggleRole=async(id,curRole)=>{
+      const newRole=curRole==='seller'?'buyer':'seller';
+      if(!confirm('Change this user to "'+newRole+'"?'))return;
+      const {error}=await supabase.from('profiles').update({role:newRole}).eq('id',id);
+      if(error){alert('Error: '+error.message);return;}
+      logAction('change_role',id,'Set role to '+newRole);
+      loadSellers();
+    };
+    window._toggleAdmin=async(id,cur)=>{
+      if(!confirm(cur?'Remove admin access from this user?':'Grant admin access to this user? They will be able to manage the whole platform.'))return;
+      const {error}=await supabase.from('profiles').update({is_admin:!cur}).eq('id',id);
+      if(error){alert('Error: '+error.message);return;}
+      logAction('toggle_admin',id,cur?'Removed admin':'Granted admin');
+      loadSellers();
+    };
 
     async function loadOrders(){
       const {data}=await supabase.from('orders').select('*,listings(title),profiles!orders_seller_id_fkey(full_name)').order('created_at',{ascending:false});
@@ -223,7 +293,7 @@
       const c=document.getElementById('paid-sellers-container');
       if(!paid.length){c.innerHTML='<div class="empty-msg">No sellers with an active paid subscription 📭</div>';return;}
       c.innerHTML=paid.map(s=>'<div class="seller-row">'+
-        '<div class="seller-avatar">'+(s.store_logo_url?'<img src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
+        '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
         '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
@@ -246,7 +316,7 @@
         else if(!s.subscription_paid_until) reason='<span style="color:#9333ea;font-weight:700">⚠️ No subscription on file</span>';
         else reason='<span style="color:#9333ea;font-weight:700">⏰ Expired '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</span>';
         return '<div class="seller-row">'+
-          '<div class="seller-avatar">'+(s.store_logo_url?'<img src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
+          '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
           '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
           '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
           '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
@@ -392,6 +462,15 @@
       if(tab==='orders')loadOrders();
     };
     init();
+  </script>
+  <script>
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark');
+      const isDark=document.body.classList.contains('dark');
+      localStorage.setItem('sm_dark',isDark?'1':'0');
+      document.getElementById('dark-toggle-btn').textContent=isDark?'\u2600\ufe0f':'\ud83c\udf19';
+    }
+    document.getElementById('dark-toggle-btn').textContent=document.body.classList.contains('dark')?'\u2600\ufe0f':'\ud83c\udf19';
   </script>
 </body>
 </html>

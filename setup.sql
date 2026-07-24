@@ -102,6 +102,7 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS delivery_fee numeric DEFAULT 0;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS is_draft boolean DEFAULT false;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS is_sold boolean DEFAULT false;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS renewed_at timestamp DEFAULT now();
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS view_count integer DEFAULT 0;
 
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
@@ -133,8 +134,12 @@ CREATE TABLE IF NOT EXISTS reviews (
   buyer_id uuid,
   rating integer NOT NULL CHECK (rating BETWEEN 1 AND 5),
   comment text,
+  dispute_status text DEFAULT 'none',
+  dispute_reason text,
   created_at timestamp DEFAULT now()
 );
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS dispute_status text DEFAULT 'none';
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS dispute_reason text;
 
 -- Buyer reviews (one per completed order, seller rates the buyer)
 CREATE TABLE IF NOT EXISTS buyer_reviews (
@@ -177,6 +182,17 @@ CREATE TABLE IF NOT EXISTS messages (
   seller_id uuid NOT NULL,
   sender_id uuid NOT NULL,
   content text NOT NULL,
+  is_read boolean DEFAULT false,
+  created_at timestamp DEFAULT now()
+);
+
+-- Notifications (back-in-stock, price-drop alerts on favorited listings)
+CREATE TABLE IF NOT EXISTS notifications (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL,
+  type text NOT NULL,
+  message text NOT NULL,
+  listing_id uuid,
   is_read boolean DEFAULT false,
   created_at timestamp DEFAULT now()
 );
@@ -267,6 +283,11 @@ ALTER TABLE messages ADD CONSTRAINT messages_buyer_id_fkey FOREIGN KEY (buyer_id
 ALTER TABLE messages ADD CONSTRAINT messages_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES profiles(id) ON DELETE CASCADE;
 ALTER TABLE messages ADD CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES profiles(id) ON DELETE CASCADE;
 
+ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_user_id_fkey;
+ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_listing_id_fkey;
+ALTER TABLE notifications ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+ALTER TABLE notifications ADD CONSTRAINT notifications_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE;
+
 ALTER TABLE admin_audit_log DROP CONSTRAINT IF EXISTS admin_audit_log_admin_id_fkey;
 ALTER TABLE admin_audit_log ADD CONSTRAINT admin_audit_log_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES profiles(id) ON DELETE SET NULL;
 
@@ -283,6 +304,7 @@ ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- Drop any old policies (safe if they don't exist)
 DROP POLICY IF EXISTS "profiles_read" ON profiles;
@@ -328,6 +350,11 @@ DROP POLICY IF EXISTS "audit_log_insert_admin" ON admin_audit_log;
 DROP POLICY IF EXISTS "messages_read" ON messages;
 DROP POLICY IF EXISTS "messages_insert" ON messages;
 DROP POLICY IF EXISTS "messages_update" ON messages;
+
+DROP POLICY IF EXISTS "notifications_read" ON notifications;
+DROP POLICY IF EXISTS "notifications_update" ON notifications;
+
+DROP POLICY IF EXISTS "reviews_update_dispute" ON reviews;
 
 -- PROFILES policies
 CREATE POLICY "profiles_read" ON profiles FOR SELECT USING (true);
@@ -388,6 +415,7 @@ CREATE POLICY "reviews_insert" ON reviews FOR INSERT WITH CHECK (
   auth.uid() = buyer_id AND
   EXISTS (SELECT 1 FROM orders WHERE id = order_id AND buyer_id = auth.uid() AND status = 'completed')
 );
+CREATE POLICY "reviews_update_dispute" ON reviews FOR UPDATE USING (auth.uid() = seller_id) WITH CHECK (auth.uid() = seller_id);
 
 -- BUYER_REVIEWS policies (seller rates the buyer)
 CREATE POLICY "buyer_reviews_read" ON buyer_reviews FOR SELECT USING (true);
@@ -423,6 +451,10 @@ CREATE POLICY "messages_insert" ON messages FOR INSERT WITH CHECK (
 );
 CREATE POLICY "messages_update" ON messages FOR UPDATE USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
 
+-- NOTIFICATIONS policies (inserted only by the trigger below, which bypasses RLS)
+CREATE POLICY "notifications_read" ON notifications FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "notifications_update" ON notifications FOR UPDATE USING (auth.uid() = user_id);
+
 -- ===================== AUTO-CREATE PROFILE ON SIGNUP =====================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -454,6 +486,31 @@ WITH CHECK (bucket_id = 'listing-images');
 CREATE POLICY "Anyone can view images"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'listing-images');
+
+-- ===================== AUTO NOTIFICATIONS =====================
+-- Automatically notifies everyone who favorited a listing when it comes
+-- back in stock or drops in price. Runs server-side via a trigger, so it
+-- works no matter which page/device changed the listing.
+
+CREATE OR REPLACE FUNCTION notify_favoriters() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.quantity > 0 AND OLD.quantity = 0 THEN
+    INSERT INTO notifications (user_id, type, message, listing_id)
+    SELECT user_id, 'back_in_stock', NEW.title || ' is back in stock! 🎉', NEW.id
+    FROM favorites WHERE listing_id = NEW.id;
+  END IF;
+  IF NEW.price < OLD.price THEN
+    INSERT INTO notifications (user_id, type, message, listing_id)
+    SELECT user_id, 'price_drop', NEW.title || ' just dropped to R' || NEW.price || '! 💸', NEW.id
+    FROM favorites WHERE listing_id = NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_notify_favoriters ON listings;
+CREATE TRIGGER trg_notify_favoriters AFTER UPDATE ON listings
+FOR EACH ROW EXECUTE FUNCTION notify_favoriters();
 
 -- ===================== ADMIN SETUP =====================
 -- IMPORTANT: These two people must SIGN UP on the site FIRST
