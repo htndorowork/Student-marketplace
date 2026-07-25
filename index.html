@@ -406,7 +406,7 @@
     };
     let flatSubcat=null; // currently selected subcategory value for whichever flat category is active
 
-    let all=[], cat='All', currentListing=null, galleryIdx=0, modalQty=1, currentUser=null, cart=[], renderLimit=24;
+    let all=[], cat='All', currentListing=null, galleryIdx=0, modalQty=1, currentUser=null, cart=[], renderLimit=24, lastFilteredList=[];
 
     // Lightweight typo tolerance: exact substring match first, then falls back to
     // per-word edit-distance <=1 for words of 4+ letters (catches things like "laptp" -> "laptop")
@@ -524,7 +524,6 @@
         g.insertAdjacentHTML('afterend','<div id="load-more-wrap" style="text-align:center;margin-top:16px"><button class="btn-primary" style="padding:11px 30px;border-radius:50px" onclick="loadMoreListings()">Load more ('+(list.length-renderLimit)+' more)</button></div>');
       }
     }
-    let lastFilteredList=[];
     window.loadMoreListings=()=>{
       renderLimit+=24;
       document.getElementById('load-more-wrap')?.remove();
