@@ -820,11 +820,22 @@
     window.openCart=()=>{document.getElementById('cart-drawer').classList.add('open');document.getElementById('cart-overlay').classList.add('open');document.body.style.overflow='hidden';};
     window.closeCart=()=>{document.getElementById('cart-drawer').classList.remove('open');document.getElementById('cart-overlay').classList.remove('open');document.body.style.overflow='';};
 
+    async function getBuyerContactInfo(){
+      const {data:p} = await supabase.from('profiles').select('full_name,whatsapp').eq('id',currentUser.id).single();
+      if(!p?.full_name || !p?.whatsapp){
+        alert('Please add your name and WhatsApp number to your profile before ordering — sellers need this to arrange the sale with you.');
+        window.location.href='profile.html';
+        return null;
+      }
+      return {name:p.full_name, wa:p.whatsapp};
+    }
+
     window.checkout=async()=>{
       if(!currentUser){window.location.href='login.html';return;}
       if(!cart.length)return;
-      const name=prompt('Your name?');if(!name)return;
-      const wa=prompt('Your WhatsApp number?');if(!wa)return;
+      const info=await getBuyerContactInfo();
+      if(!info)return;
+      const {name,wa}=info;
       let sellers={};
       for(const c of cart){
         const l=c.listing;
@@ -851,8 +862,9 @@
 
     async function placeOrder(items){
       if(!currentUser){window.location.href='login.html';return;}
-      const name=prompt('Your name?');if(!name)return;
-      const wa=prompt('Your WhatsApp number?');if(!wa)return;
+      const info=await getBuyerContactInfo();
+      if(!info)return;
+      const {name,wa}=info;
       let sellers={};
       for(const {listing:l,qty} of items){
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
