@@ -236,7 +236,7 @@
 
     window._cancelOrder=async(id)=>{
       if(!confirm('Cancel this order? The seller will see it as cancelled.'))return;
-      const {error}=await supabase.from('orders').update({status:'cancelled'}).eq('id',id);
+      const {error}=await supabase.rpc('buyer_cancel_order',{p_order_id:id});
       if(error){alert('Error: '+error.message);return;}
       loadBuyerOrders();
     };

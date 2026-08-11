@@ -99,7 +99,7 @@
       gridEl.innerHTML = '';
     } else {
       const [{data:profile},{data:listings},{data:reviews},{count:salesCountForBadge},{data:soldItems}] = await Promise.all([
-        supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until').eq('id',sellerId).single(),
+        supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until,is_admin').eq('id',sellerId).single(),
         supabase.from('listings').select('*').eq('seller_id',sellerId).eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('created_at',{ascending:false}),
         supabase.from('reviews').select('rating,comment,created_at').eq('seller_id',sellerId).order('created_at',{ascending:false}),
         supabase.from('orders').select('id',{count:'exact',head:true}).eq('seller_id',sellerId).eq('status','completed'),
@@ -107,8 +107,8 @@
       ]);
 
       const today=new Date().toISOString().slice(0,10);
-      const overdue = profile?.subscription_paid_until && profile.subscription_paid_until < today;
-      if (profile && (profile.is_blocked===true || overdue)) {
+      const unpaid = !profile?.is_admin && (!profile?.subscription_paid_until || profile.subscription_paid_until < today);
+      if (profile && (profile.is_blocked===true || unpaid)) {
         headerEl.innerHTML = '<p class="loading-msg">This store is temporarily unavailable 🚧</p>';
         gridEl.innerHTML = '';
       } else

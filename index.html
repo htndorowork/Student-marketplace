@@ -55,7 +55,6 @@
     <div class="cat" id="cat-food" onclick="openFlatSubcats('Food',this)">🍱 Food</div>
     <div class="cat" id="cat-beauty" onclick="openFlatSubcats('Beauty',this)">💄 Beauty</div>
     <div class="cat" id="cat-wigs" onclick="openFlatSubcats('Wigs',this)">💇 Wigs</div>
-    <div class="cat" id="cat-perfumes" onclick="openFlatSubcats('Perfumes',this)">🌸 Perfumes</div>
     <div class="cat" id="cat-tutoring" onclick="openFlatSubcats('Tutoring',this)">🎓 Tutoring</div>
     <div class="cat" id="cat-accommodation" onclick="openFlatSubcats('Accommodation',this)">🏠 Accommodation</div>
     <div class="cat" id="cat-transport" onclick="openFlatSubcats('Transport',this)">🚲 Transport</div>
@@ -72,15 +71,25 @@
 
   <main class="main">
     <div class="filter-toolbar">
-      <select id="sort-select" onchange="doFilter()">
-        <option value="newest">Newest first</option>
-        <option value="price_asc">Price: Low to High</option>
-        <option value="price_desc">Price: High to Low</option>
-      </select>
-      <input type="number" id="price-min" placeholder="Min R" onchange="doFilter()"/>
-      <input type="number" id="price-max" placeholder="Max R" onchange="doFilter()"/>
-      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#555;cursor:pointer">
-        <input type="checkbox" id="my-campus-only" onchange="doFilter()" style="width:15px;height:15px"/> Only my campus
+      <div class="filter-group">
+        <span class="filter-label">Sort by</span>
+        <select id="sort-select" onchange="doFilter()">
+          <option value="newest">Newest first</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Price range (R)</span>
+        <div class="filter-price-inputs">
+          <input type="number" id="price-min" placeholder="Min" min="0" onchange="doFilter()"/>
+          <span class="filter-price-sep">–</span>
+          <input type="number" id="price-max" placeholder="Max" min="0" onchange="doFilter()"/>
+        </div>
+      </div>
+      <label class="filter-campus">
+        <input type="checkbox" id="my-campus-only" onchange="doFilter()"/>
+        Only my campus
       </label>
     </div>
 
@@ -232,7 +241,7 @@
     const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
     const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Wigs:{bg:'#f3e5f5',text:'#7b1fa2'},Perfumes:{bg:'#e0f7fa',text:'#00838f'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'}};
 
-    const TB_YEARS=['1st Year','2nd Year','3rd Year'];
+    const TB_YEARS=['1st Year','2nd Year','3rd Year','Postgraduate'];
     const TB_TAXONOMY={
       'Economic and Management Sciences (EMS)':['Accounting & Auditing','Statistics','Business & Financial Management','Actuarial Science & Quantitative Finance'],
       'Natural and Agricultural Sciences':['Mathematics & Applied Mathematics','Physics','Computer Science & IT','Chemistry & Biochemistry','Agricultural Sciences'],
@@ -262,7 +271,7 @@
       'Trousers (pants)','Shorts','Skirt','Leggings','Joggers','Dress','Gown','Jumpsuit','Saree','Kimono',
       'Hanbok','Abaya','Kilt','Raincoat','Blazer','Cardigan','Windbreaker','Overcoat','Underwear','Bra',
       'Vest','Pajamas','Nightgown','Sneakers','Sandals','Boots','Slippers','High heels','Shoes','Hat',
-      'Cap','Scarf','Gloves','Belt','Tie','Socks'
+      'Cap','Skull cap','Durag','Scarf','Gloves','Belt','Tie','Socks'
     ];
 
     const FOOD_SUBCATS=[
@@ -328,7 +337,7 @@
     const SERVICES_SUBCATS=[
       'Haircuts','Braiding and hairstyling','Barber services','Makeup services','Nail services',
       'Massage services','Personal fitness training','Lift-sharing','Airport transfers','Bus station transfers',
-      'Bicycle rentals','Scooter rentals','Grocery delivery','Food delivery','Pharmacy pickups',
+      'Grocery delivery','Food delivery','Pharmacy pickups',
       'Parcel collection','Laundry pickup and delivery','Campus errand service','Room cleaning',
       'Laundry and ironing','Carpet cleaning','Move-in/move-out cleaning','Graphic design','Logo design',
       'Photography','Videography','Social media management','Website creation',
@@ -336,20 +345,26 @@
       'Transport services','Dj services'
     ];
 
-    const STATIONARY_SUBCATS=[
-      'Pens (ballpoint, gel, fountain)','Pencils (HB, 2B, mechanical)','Erasers','Pencil sharpeners',
-      'Highlighters','Permanent markers','Whiteboard markers','Correction fluid/correction tape','Glue sticks',
-      'Liquid glue','Scissors','Rulers','Protractors','Compasses','Set squares','Geometry sets','Calculators',
-      'Notebooks','Exercise books','Writing pads','Loose-leaf paper','Graph paper','Index cards','Sticky notes',
-      'Page markers/sticky tabs','Folders','Lever arch files','Ring binders','Display files','Plastic sleeves',
-      'Dividers','Clipboards','Document wallets','Envelopes','Staplers','Staples','Staple removers',
-      'Paper clips','Binder clips','Rubber bands','Hole punches','Tape','Tape dispensers','Pencil cases',
-      'Desk organizers','Labels','Printer paper','Printer ink cartridges','Whiteboard erasers',
-      'Chalk (where applicable)','Book covers','Bookmarks','Flashcards','Drawing books','Sketchbooks',
-      'Coloured pencils','Crayons','Oil pastels','Watercolour paints','Paint brushes','Palettes',
-      'Charcoal pencils','Fine liners','Technical drawing pens','Craft knives (for art/design students)',
-      'Cutting mats','Tracing paper'
-    ];
+    const STATIONARY_GROUPS={
+      'Pens':['Ballpoint pens','Gel pens','Fountain pens'],
+      'Pencils':['HB pencils','2B pencils','Mechanical pencils'],
+      'Markers & highlighters':['Highlighters','Permanent markers','Whiteboard markers','Fine liners','Technical drawing pens'],
+      'Erasers & correction':['Erasers','Correction fluid/correction tape','Pencil sharpeners'],
+      'Glue & adhesives':['Glue sticks','Liquid glue','Tape','Tape dispensers'],
+      'Cutting & measuring':['Scissors','Rulers','Protractors','Compasses','Set squares','Geometry sets','Craft knives','Cutting mats'],
+      'Notebooks & paper':['Notebooks','Exercise books','Writing pads','Loose-leaf paper','Graph paper','Index cards','Sticky notes','Page markers/sticky tabs','Printer paper','Tracing paper','Flashcards'],
+      'Files & folders':['Folders','Lever arch files','Ring binders','Display files','Plastic sleeves','Dividers','Clipboards','Document wallets','Envelopes'],
+      'Desk essentials':['Calculators','Staplers','Staples','Staple removers','Paper clips','Binder clips','Rubber bands','Hole punches','Pencil cases','Desk organizers','Labels','Book covers','Bookmarks','Printer ink cartridges'],
+      'Art supplies':['Drawing books','Sketchbooks','Coloured pencils','Crayons','Oil pastels','Watercolour paints','Paint brushes','Palettes','Charcoal pencils','Whiteboard erasers','Chalk']
+    };
+    const STATIONARY_SUBCATS=Object.values(STATIONARY_GROUPS).flat();
+    const STATIONARY_LEGACY={
+      'Pens (ballpoint, gel, fountain)':STATIONARY_GROUPS['Pens'],
+      'Pencils (HB, 2B, mechanical)':STATIONARY_GROUPS['Pencils'],
+      'Craft knives (for art/design students)':['Craft knives'],
+      'Chalk (where applicable)':['Chalk']
+    };
+    let stationaryGroup=null;
 
     const APPLIANCES_SUBCATS=[
       'Fridge','Microwave','Electric kettle','Rice cooker','Air fryer','Toaster','Sandwich maker',
@@ -399,7 +414,7 @@
       Accommodation:{field:'accommodation_subcategory',emoji:'🏠',items:ACCOMMODATION_SUBCATS},
       Transport:{field:'transport_subcategory',emoji:'🚲',items:TRANSPORT_SUBCATS},
       Services:{field:'services_subcategory',emoji:'🛠️',items:SERVICES_SUBCATS},
-      Stationary:{field:'stationary_subcategory',emoji:'✏️',items:STATIONARY_SUBCATS},
+      Stationary:{field:'stationary_subcategory',emoji:'✏️',items:STATIONARY_SUBCATS,groups:STATIONARY_GROUPS},
       Appliances:{field:'appliances_subcategory',emoji:'🔌',items:APPLIANCES_SUBCATS},
       Rentals:{field:'rentals_subcategory',emoji:'🔁',items:RENTALS_SUBCATS},
       Furniture:{field:'furniture_subcategory',emoji:'🛋️',items:FURNITURE_SUBCATS}
@@ -455,13 +470,14 @@
       loadCart();
     }
 
-    const {data}=await supabase.from('listings').select('*,profiles(full_name,whatsapp,residence,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until)').eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('renewed_at',{ascending:false,nullsFirst:false});
+    const {data}=await supabase.from('listings').select('*,profiles(full_name,residence,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until,is_admin)').eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('renewed_at',{ascending:false,nullsFirst:false});
     const today=new Date().toISOString().slice(0,10);
     all=(data||[]).filter(l=>{
       const p=l.profiles;
-      if(!p) return true;
-      const overdue = p.subscription_paid_until && p.subscription_paid_until < today;
-      return !(p.is_blocked===true || overdue);
+      if(!p) return false;
+      if(p.is_blocked===true) return false;
+      if(p.is_admin===true) return true;
+      return !!(p.subscription_paid_until && p.subscription_paid_until >= today);
     });
 
     // Verified-seller badge: sellers with 5+ completed sales
@@ -629,7 +645,7 @@
       if(!seenViews.includes(id)){
         seenViews.push(id);
         sessionStorage.setItem('sm_viewed_this_session',JSON.stringify(seenViews));
-        supabase.from('listings').update({view_count:(l.view_count||0)+1}).eq('id',id).then(()=>{l.view_count=(l.view_count||0)+1;});
+        supabase.rpc('increment_listing_views',{p_listing_id:id}).then(()=>{l.view_count=(l.view_count||0)+1;});
       }
 
       const c=CAT_COLOR[l.category]||{bg:'#f5f5f5',text:'#555'};
@@ -820,6 +836,22 @@
     window.openCart=()=>{document.getElementById('cart-drawer').classList.add('open');document.getElementById('cart-overlay').classList.add('open');document.body.style.overflow='hidden';};
     window.closeCart=()=>{document.getElementById('cart-drawer').classList.remove('open');document.getElementById('cart-overlay').classList.remove('open');document.body.style.overflow='';};
 
+    function escapeHtml(s){
+      return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function showSellerContacts(sellerMap){
+      const sellerList=Object.values(sellerMap);
+      document.getElementById('contact-box').innerHTML=sellerList.map(s=>
+        '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f0f0f0">'+
+        '<div style="font-weight:800;font-size:14px;margin-bottom:6px">👤 '+escapeHtml(s.name)+'</div>'+
+        (s.res?'<div class="contact-item"><span class="contact-label">📍 Find at</span><span class="contact-value">'+escapeHtml(s.res)+'</span></div>':'')+
+        '<div class="contact-item"><span class="contact-label">📱 WhatsApp</span><span class="contact-value">'+escapeHtml(s.wa)+'</span></div>'+
+        '<div style="font-size:12px;color:#aaa;font-weight:600;margin-top:6px">'+escapeHtml(s.items.join(', '))+'</div>'+
+        '</div>'
+      ).join('');
+      document.getElementById('contact-overlay').style.display='flex';
+    }
+
     async function getBuyerContactInfo(){
       const {data:p} = await supabase.from('profiles').select('full_name,whatsapp').eq('id',currentUser.id).single();
       if(!p?.full_name || !p?.whatsapp){
@@ -835,60 +867,44 @@
       if(!cart.length)return;
       const info=await getBuyerContactInfo();
       if(!info)return;
-      const {name,wa}=info;
       let sellers={};
       for(const c of cart){
         const l=c.listing;
+        const {data,error}=await supabase.rpc('place_order',{p_listing_id:l.id,p_quantity:c.qty});
+        if(error){alert('Order failed: '+error.message);return;}
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
-        await supabase.from('orders').insert({listing_id:l.id,seller_id:l.seller_id,buyer_id:currentUser.id,buyer_name:name,buyer_whatsapp:wa,quantity:c.qty,status:'confirmed'});
-        await supabase.from('listings').update({quantity:Math.max(0,l.quantity-c.qty)}).eq('id',l.id);
-        const sid=l.seller_id;
-        if(!sellers[sid])sellers[sid]={name:l.profiles?.full_name||'Seller',wa:l.profiles?.whatsapp||'N/A',res:l.profiles?.residence||'',items:[]};
-        sellers[sid].items.push(l.title+' ×'+c.qty+' (R'+(fp*c.qty)+')');
+        const sid=data.seller_id;
+        if(!sellers[sid])sellers[sid]={name:data.seller_name||'Seller',wa:data.seller_whatsapp||'N/A',res:data.seller_residence||'',items:[]};
+        sellers[sid].items.push((data.listing_title||l.title)+' ×'+c.qty+' (R'+(fp*c.qty)+')');
+        l.quantity=Math.max(0,(l.quantity||0)-c.qty);
       }
       cart=[];saveCart();updateCartUI();closeCart();
-      // Show all seller contacts
-      const sellerList=Object.values(sellers);
-      document.getElementById('contact-box').innerHTML=sellerList.map(s=>
-        '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f0f0f0">'+
-        '<div style="font-weight:800;font-size:14px;margin-bottom:6px">👤 '+s.name+'</div>'+
-        (s.res?'<div class="contact-item"><span class="contact-label">📍 Find at</span><span class="contact-value">'+s.res+'</span></div>':'')+
-        '<div class="contact-item"><span class="contact-label">📱 WhatsApp</span><span class="contact-value">'+s.wa+'</span></div>'+
-        '<div style="font-size:12px;color:#aaa;font-weight:600;margin-top:6px">'+s.items.join(', ')+'</div>'+
-        '</div>'
-      ).join('');
-      document.getElementById('contact-overlay').style.display='flex';
+      showSellerContacts(sellers);
+      doFilter();
     };
 
     async function placeOrder(items){
       if(!currentUser){window.location.href='login.html';return;}
       const info=await getBuyerContactInfo();
       if(!info)return;
-      const {name,wa}=info;
       let sellers={};
       for(const {listing:l,qty} of items){
+        const {data,error}=await supabase.rpc('place_order',{p_listing_id:l.id,p_quantity:qty});
+        if(error){alert('Order failed: '+error.message);return;}
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
-        await supabase.from('orders').insert({listing_id:l.id,seller_id:l.seller_id,buyer_id:currentUser.id,buyer_name:name,buyer_whatsapp:wa,quantity:qty,status:'confirmed'});
-        await supabase.from('listings').update({quantity:Math.max(0,l.quantity-qty)}).eq('id',l.id);
-        if(!sellers[l.seller_id])sellers[l.seller_id]={name:l.profiles?.full_name||'Seller',wa:l.profiles?.whatsapp||'N/A',res:l.profiles?.residence||'',items:[]};
-        sellers[l.seller_id].items.push(l.title+' ×'+qty+' (R'+(fp*qty)+')');
+        const sid=data.seller_id;
+        if(!sellers[sid])sellers[sid]={name:data.seller_name||'Seller',wa:data.seller_whatsapp||'N/A',res:data.seller_residence||'',items:[]};
+        sellers[sid].items.push((data.listing_title||l.title)+' ×'+qty+' (R'+(fp*qty)+')');
+        l.quantity=Math.max(0,(l.quantity||0)-qty);
       }
       closeModal();
-      const sellerList=Object.values(sellers);
-      document.getElementById('contact-box').innerHTML=sellerList.map(s=>
-        '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f0f0f0">'+
-        '<div style="font-weight:800;font-size:14px;margin-bottom:6px">👤 '+s.name+'</div>'+
-        (s.res?'<div class="contact-item"><span class="contact-label">📍 Find at</span><span class="contact-value">'+s.res+'</span></div>':'')+
-        '<div class="contact-item"><span class="contact-label">📱 WhatsApp</span><span class="contact-value">'+s.wa+'</span></div>'+
-        '<div style="font-size:12px;color:#aaa;font-weight:600;margin-top:6px">'+s.items.join(', ')+'</div>'+
-        '</div>'
-      ).join('');
-      document.getElementById('contact-overlay').style.display='flex';
+      showSellerContacts(sellers);
+      doFilter();
     }
 
     window.closeModal=()=>{document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
     window.selectCat=(c,el)=>{
-      cat=c;tbYear=null;tbSubject=null;flatSubcat=null;
+      cat=c;tbYear=null;tbSubject=null;flatSubcat=null;stationaryGroup=null;
       document.getElementById('tb-panel').style.display='none';
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
@@ -902,6 +918,29 @@
         f=f.filter(l=>l.category==='Textbooks');
         if(tbYear)f=f.filter(l=>l.textbook_year===tbYear);
         if(tbSubject)f=f.filter(l=>l.textbook_subject===tbSubject);
+      } else if(cat==='Beauty' && (flatSubcat==="Men's Perfume" || flatSubcat==="Women's Perfume")){
+        f=f.filter(l=>
+          (l.category==='Perfumes' && l.perfumes_subcategory===flatSubcat) ||
+          (l.category==='Beauty' && (l.beauty_subcategory===flatSubcat || l.beauty_subcategory==='Perfume'))
+        );
+      } else if(cat==='Beauty' && flatSubcat==='Perfume'){
+        f=f.filter(l=>
+          l.category==='Perfumes' ||
+          (l.category==='Beauty' && (l.beauty_subcategory==='Perfume' || l.beauty_subcategory==="Men's Perfume" || l.beauty_subcategory==="Women's Perfume"))
+        );
+      } else if(cat==='Beauty'){
+        f=f.filter(l=>l.category==='Beauty' || l.category==='Perfumes');
+        if(flatSubcat)f=f.filter(l=>l.beauty_subcategory===flatSubcat);
+      } else if(cat==='Stationary'){
+        f=f.filter(l=>l.category==='Stationary');
+        if(flatSubcat){
+          const legacyKeys=Object.keys(STATIONARY_LEGACY).filter(k=>STATIONARY_LEGACY[k].includes(flatSubcat));
+          f=f.filter(l=>l.stationary_subcategory===flatSubcat || legacyKeys.includes(l.stationary_subcategory));
+        } else if(stationaryGroup){
+          const items=STATIONARY_GROUPS[stationaryGroup]||[];
+          const legacyKeys=Object.keys(STATIONARY_LEGACY).filter(k=>STATIONARY_LEGACY[k].some(i=>items.includes(i)));
+          f=f.filter(l=>items.includes(l.stationary_subcategory) || legacyKeys.includes(l.stationary_subcategory));
+        }
       } else if(FLAT_SUBCATS[cat]){
         f=f.filter(l=>l.category===cat);
         if(flatSubcat)f=f.filter(l=>l[FLAT_SUBCATS[cat].field]===flatSubcat);
@@ -957,9 +996,9 @@
       doFilter();
     };
 
-    // ===== GENERIC FLAT SUBCATEGORY DRILL-DOWN (Clothing, Electronics, Food, Beauty, Wigs, Perfumes, Tutoring) =====
+    // ===== GENERIC FLAT SUBCATEGORY DRILL-DOWN (Clothing, Electronics, Food, Beauty, Wigs, Tutoring, …) =====
     window.openFlatSubcats=(catName,el)=>{
-      cat=catName;flatSubcat=null;tbYear=null;tbSubject=null;
+      cat=catName;flatSubcat=null;tbYear=null;tbSubject=null;stationaryGroup=null;
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
       renderFlatSubcats();
@@ -969,15 +1008,80 @@
     function renderFlatSubcats(){
       const conf=FLAT_SUBCATS[cat];if(!conf)return;
       const p=document.getElementById('tb-panel');
+      if(cat==='Stationary' && conf.groups){
+        renderStationaryPanel();
+        return;
+      }
       let html='<div class="tb-heading">'+conf.emoji+' Browse '+cat.toLowerCase()+' by type</div>';
       html+='<button class="tb-view-all-year" onclick="viewAllFlat()">Show all '+cat.toLowerCase()+'</button>';
       html+='<div class="tb-subject-grid">'+
-        conf.items.map(sub=>'<button class="tb-subject-btn'+(flatSubcat===sub?' active':'')+'" onclick="selectFlatSubcat(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>').join('')+
+        conf.items.map(sub=>{
+          if(cat==='Beauty' && sub==='Perfume'){
+            return '<button class="tb-subject-btn'+(flatSubcat==='Perfume'||flatSubcat==="Men's Perfume"||flatSubcat==="Women's Perfume"?' active':'')+'" onclick="openPerfumeGender()">Perfume</button>';
+          }
+          return '<button class="tb-subject-btn'+(flatSubcat===sub?' active':'')+'" onclick="selectFlatSubcat(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>';
+        }).join('')+
         '</div>';
       p.innerHTML=html;
     }
-    window.viewAllFlat=()=>{flatSubcat=null;renderFlatSubcats();doFilter();};
-    window.selectFlatSubcat=(sub)=>{flatSubcat=sub;renderFlatSubcats();doFilter();};
+    function renderStationaryPanel(){
+      const p=document.getElementById('tb-panel');
+      if(!stationaryGroup){
+        p.innerHTML=
+          '<div class="tb-heading">✏️ Browse stationary by type</div>'+
+          '<button class="tb-view-all-year" onclick="viewAllFlat()">Show all stationary</button>'+
+          '<div class="tb-subject-grid">'+
+          Object.keys(STATIONARY_GROUPS).map(g=>
+            '<button class="tb-subject-btn" onclick="openStationaryGroup(\''+g.replace(/'/g,"\\'")+'\')">'+g+'</button>'
+          ).join('')+
+          '</div>';
+        return;
+      }
+      const items=STATIONARY_GROUPS[stationaryGroup]||[];
+      p.innerHTML=
+        '<div class="tb-crumbs">'+
+        '<span class="tb-crumb" onclick="stationaryGroup=null;flatSubcat=null;renderStationaryPanel();doFilter()">Stationary</span>'+
+        '<span class="tb-crumb-sep">›</span>'+
+        '<span class="tb-crumb-current">'+stationaryGroup+'</span>'+
+        '</div>'+
+        '<div class="tb-heading">Choose a '+stationaryGroup.toLowerCase()+' option</div>'+
+        '<button class="tb-view-all-year" onclick="flatSubcat=null;doFilter();renderStationaryPanel()">Show all '+stationaryGroup.toLowerCase()+'</button>'+
+        '<div class="tb-subject-grid">'+
+        items.map(sub=>'<button class="tb-subject-btn'+(flatSubcat===sub?' active':'')+'" onclick="selectFlatSubcat(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>').join('')+
+        '</div>';
+    }
+    window.openStationaryGroup=(g)=>{stationaryGroup=g;flatSubcat=null;renderStationaryPanel();doFilter();};
+    window.viewAllFlat=()=>{flatSubcat=null;stationaryGroup=null;renderFlatSubcats();doFilter();};
+    window.selectFlatSubcat=(sub)=>{
+      flatSubcat=sub;
+      if(cat==='Stationary') renderStationaryPanel();
+      else renderFlatSubcats();
+      doFilter();
+    };
+
+    // Perfume sits under Beauty — when pressed, ask men's or women's
+    window.openPerfumeGender=()=>{
+      flatSubcat='Perfume';
+      renderPerfumeGender();
+      doFilter();
+    };
+    function renderPerfumeGender(){
+      const p=document.getElementById('tb-panel');
+      p.innerHTML=
+        '<div class="tb-crumbs">'+
+        '<span class="tb-crumb" onclick="flatSubcat=null;renderFlatSubcats();doFilter()">Beauty</span>'+
+        '<span class="tb-crumb-sep">›</span>'+
+        '<span class="tb-crumb-current">Perfume</span>'+
+        '</div>'+
+        '<div class="tb-heading">🌸 Men\'s perfume or women\'s perfume?</div>'+
+        '<button class="tb-view-all-year" onclick="openPerfumeGender()">Show all perfume</button>'+
+        '<div class="tb-year-grid">'+
+        PERFUMES_SUBCATS.map(g=>
+          '<button class="tb-year-btn'+(flatSubcat===g?' active':'')+'" data-g="'+g.replace(/"/g,'&quot;')+'" onclick="selectPerfumeGender(this.dataset.g)">'+g+'</button>'
+        ).join('')+
+        '</div>';
+    }
+    window.selectPerfumeGender=(g)=>{flatSubcat=g;renderPerfumeGender();doFilter();};
 
     // ===== TEXTBOOK YEAR / FACULTY / SUBJECT DRILL-DOWN =====
     window.openTextbookYears=(el)=>{

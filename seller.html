@@ -48,15 +48,44 @@
     </div>
   </nav>
 
-  <!-- PAYWALL SCREEN -->
+  <!-- SUBSCRIBE / PAYWALL SCREEN -->
   <div id="paywall-screen" style="display:none">
     <div class="paywall-screen">
-      <div class="paywall-card">
-        <div style="font-size:52px;margin-bottom:16px">🔒</div>
-        <h2 style="font-size:22px;font-weight:900;margin-bottom:10px">Listings Paused</h2>
-        <p style="font-size:14px;color:#888;font-weight:600;line-height:1.7;margin-bottom:20px">New listings are temporarily paused while we set up payments. Contact admin to get verified and start selling.</p>
-        <a href="mailto:urbanloom09@gmail.com" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:50px;font-weight:800;font-size:14px;text-decoration:none">📧 Contact Admin</a>
-        <div style="margin-top:16px"><a href="index.html" style="color:#aaa;font-size:13px;font-weight:700;text-decoration:none">← Back to browsing</a></div>
+      <div class="paywall-card" style="max-width:520px;text-align:left">
+        <div id="paywall-emergency" style="display:none;text-align:center">
+          <div style="font-size:52px;margin-bottom:16px">🔒</div>
+          <h2 style="font-size:22px;font-weight:900;margin-bottom:10px;text-align:center">Listings Paused</h2>
+          <p style="font-size:14px;color:#888;font-weight:600;line-height:1.7;margin-bottom:20px;text-align:center">New listings are temporarily paused. Contact admin if you need help.</p>
+          <div style="text-align:center"><a href="mailto:urbanloom09@gmail.com" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:50px;font-weight:800;font-size:14px;text-decoration:none">📧 Contact Admin</a></div>
+        </div>
+        <div id="paywall-plans">
+          <div style="text-align:center;font-size:42px;margin-bottom:8px">💼</div>
+          <h2 style="font-size:22px;font-weight:900;margin-bottom:8px;text-align:center">Start selling</h2>
+          <p style="font-size:14px;color:#888;font-weight:600;line-height:1.6;margin-bottom:20px;text-align:center">No free trial — pay securely with PayFast to unlock your seller dashboard and post listings.</p>
+          <div class="plan-grid" style="display:grid;gap:12px;margin-bottom:16px">
+            <button type="button" class="plan-card" id="plan-month" onclick="startPayfastCheckout('month')" style="text-align:left;background:#faf7ff;border:2.5px solid #d8c4f7;border-radius:16px;padding:18px 16px;cursor:pointer;font-family:inherit">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div>
+                  <div style="font-weight:900;font-size:16px;color:#111">30 days</div>
+                  <div style="font-size:12.5px;color:#888;font-weight:700;margin-top:4px">Best value for active sellers</div>
+                </div>
+                <div style="font-weight:900;font-size:22px;color:#7c3aed">R159</div>
+              </div>
+            </button>
+            <button type="button" class="plan-card" id="plan-week" onclick="startPayfastCheckout('week')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:18px 16px;cursor:pointer;font-family:inherit">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div>
+                  <div style="font-weight:900;font-size:16px;color:#111">1 week</div>
+                  <div style="font-size:12.5px;color:#888;font-weight:700;margin-top:4px">Try selling for a short stretch</div>
+                </div>
+                <div style="font-weight:900;font-size:22px;color:#7c3aed">R49</div>
+              </div>
+            </button>
+          </div>
+          <p id="payfast-error" style="display:none;color:#9333ea;font-size:13px;font-weight:700;text-align:center;margin-bottom:10px"></p>
+          <p style="font-size:12px;color:#aaa;font-weight:600;text-align:center;line-height:1.5">Payments are processed by PayFast. After a successful payment your selling access activates automatically.</p>
+          <div style="margin-top:16px;text-align:center"><a href="index.html" style="color:#aaa;font-size:13px;font-weight:700;text-decoration:none">← Back to browsing</a></div>
+        </div>
       </div>
     </div>
   </div>
@@ -106,7 +135,7 @@
                 <option value="">Select category</option>
                 <option>Textbooks</option><option>Clothing</option><option>Electronics</option>
                 <option>Food</option><option>Beauty</option><option>Wigs</option>
-                <option>Perfumes</option><option>Tutoring</option><option>Accommodation</option>
+                <option>Tutoring</option><option>Accommodation</option>
                 <option>Transport</option><option>Services</option><option>Stationary</option>
                 <option>Appliances</option><option>Rentals</option><option>Furniture</option>
               </select>
@@ -117,7 +146,7 @@
               <label>Study Year *</label>
               <select id="f-tb-year">
                 <option value="">Select year</option>
-                <option>1st Year</option><option>2nd Year</option><option>3rd Year</option>
+                <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>Postgraduate</option>
               </select>
             </div>
             <div class="form-group">
@@ -291,6 +320,10 @@
       'sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ'
     );
 
+    // PayFast credentials live ONLY in Supabase Edge Function secrets (payfast-checkout / payfast-itn).
+    // Do not put merchant_key or passphrase in this file.
+    const PAYFAST_FN = 'https://kqsqtasykdtpdrkqyaxp.supabase.co/functions/v1/payfast-checkout';
+
     let currentUser = null;
     const imgs = {1:null,2:null,3:null,4:null,5:null,6:null};
 
@@ -333,7 +366,7 @@
       'Trousers (pants)','Shorts','Skirt','Leggings','Joggers','Dress','Gown','Jumpsuit','Saree','Kimono',
       'Hanbok','Abaya','Kilt','Raincoat','Blazer','Cardigan','Windbreaker','Overcoat','Underwear','Bra',
       'Vest','Pajamas','Nightgown','Sneakers','Sandals','Boots','Slippers','High heels','Shoes','Hat',
-      'Cap','Scarf','Gloves','Belt','Tie','Socks'
+      'Cap','Skull cap','Durag','Scarf','Gloves','Belt','Tie','Socks'
     ];
 
     const FOOD_SUBCATS=[
@@ -353,7 +386,7 @@
       'Makeup remover','Makeup wipes','Beauty sponge','Makeup brushes','Nail polish','Nail polish remover',
       'Cuticle oil','Hand cream','Body lotion','Body butter','Body scrub','Shower gel','Bar soap','Shampoo',
       'Conditioner','Hair oil','Hair serum','Hair gel','Hair wax','Hair spray','Hair mousse','Dry shampoo',
-      'Hair dye','Perfume','Body mist','Deodorant','Roll-on deodorant','Antiperspirant','Cotton pads',
+      'Hair dye',"Men's Perfume","Women's Perfume",'Body mist','Deodorant','Roll-on deodorant','Antiperspirant','Cotton pads',
       'Cotton buds','Tweezers','Razor','Shaving cream','Wax strips','Facial cleansing brush'
     ];
 
@@ -366,8 +399,6 @@
       'Ombre wig','Blonde wig','Black wig','Brown wig','Red wig','Burgundy wig','Custom-made wig',
       'Machine-made wig','Hand-tied wig','Medical wig'
     ];
-
-    const PERFUMES_SUBCATS=["Men's Perfume","Women's Perfume"];
 
     const TUTORING_SUBCATS=[
       'Mathematics tutoring','Statistics tutoring','Physics tutoring','Chemistry tutoring','Biology tutoring',
@@ -399,7 +430,7 @@
     const SERVICES_SUBCATS=[
       'Haircuts','Braiding and hairstyling','Barber services','Makeup services','Nail services',
       'Massage services','Personal fitness training','Lift-sharing','Airport transfers','Bus station transfers',
-      'Bicycle rentals','Scooter rentals','Grocery delivery','Food delivery','Pharmacy pickups',
+      'Grocery delivery','Food delivery','Pharmacy pickups',
       'Parcel collection','Laundry pickup and delivery','Campus errand service','Room cleaning',
       'Laundry and ironing','Carpet cleaning','Move-in/move-out cleaning','Graphic design','Logo design',
       'Photography','Videography','Social media management','Website creation',
@@ -407,20 +438,19 @@
       'Transport services','Dj services'
     ];
 
-    const STATIONARY_SUBCATS=[
-      'Pens (ballpoint, gel, fountain)','Pencils (HB, 2B, mechanical)','Erasers','Pencil sharpeners',
-      'Highlighters','Permanent markers','Whiteboard markers','Correction fluid/correction tape','Glue sticks',
-      'Liquid glue','Scissors','Rulers','Protractors','Compasses','Set squares','Geometry sets','Calculators',
-      'Notebooks','Exercise books','Writing pads','Loose-leaf paper','Graph paper','Index cards','Sticky notes',
-      'Page markers/sticky tabs','Folders','Lever arch files','Ring binders','Display files','Plastic sleeves',
-      'Dividers','Clipboards','Document wallets','Envelopes','Staplers','Staples','Staple removers',
-      'Paper clips','Binder clips','Rubber bands','Hole punches','Tape','Tape dispensers','Pencil cases',
-      'Desk organizers','Labels','Printer paper','Printer ink cartridges','Whiteboard erasers',
-      'Chalk (where applicable)','Book covers','Bookmarks','Flashcards','Drawing books','Sketchbooks',
-      'Coloured pencils','Crayons','Oil pastels','Watercolour paints','Paint brushes','Palettes',
-      'Charcoal pencils','Fine liners','Technical drawing pens','Craft knives (for art/design students)',
-      'Cutting mats','Tracing paper'
-    ];
+    const STATIONARY_GROUPS={
+      'Pens':['Ballpoint pens','Gel pens','Fountain pens'],
+      'Pencils':['HB pencils','2B pencils','Mechanical pencils'],
+      'Markers & highlighters':['Highlighters','Permanent markers','Whiteboard markers','Fine liners','Technical drawing pens'],
+      'Erasers & correction':['Erasers','Correction fluid/correction tape','Pencil sharpeners'],
+      'Glue & adhesives':['Glue sticks','Liquid glue','Tape','Tape dispensers'],
+      'Cutting & measuring':['Scissors','Rulers','Protractors','Compasses','Set squares','Geometry sets','Craft knives','Cutting mats'],
+      'Notebooks & paper':['Notebooks','Exercise books','Writing pads','Loose-leaf paper','Graph paper','Index cards','Sticky notes','Page markers/sticky tabs','Printer paper','Tracing paper','Flashcards'],
+      'Files & folders':['Folders','Lever arch files','Ring binders','Display files','Plastic sleeves','Dividers','Clipboards','Document wallets','Envelopes'],
+      'Desk essentials':['Calculators','Staplers','Staples','Staple removers','Paper clips','Binder clips','Rubber bands','Hole punches','Pencil cases','Desk organizers','Labels','Book covers','Bookmarks','Printer ink cartridges'],
+      'Art supplies':['Drawing books','Sketchbooks','Coloured pencils','Crayons','Oil pastels','Watercolour paints','Paint brushes','Palettes','Charcoal pencils','Whiteboard erasers','Chalk']
+    };
+    const STATIONARY_SUBCATS=Object.values(STATIONARY_GROUPS).flat();
 
     const APPLIANCES_SUBCATS=[
       'Fridge','Microwave','Electric kettle','Rice cooker','Air fryer','Toaster','Sandwich maker',
@@ -465,7 +495,6 @@
       Food:{field:'food_subcategory',label:'Food Item *',items:FOOD_SUBCATS},
       Beauty:{field:'beauty_subcategory',label:'Beauty Item *',items:BEAUTY_SUBCATS},
       Wigs:{field:'wigs_subcategory',label:'Wig Type *',items:WIGS_SUBCATS},
-      Perfumes:{field:'perfumes_subcategory',label:'Perfume Type *',items:PERFUMES_SUBCATS},
       Tutoring:{field:'tutoring_subcategory',label:'Tutoring Subject *',items:TUTORING_SUBCATS},
       Accommodation:{field:'accommodation_subcategory',label:'Accommodation Type *',items:ACCOMMODATION_SUBCATS},
       Transport:{field:'transport_subcategory',label:'Transport Type *',items:TRANSPORT_SUBCATS},
@@ -483,7 +512,14 @@
       const flatRow=document.getElementById('f-flat-row');
       if(conf){
         document.getElementById('f-flat-label').textContent=conf.label;
-        document.getElementById('f-flat-subcat').innerHTML='<option value="">Select type</option>'+conf.items.map(s=>'<option>'+s+'</option>').join('');
+        if(v==='Stationary'){
+          document.getElementById('f-flat-subcat').innerHTML='<option value="">Select type</option>'+
+            Object.keys(STATIONARY_GROUPS).map(g=>
+              '<optgroup label="'+g+'">'+STATIONARY_GROUPS[g].map(s=>'<option>'+s+'</option>').join('')+'</optgroup>'
+            ).join('');
+        } else {
+          document.getElementById('f-flat-subcat').innerHTML='<option value="">Select type</option>'+conf.items.map(s=>'<option>'+s+'</option>').join('');
+        }
         flatRow.style.display='block';
       } else {
         flatRow.style.display='none';
@@ -549,26 +585,106 @@
       renderCampusChoices(document.getElementById('p-university').value, selectedCampuses, false);
     };
 
+    function siteBase(){
+      return window.location.href.replace(/[^/]*$/, '');
+    }
+    window.startPayfastCheckout = async (planKey)=>{
+      const errEl = document.getElementById('payfast-error');
+      errEl.style.display='none';
+      if (planKey!=='week' && planKey!=='month') return;
+      if (!currentUser) {
+        errEl.style.display='block';
+        errEl.textContent='Please sign in first.';
+        return;
+      }
+      const {data:{session}}=await supabase.auth.getSession();
+      if (!session?.access_token) {
+        errEl.style.display='block';
+        errEl.textContent='Please sign in again.';
+        return;
+      }
+      errEl.style.display='block';
+      errEl.style.color='#555';
+      errEl.textContent='Redirecting to PayFast…';
+      try {
+        const res = await fetch(PAYFAST_FN, {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+session.access_token,
+            'apikey':'sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ'
+          },
+          body: JSON.stringify({ plan: planKey, return_base: siteBase() })
+        });
+        const payload = await res.json().catch(()=>({}));
+        if (!res.ok) {
+          errEl.style.color='#9333ea';
+          errEl.textContent = payload.error || ('Checkout failed ('+res.status+')');
+          return;
+        }
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = payload.process_url;
+        Object.keys(payload.fields||{}).forEach(k=>{
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = k;
+          input.value = payload.fields[k];
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+      } catch(e) {
+        errEl.style.color='#9333ea';
+        errEl.textContent = 'Could not start payment. Check that payfast-checkout is deployed.';
+      }
+    };
+
     async function init() {
       const {data:{user}} = await supabase.auth.getUser();
 
-      // Check paywall FIRST before anything else
       const {data:pw} = await supabase.from('settings').select('value').eq('key','paywall_active').single();
       const paywallOn = pw?.value === 'true';
 
+      if (!user) {
+        document.getElementById('main-dashboard').style.display = 'block';
+        document.getElementById('auth-guard').style.display = 'block';
+        return;
+      }
+      currentUser = user;
+
       if (paywallOn) {
         document.getElementById('paywall-screen').style.display = 'block';
+        document.getElementById('paywall-emergency').style.display = 'block';
+        document.getElementById('paywall-plans').style.display = 'none';
+        return;
+      }
+
+      const {data:p} = await supabase.from('profiles').select('*').eq('id',user.id).single();
+      const today = new Date().toISOString().slice(0,10);
+      const paidActive = p?.subscription_paid_until && p.subscription_paid_until >= today;
+      const blocked = p?.is_blocked === true;
+
+      if (blocked) {
+        document.getElementById('paywall-screen').style.display = 'block';
+        document.getElementById('paywall-emergency').style.display = 'block';
+        document.getElementById('paywall-plans').style.display = 'none';
+        document.querySelector('#paywall-emergency h2').textContent = 'Store blocked';
+        document.querySelector('#paywall-emergency p').textContent = 'Your store is temporarily blocked by the admin. Contact support for help.';
+        return;
+      }
+
+      if (!paidActive && !p?.is_admin) {
+        document.getElementById('paywall-screen').style.display = 'block';
+        document.getElementById('paywall-emergency').style.display = 'none';
+        document.getElementById('paywall-plans').style.display = 'block';
         return;
       }
 
       document.getElementById('main-dashboard').style.display = 'block';
-
-      if (!user) { document.getElementById('auth-guard').style.display = 'block'; return; }
-      currentUser = user;
       document.getElementById('seller-content').style.display = 'block';
       document.getElementById('signout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='login.html'; };
 
-      const {data:p} = await supabase.from('profiles').select('*').eq('id',user.id).single();
       if (p) {
         document.getElementById('seller-name').textContent = 'Hi, '+(p.full_name||'Seller')+' 👋';
         document.getElementById('p-name').value = p.full_name||'';
@@ -582,19 +698,11 @@
         });
         loadNotifications();
 
-        // Subscription / block check
-        const today = new Date().toISOString().slice(0,10);
-        const overdue = p.subscription_paid_until && p.subscription_paid_until < today;
-        const blocked = p.is_blocked === true || overdue;
-        if (blocked) {
+        if (p.subscription_paid_until) {
           const banner = document.createElement('div');
-          banner.style.cssText = 'background:#2d1b4e;color:#fff;padding:14px 20px;font-weight:800;font-size:13px;text-align:center';
-          banner.textContent = p.is_blocked
-            ? '🚫 Your store is temporarily blocked by the admin. Contact support for help.'
-            : '⏰ Your monthly subscription has expired. Please renew to keep posting and stay visible to buyers.';
+          banner.style.cssText = 'background:#f5f0fe;color:#5b21b6;padding:10px 20px;font-weight:800;font-size:12.5px;text-align:center;border-bottom:2px solid #e9d5ff';
+          banner.textContent = '✅ Seller plan active until '+new Date(p.subscription_paid_until).toLocaleDateString('en-ZA');
           document.body.insertBefore(banner, document.body.firstChild);
-          document.getElementById('btn-post').disabled = true;
-          document.getElementById('btn-post').style.opacity = '0.5';
         }
       }
 
@@ -610,7 +718,7 @@
           try { uploadFile = await compressImage(file); }
           catch(compressErr) { uploadFile = file; }
           slot.innerHTML = '<div style="font-size:12px;font-weight:700;color:#7c3aed;text-align:center">Uploading...</div>';
-          const fname = currentUser.id+'-'+n+'-'+Date.now()+'.jpg';
+          const fname = currentUser.id+'/'+n+'-'+Date.now()+'.jpg';
           const {error} = await supabase.storage.from('listing-images').upload(fname,uploadFile);
           if (error) { err.textContent='❌ '+error.message; err.style.display='block'; slot.innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>'; return; }
           const {data:u} = supabase.storage.from('listing-images').getPublicUrl(fname);
@@ -881,16 +989,11 @@
       if (!uni) { err.textContent='❌ Select which university you sell to'; return; }
       if (!allCampuses && !selectedCampuses.length) { err.textContent='❌ Select at least one campus you can deliver to (or choose "All campuses")'; return; }
 
-      // First-time sellers get an automatic 30-day free trial before subscription is required
-      const {data:existing} = await supabase.from('profiles').select('subscription_paid_until').eq('id',currentUser.id).single();
+      // No free trial — sellers must pay via PayFast before posting
       const updatePayload = {
         full_name:name, whatsapp:wa, residence:res,
         university:uni, delivery_campuses:selectedCampuses, deliver_all_campuses:allCampuses
       };
-      if (!existing?.subscription_paid_until) {
-        const trialEnd = new Date(); trialEnd.setDate(trialEnd.getDate()+30);
-        updatePayload.subscription_paid_until = trialEnd.toISOString().slice(0,10);
-      }
 
       const {error} = await supabase.from('profiles').update(updatePayload).eq('id',currentUser.id);
       if (error) { err.textContent='❌ '+error.message; return; }
@@ -1033,7 +1136,7 @@
       try { uploadFile = await compressImage(file); }
       catch(compressErr) { uploadFile = file; }
       slot.innerHTML = '<div style="font-size:12px;font-weight:700;color:#7c3aed;text-align:center">Uploading...</div>';
-      const fname = 'store-'+currentUser.id+'-'+Date.now()+'.jpg';
+      const fname = currentUser.id+'/store-'+Date.now()+'.jpg';
       const {error} = await supabase.storage.from('listing-images').upload(fname,uploadFile);
       if (error) { err.textContent='❌ '+error.message; renderStoreLogoSlot(); return; }
       const {data:u} = supabase.storage.from('listing-images').getPublicUrl(fname);

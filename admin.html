@@ -37,7 +37,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
             <div style="font-size:16px;font-weight:800;margin-bottom:4px">🔒 Listing Paywall</div>
-            <div style="font-size:13px;color:#888;font-weight:600">When ON, sellers cannot post new listings until you turn it off. Use this while waiting for PayFast verification.</div>
+            <div style="font-size:13px;color:#888;font-weight:600">Emergency pause: when ON, all sellers see a blocked screen. Turn OFF once PayFast is live so sellers can pay R159 / R49 to unlock selling.</div>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="paywall-toggle" onchange="togglePaywall(this.checked)"/>
@@ -134,13 +134,13 @@
       const {data}=await supabase.from('settings').select('value').eq('key','paywall_active').single();
       const active=data?.value==='true';
       document.getElementById('paywall-toggle').checked=active;
-      document.getElementById('paywall-status').textContent=active?'🔴 Paywall is ON — sellers cannot post listings':'🟢 Paywall is OFF — sellers can post freely';
+      document.getElementById('paywall-status').textContent=active?'🔴 Emergency pause ON — sellers cannot open the dashboard':'🟢 Emergency pause OFF — sellers must still have an active paid plan to post';
       document.getElementById('paywall-status').style.color=active?'#9333ea':'#2e7d32';
     }
 
     window.togglePaywall=async(checked)=>{
       await supabase.from('settings').update({value:checked?'true':'false'}).eq('key','paywall_active');
-      document.getElementById('paywall-status').textContent=checked?'🔴 Paywall is ON — sellers cannot post listings':'🟢 Paywall is OFF — sellers can post freely';
+      document.getElementById('paywall-status').textContent=checked?'🔴 Emergency pause ON — sellers cannot open the dashboard':'🟢 Emergency pause OFF — sellers must still have an active paid plan to post';
       document.getElementById('paywall-status').style.color=checked?'#9333ea':'#2e7d32';
     };
 
@@ -256,16 +256,14 @@
     window._toggleRole=async(id,curRole)=>{
       const newRole=curRole==='seller'?'buyer':'seller';
       if(!confirm('Change this user to "'+newRole+'"?'))return;
-      const {error}=await supabase.from('profiles').update({role:newRole}).eq('id',id);
+      const {error}=await supabase.rpc('admin_set_role',{p_user_id:id,p_role:newRole});
       if(error){alert('Error: '+error.message);return;}
-      logAction('change_role',id,'Set role to '+newRole);
       loadSellers();
     };
     window._toggleAdmin=async(id,cur)=>{
       if(!confirm(cur?'Remove admin access from this user?':'Grant admin access to this user? They will be able to manage the whole platform.'))return;
-      const {error}=await supabase.from('profiles').update({is_admin:!cur}).eq('id',id);
+      const {error}=await supabase.rpc('admin_set_is_admin',{p_user_id:id,p_is_admin:!cur});
       if(error){alert('Error: '+error.message);return;}
-      logAction('toggle_admin',id,cur?'Removed admin':'Granted admin');
       loadSellers();
     };
 
@@ -321,7 +319,8 @@
           '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
-          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\')">✅ Mark Paid (+30d)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',30)">✅ +30d (R159)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',7)">✅ +7d (R49)</button>'+
           '</div>';
       }).join('');
     }
@@ -330,30 +329,24 @@
       try{ await supabase.from('admin_audit_log').insert({admin_id:currentAdminId,action,target_id:targetId,details}); }catch(e){}
     }
 
-    window._markPaid=async(id)=>{
-      const paidUntil=new Date(); paidUntil.setDate(paidUntil.getDate()+30);
-      const {error}=await supabase.from('profiles').update({subscription_paid_until:paidUntil.toISOString().slice(0,10),is_blocked:false}).eq('id',id);
+    window._markPaid=async(id,days=30)=>{
+      const {error}=await supabase.rpc('admin_extend_subscription',{p_seller_id:id,p_days:days});
       if(error){alert('Error: '+error.message);return;}
-      logAction('mark_paid',id,'Extended subscription 30 days');
       loadPaidSellers();loadUnpaidSellers();
     };
     window._blockSeller=async(id)=>{
       const reason=prompt('Why are you blocking this seller? (shown only in the admin audit log)');
       if(reason===null)return;
       if(!confirm('Temporarily block this seller? Their listings will be hidden from buyers and they cannot post new ones until unblocked.'))return;
-      const {error}=await supabase.from('profiles').update({is_blocked:true}).eq('id',id);
+      const {error}=await supabase.rpc('admin_set_blocked',{p_seller_id:id,p_blocked:true,p_reason:reason||''});
       if(error){alert('Error: '+error.message);return;}
-      logAction('block_seller',id,reason||'No reason given');
       loadPaidSellers();loadUnpaidSellers();
     };
     window.blockAllOverdue=async()=>{
       if(!confirm('Block every seller whose subscription has expired? This hides their listings from buyers immediately.'))return;
-      const today=new Date().toISOString().slice(0,10);
-      const {data}=await supabase.from('profiles').select('id').eq('role','seller').lt('subscription_paid_until',today);
-      const ids=(data||[]).map(s=>s.id);
-      if(!ids.length){alert('No overdue sellers to block.');return;}
-      await supabase.from('profiles').update({is_blocked:true}).in('id',ids);
-      logAction('bulk_block_overdue',null,ids.length+' sellers blocked');
+      const {data,error}=await supabase.rpc('admin_block_all_overdue');
+      if(error){alert('Error: '+error.message);return;}
+      alert((data||0)+' sellers blocked.');
       loadPaidSellers();loadUnpaidSellers();
     };
 

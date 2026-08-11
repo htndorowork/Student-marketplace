@@ -372,7 +372,10 @@ CREATE POLICY "listings_insert" ON listings FOR INSERT WITH CHECK (
     SELECT 1 FROM profiles
     WHERE id = auth.uid()
     AND COALESCE(is_blocked,false) = false
-    AND (subscription_paid_until IS NULL OR subscription_paid_until >= CURRENT_DATE)
+    AND (
+      COALESCE(is_admin,false) = true
+      OR (subscription_paid_until IS NOT NULL AND subscription_paid_until >= CURRENT_DATE)
+    )
   )
 );
 CREATE POLICY "listings_update_seller" ON listings FOR UPDATE USING (
