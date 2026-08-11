@@ -32,7 +32,7 @@
   <section class="hero">
     <div class="hero-dots"></div>
     <div class="hero-inner">
-      <button class="hero-tag" id="uni-select-btn" onclick="openUniModal()" style="border:none;cursor:pointer;font-family:inherit">🎓 Select your university</button>
+      <button class="hero-tag" id="uni-select-btn" onclick="openUniModal()" style="border:none;cursor:pointer;font-family:inherit">🎓 Select your Institution</button>
       <h1>Your campus.<br/>Your <span>marketplace.</span></h1>
       <p>Buy & sell with fellow students — fast, easy & safe 🙌</p>
       <div style="position:relative;max-width:500px;margin:0 auto">
@@ -1169,8 +1169,9 @@
       document.getElementById('cats-bar').scrollBy({left:dir*220,behavior:'smooth'});
     };
 
-    // ===== UNIVERSITY / CAMPUS SELECTOR =====
-    const UNIVERSITIES=[
+    // ===== INSTITUTION / CAMPUS SELECTOR =====
+    const INSTITUTIONS={
+      university:[
       {name:'University of Cape Town (UCT)',campuses:['Rondebosch (Cape Town)']},
       {name:'Stellenbosch University (SU)',campuses:['Stellenbosch','Tygerberg','Bellville Park','Saldanha']},
       {name:'University of the Western Cape (UWC)',campuses:['Bellville']},
@@ -1197,20 +1198,219 @@
       {name:'University of Mpumalanga (UMP)',campuses:['Mbombela','Siyabuswa']},
       {name:'Sol Plaatje University (SPU)',campuses:['Kimberley']},
       {name:'Sefako Makgatho Health Sciences University (SMU)',campuses:['Ga-Rankuwa (Pretoria)']}
-    ];
+      ],
+      private:[
+      {name:'AAA School of Advertising',campuses:['Cape Town','Johannesburg']},
+      {name:'Academy for Facility Management (A4FM)',campuses:['Johannesburg','Cape Town']},
+      {name:'Academy of Sound Engineering',campuses:['Johannesburg','Cape Town']},
+      {name:'ACT Cape Town',campuses:['Cape Town']},
+      {name:'Afrikaanse Protestantse Akademie',campuses:['Pretoria','Online/Distance']},
+      {name:'Akademia',campuses:['Centurion','Online/Distance','Various study centres']},
+      {name:'Akademiese Reformatoriese Opleiding en Studies (AROS)',campuses:['Pretoria','Online/Distance']},
+      {name:'The Animation School',campuses:['Cape Town','Johannesburg']},
+      {name:'Baptist Theological College of Southern Africa',campuses:['Johannesburg','Online/Distance']},
+      {name:'Belgium Campus iTversity',campuses:['Pretoria','Johannesburg','Port Elizabeth/Gqeberha','Stellenbosch']},
+      {name:'Berea College of Technology',campuses:['Durban']},
+      {name:'BHC School of Design',campuses:['Cape Town']},
+      {name:'Boston City Campus',campuses:['Johannesburg','Pretoria','Cape Town','Durban','Bloemfontein','Gqeberha','East London','Polokwane','Mbombela','Kimberley','Rustenburg','Potchefstroom','Vanderbijlpark']},
+      {name:'Boston Media House',campuses:['Johannesburg','Cape Town','Durban']},
+      {name:'Business Management Training College',campuses:['Johannesburg','Pretoria','Durban','Cape Town']},
+      {name:'Cape Audio College',campuses:['Cape Town']},
+      {name:'Cape Town Baptist Seminary',campuses:['Cape Town','Online/Distance']},
+      {name:'Cape Town College of Fashion Design',campuses:['Cape Town']},
+      {name:'Cape Town Creative Academy',campuses:['Cape Town']},
+      {name:'Centre for Creative Education / Iziko La Bantu Be Afrika',campuses:['Cape Town','Online/Distance']},
+      {name:'Christ Baptist Church Seminary',campuses:['Johannesburg','Online/Distance']},
+      {name:'Christian Reformed Theological Seminary',campuses:['Pretoria','Online/Distance']},
+      {name:'College of Transfiguration',campuses:['Grahamstown/Makhanda','Online/Distance']},
+      {name:'Cornerstone Institute',campuses:['Cape Town','Online/Distance']},
+      {name:'Cranefield College',campuses:['Pretoria','Johannesburg','Online/Distance']},
+      {name:'Da Vinci Institute for Technology Management',campuses:['Lethabong','Online/Distance']},
+      {name:'Design Academy of Fashion',campuses:['Cape Town']},
+      {name:'Edutel Higher Education',campuses:['Johannesburg','Pretoria','Durban','Cape Town']},
+      {name:'Eduvos',campuses:['Bedfordview','Bloemfontein','Durban (Umhlanga)','East London','Mbombela','Midrand','Mowbray','Nelson Mandela Bay','Potchefstroom','Pretoria','Tygervalley','Vaal']},
+      {name:'Elizabeth Galloway Academy of Fashion Design',campuses:['Stellenbosch']},
+      {name:'Empilweni Education',campuses:['Johannesburg']},
+      {name:'ESRI South Africa',campuses:['Johannesburg','Online/Distance']},
+      {name:'Exercise Teachers Academy',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'FEDISA',campuses:['Cape Town','Johannesburg']},
+      {name:'Friends of Design – Academy of Digital Arts',campuses:['Cape Town']},
+      {name:'Foundation for Professional Development',campuses:['Pretoria','Johannesburg','Cape Town','Durban','Bloemfontein','Online/Distance']},
+      {name:'George Whitefield College',campuses:['Cape Town']},
+      {name:'Health and Fitness Professionals Academy',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'Helderberg College of Higher Education',campuses:['Somerset West']},
+      {name:'Henley Business School Africa',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'IHT Hotel School',campuses:['Johannesburg','Cape Town','Durban']},
+      {name:'IMM Graduate School',campuses:['Cape Town','Johannesburg','Durban','Online/Distance']},
+      {name:'The Independent Institute of Education',campuses:['Johannesburg','Pretoria','Cape Town','Durban','Bloemfontein','Gqeberha','Mbombela','Potchefstroom','Midrand']},
+      {name:'Inscape Education Group',campuses:['Cape Town','Pretoria','Johannesburg','Durban','Online/Distance']},
+      {name:'International Hotel School',campuses:['Cape Town','Johannesburg','Durban','Pretoria','Gqeberha','Online/Distance']},
+      {name:'International Trade Institute of Southern Africa',campuses:['Johannesburg','Online/Distance']},
+      {name:'IQ Academy',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'Isa Carstens Academy',campuses:['Stellenbosch','Pretoria','Online/Distance']},
+      {name:'Life Healthcare',campuses:['Johannesburg','Pretoria','Cape Town','Durban']},
+      {name:'Lyceum College',campuses:['Johannesburg','Cape Town','Durban','Pretoria','Bloemfontein','Gqeberha','Online/Distance']},
+      {name:'MANCOSA',campuses:['Durban','Johannesburg','Cape Town','Pretoria','Gqeberha','Polokwane','Mbombela','Online/Distance']},
+      {name:'Mediclinic',campuses:['Cape Town','Johannesburg','Pretoria','Durban','Bloemfontein']},
+      {name:'Milpark Education',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'Mukhanyo Theological College',campuses:['Durban','Cape Town','Johannesburg','Online/Distance']},
+      {name:'Netcare Education',campuses:['Johannesburg','Pretoria','Cape Town','Durban','Port Elizabeth/Gqeberha']},
+      {name:'Newbridge Graduate Institute',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'Oakfields College',campuses:['Pretoria','Johannesburg']},
+      {name:'Open Learning Group',campuses:['Johannesburg','Cape Town','Durban','Pretoria','Online/Distance']},
+      {name:'The Open Window',campuses:['Centurion/Pretoria']},
+      {name:'Potchefstroom Academy',campuses:['Potchefstroom']},
+      {name:'Production Management Institute of Southern Africa',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'Red & Yellow Creative School of Business',campuses:['Cape Town','Johannesburg','Online/Distance']},
+      {name:'Regenesys',campuses:['Johannesburg','Online/Distance']},
+      {name:'Regent Business School',campuses:['Durban','Johannesburg','Cape Town','Pretoria','Bloemfontein','Gqeberha','Online/Distance']},
+      {name:'Richfield',campuses:['Bryanston','Newtown Junction','Centurion','Pretoria','Umhlanga','Musgrave','Cape Town','Polokwane']},
+      {name:'Ruth Prowse School of Art',campuses:['Cape Town']},
+      {name:'SAE Institute South Africa',campuses:['Johannesburg','Cape Town']},
+      {name:'SANTS Private Higher Education Institution',campuses:['Pretoria','Online/Distance']},
+      {name:'Seth Mokitimi Methodist Seminary',campuses:['Pietermaritzburg','Online/Distance']},
+      {name:'South African College of Applied Psychology (SACAP)',campuses:['Cape Town','Johannesburg','Pretoria','Durban','Online/Distance']},
+      {name:'AFDA',campuses:['Johannesburg','Cape Town','Gqeberha','Durban']},
+      {name:'South African Theological Seminary',campuses:['Johannesburg','Online/Distance']},
+      {name:'Southern Africa Bible College',campuses:['South Africa/Online learning']},
+      {name:'Southern African Wildlife College',campuses:['Hoedspruit']},
+      {name:'STADIO',campuses:['Centurion','Durbanville','Musgrave','Waterfall/Midrand','Online/Distance']},
+      {name:'St Augustine College of South Africa',campuses:['Johannesburg']},
+      {name:'Stellenbosch Academy of Design and Photography',campuses:['Stellenbosch']},
+      {name:'Stenden South Africa',campuses:['Port Alfred']},
+      {name:'St John Vianney Seminary',campuses:['Pretoria']},
+      {name:'St Joseph\'s Theological Institute',campuses:['Cedara/Pietermaritzburg']},
+      {name:'Theological Education by Extension College',campuses:['Johannesburg','Online/Distance']},
+      {name:'The Swiss Hotel School South Africa',campuses:['Johannesburg']},
+      {name:'TSIBA Education',campuses:['Cape Town']},
+      {name:'Union Bible Institute',campuses:['Pietermaritzburg']},
+      {name:'Villioti Fashion Institute',campuses:['Johannesburg','Cape Town']},
+      {name:'Academic Institute of Excellence',campuses:['Johannesburg','Online/Distance']},
+      {name:'Academy for Environmental Leadership South Africa',campuses:['Johannesburg','Online/Distance']},
+      {name:'Academy for Organisational Change',campuses:['Johannesburg','Online/Distance']},
+      {name:'AFM Theological College',campuses:['Johannesburg','Online/Distance']},
+      {name:'African Academy of Cinematic Arts',campuses:['Johannesburg','Cape Town']},
+      {name:'Alpvest Institute for Futuretech',campuses:['Johannesburg','Online/Distance']},
+      {name:'Arwyp Training Institute',campuses:['Kempton Park']},
+      {name:'Auckland Park Theological Seminary',campuses:['Johannesburg','Online/Distance']},
+      {name:'Balderstone Sports Institute',campuses:['Pretoria','Johannesburg']},
+      {name:'Bible Institute of South Africa',campuses:['Kalk Bay, Cape Town','Online/Distance']},
+      {name:'Bronberg Nurse Education and Training Academy',campuses:['Pretoria']},
+      {name:'Camelot International',campuses:['Johannesburg','Cape Town','Durban','Pretoria']},
+      {name:'Campus of Performing Arts',campuses:['Johannesburg']},
+      {name:'Career Excel Academy',campuses:['Johannesburg','Online/Distance']},
+      {name:'Cedar International Academy',campuses:['Johannesburg','Online/Distance']},
+      {name:'Chatsmed Candle Light Nursing School',campuses:['Durban','Pietermaritzburg']},
+      {name:'Cheeba Cannabis Academy',campuses:['Johannesburg','Cape Town','Online/Distance']},
+      {name:'Chartall Business College',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'Cornerstone Performance Solutions',campuses:['Johannesburg','Online/Distance']},
+      {name:'CTU Training Solutions',campuses:['Johannesburg','Pretoria','Cape Town','Durban','Bloemfontein','Gqeberha']},
+      {name:'Duke Corporate Education RSA',campuses:['Johannesburg','Cape Town','Online/Distance']},
+      {name:'Design Time',campuses:['Cape Town']},
+      {name:'EcoTraining',campuses:['Hoedspruit','Greater Kruger area']},
+      {name:'Engineering College of Science and Technology',campuses:['Johannesburg']},
+      {name:'Emmanuel Verpleegskool',campuses:['Online/Distance']},
+      {name:'Equine-Librium College',campuses:['White River/Mbombela area']},
+      {name:'Esda Nursing Education Institute',campuses:['Johannesburg']},
+      {name:'Evangelical Seminary of Southern Africa',campuses:['Johannesburg','Online/Distance']},
+      {name:'Felix Higher Education and Training',campuses:['Johannesburg']},
+      {name:'Future Nurses Nursing School',campuses:['Johannesburg']},
+      {name:'Hugenote Kollege',campuses:['Wellington']},
+      {name:'Instill Education',campuses:['Johannesburg','Cape Town','Online/Distance']},
+      {name:'Institute for Architecture and Design',campuses:['Johannesburg','Online/Distance']},
+      {name:'Institute of Accounting Science',campuses:['Johannesburg','Online/Distance']},
+      {name:'International Peace College South Africa',campuses:['Cape Town','Online/Distance']},
+      {name:'Keobakile Nursing Academy',campuses:['Johannesburg']},
+      {name:'Khanyisa Nursing School',campuses:['Johannesburg']},
+      {name:'Lenmed Nursing College',campuses:['Johannesburg']},
+      {name:'Lillian Spengani Memorial Nursing School',campuses:['Johannesburg']},
+      {name:'Lutheran Theological Seminary in Tshwane',campuses:['Pretoria']},
+      {name:'Madina Institute',campuses:['Cape Town','Johannesburg','Durban','Online/Distance']},
+      {name:'Marematlou Training Institute',campuses:['Johannesburg']},
+      {name:'Moonstone Business School of Excellence',campuses:['Cape Town','Johannesburg','Online/Distance']},
+      {name:'Novia One Group',campuses:['Johannesburg','Online/Distance']},
+      {name:'2 Oceans Graduate Institute',campuses:['Cape Town','Online/Distance']},
+      {name:'Peritum Agri Institute',campuses:['Pretoria','Online/Distance']},
+      {name:'SACOB',campuses:['Johannesburg','Cape Town','Durban','Pretoria','Online/Distance']},
+      {name:'School of Explorative Architecture',campuses:['Johannesburg','Online/Distance']},
+      {name:'Sizanesu Nursing Training Institute',campuses:['Johannesburg']},
+      {name:'SkillsPro',campuses:['Johannesburg','Online/Distance']},
+      {name:'Striving Mind Nursing Academy',campuses:['Johannesburg']},
+      {name:'The Graduate Institute of Financial Sciences Private Higher Education',campuses:['Johannesburg','Online/Distance']},
+      {name:'Thulaganyo Nursing School',campuses:['Johannesburg']},
+      {name:'Thutobopelo Nursing Academy',campuses:['Johannesburg']},
+      {name:'Trifocus Fitness Academy',campuses:['Johannesburg','Cape Town','Durban','Online/Distance']},
+      {name:'Ukwazi School of Nursing',campuses:['Johannesburg','Pretoria','Cape Town']}
+      ],
+      tvet:[
+      {name:'Buffalo City TVET College',campuses:['East London','John Knox Bokwe','St Marks']},
+      {name:'Eastcape Midlands TVET College',campuses:['Charles Goodyear','Graaff-Reinet','Grahamstown','Brickfields Road','High Street','Park Avenue','Thanduxolo','Heath Park']},
+      {name:'Ikhala TVET College',campuses:['Aliwal North','Ezibeleni Engineering','Queen Nonesi','Sterkspruit']},
+      {name:'Ingwe TVET College',campuses:['Maluti','Mount Fletcher','Mount Frere','Ngqungqushe','Siteto']},
+      {name:'King Hintsa TVET College',campuses:['Centane','H.B. Tsengwa','Teko']},
+      {name:'King Sabata Dalindyebo TVET College',campuses:['Engcobo','Mapuzi','Mthatha']},
+      {name:'Lovedale TVET College',campuses:['Alice','King','Zwelitsha']},
+      {name:'Port Elizabeth TVET College',campuses:['Dower','Struandale','Russell Road']},
+      {name:'Flavius Mareka TVET College',campuses:['Kroonstad','Mphohadi','Sasolburg']},
+      {name:'Goldfields TVET College',campuses:['Tosa','Welkom']},
+      {name:'Maluti TVET College',campuses:['Bethlehem','Bonamelo','Itemoheleng','Kwethisong','Sefikeng','Lere La Tshepe','Harrismith']},
+      {name:'Motheo TVET College',campuses:['Hillside View','Bloemfontein','Thaba Nchu']},
+      {name:'Central Johannesburg TVET College',campuses:['Alexandra','Ellispark','Highveld','Parktown','Troyeville']},
+      {name:'Ekurhuleni East TVET College',campuses:['Benoni','Brakpan','Daveyton','Kwa-Thema','Springs']},
+      {name:'Ekurhuleni West TVET College',campuses:['Alberton','Boksburg','Germiston','Kathorus','Kempton','Tembisa']},
+      {name:'Sedibeng TVET College',campuses:['Sebokeng','Vanderbijlpark','Vereeniging']},
+      {name:'South West Gauteng TVET College',campuses:['Dobsonville','George Tabor','Molapo','Roodepoort','Roodepoort West','Technisa']},
+      {name:'Tshwane North TVET College',campuses:['Mamelodi','Pretoria','Rosslyn','Soshanguve South','Temba','Soshanguve North']},
+      {name:'Tshwane South TVET College',campuses:['Atteridgeville','Centurion','Odi','Pretoria West']},
+      {name:'Western TVET College',campuses:['Carletonville','Krugersdorp','Krugersdorp West','Randfontein']},
+      {name:'Coastal KZN TVET College',campuses:['Durban','Swinton Road','Umlazi','Umlazi BB','AS-Salaam','Ubughle Bogu','Umbumbulu']},
+      {name:'Elangeni TVET College',campuses:['KwaMashu','Mpumalanga','Ndwedwe','Inanda','Kwadabeka','Ntuzuma','Pinetown','Qadi']},
+      {name:'Esayidi TVET College',campuses:['Enyenyezi','Gamalakhe','Gcinangempi','Kokstad','Nqumuza','Port Shepstone','Sizanani']},
+      {name:'Majuba TVET College',campuses:['Centre for People Development','IT & Business','Majuba Technology Centre','Newcastle Technology','Ekuseni Youth Centre','Ncome Prison','Newcastle Training Centre','Open Learning Unit','Waterval Prison','Westville Prison','Dundee']},
+      {name:'Mnambithi TVET College',campuses:['Ezakheni E-Section','Ladysmith','Estcourt','Ezakheni A-Section']},
+      {name:'Mthashana TVET College',campuses:['Babanango','Emandleni','Kwa-Qgikazi','Maputa','Vryheid','Nqutu']},
+      {name:'Thekwini TVET College',campuses:['Asherville','Cato Manor','Centec','Melbourne','Springfield','Umbilo']},
+      {name:'Umfolozi TVET College',campuses:['Esikhawini','Eshowe','Jininindomnyama','Mandeni','Nseleni','Richtek','Sikhanyisele','Sundumbili','Thubelihle','ZCBF']},
+      {name:'Umgungundlovu TVET College',campuses:['Edendale','Midlands','Msunduzi','Northdale','Plessislaer']},
+      {name:'Capricorn TVET College',campuses:['Polokwane','Senwabarwana','Seshego']},
+      {name:'Lephalale TVET College',campuses:['Lephalale','Modimolle']},
+      {name:'Letaba TVET College',campuses:['Giyani','Maake','Tzaneen']},
+      {name:'Mopani South East TVET College',campuses:['Phalaborwa','Sir Val Duncan']},
+      {name:'Sekhukhune TVET College',campuses:['CN Phatudi','CS Barlow']},
+      {name:'Vhembe TVET College',campuses:['Makwarela','Mashamba','Mavhoi']},
+      {name:'Waterberg TVET College',campuses:['Lebowakgomo','Mahwelereng','Mokopane']},
+      {name:'Ehlanzeni TVET College',campuses:['Barberton','KaNyamazane','Mapulaneng','Mlumati','Mthimba','Nelspruit','Waterval Boven']},
+      {name:'Gert Sibande TVET College',campuses:['Ermelo','Evander','Standerton','Sibanesetfu']},
+      {name:'Nkangala TVET College',campuses:['CN Mahlangu','Middelburg','Mpondozankomo','Witbank']},
+      {name:'Northern Cape Rural TVET College',campuses:['De Aar','Kathu','Kuruman','Namaqualand','Upington']},
+      {name:'Northern Cape Urban TVET College',campuses:['City','Moromogolo']},
+      {name:'Orbit TVET College',campuses:['Rustenburg','Mankwe','Brits']},
+      {name:'Taletso TVET College',campuses:['Mafikeng','Lichtenburg','Lehurutshe']},
+      {name:'Vuselela TVET College',campuses:['Jouberton','Klerksdorp','Matlosana','Potchefstroom','Taung']},
+      {name:'Boland TVET College',campuses:['Caledon','Paarl','Stellenbosch','Strand','Worcester']},
+      {name:'College of Cape Town for TVET',campuses:['Athlone','City','Crawford','Gardens','Guguletu','Pinelands','Thornton','Wynberg']},
+      {name:'False Bay TVET College',campuses:['Fish Hoek','Khayelitsha','Mitchell\'s Plain','Muizenberg','Westlake']},
+      {name:'Northlink TVET College',campuses:['Belhar','Bellville','Goodwood','Parow','Protea','Tygerberg','Wingfield']},
+      {name:'South Cape TVET College',campuses:['Beaufort West','Bitou','George','Hessequa','Mossel Bay','Oudtshoorn']},
+      {name:'West Coast TVET College',campuses:['Atlantis','Citrusdal','Malmesbury','Vredenburg','Vredendal']}
+      ]
+    };
+    const INSTITUTION_TYPES=[{key:'university',label:'University'},{key:'private',label:'Private Higher Education Institution'},{key:'tvet',label:'Public TVET College'}];
+    let typePicked=null;
     let uniPicked=null;
 
     function updateUniBtnLabel(){
       const btn=document.getElementById('uni-select-btn');
       const saved=JSON.parse(localStorage.getItem('sm_university')||'null');
       if(saved){ btn.textContent='🎓 '+saved.uni+' · '+saved.campus; }
-      else { btn.textContent='🎓 Select your university'; }
+      else { btn.textContent='🎓 Select your Institution'; }
     }
     updateUniBtnLabel();
 
     window.openUniModal=()=>{
+      typePicked=null;
       uniPicked=null;
-      renderUniList();
+      renderTypeList();
       document.getElementById('uni-modal-overlay').style.display='flex';
       document.body.style.overflow='hidden';
     };
@@ -1218,21 +1418,47 @@
       document.getElementById('uni-modal-overlay').style.display='none';
       document.body.style.overflow='';
     };
-    function renderUniList(){
+    function renderTypeList(){
       const body=document.getElementById('uni-modal-body');
-      body.innerHTML='<div class="tb-heading">🎓 Which university do you study at?</div>'+
+      body.innerHTML='<div class="tb-heading">🎓 Select your Institution</div>'+
         '<div class="tb-subject-grid">'+
-        UNIVERSITIES.map((u,i)=>'<button class="tb-subject-btn" onclick="pickUni('+i+')">'+u.name+'</button>').join('')+
+        INSTITUTION_TYPES.map(t=>'<button class="tb-subject-btn" onclick="pickType(\''+t.key+'\')">'+t.label+'</button>').join('')+
         '</div>';
     }
+    window.pickType=(key)=>{
+      typePicked=INSTITUTION_TYPES.find(t=>t.key===key);
+      renderUniList();
+    };
+    function renderUniList(){
+      const body=document.getElementById('uni-modal-body');
+      const list=INSTITUTIONS[typePicked.key];
+      body.innerHTML='<div class="tb-crumbs">'+
+        '<span class="tb-crumb" onclick="renderTypeList()">Institution type</span>'+
+        '<span class="tb-crumb-sep">›</span>'+
+        '<span class="tb-crumb-current">'+typePicked.label+'</span>'+
+        '</div>'+
+        '<div class="tb-heading">Select your '+(typePicked.key==='university'?'university':'institution')+'</div>'+
+        '<input type="text" id="inst-search" placeholder="Search '+typePicked.label.toLowerCase()+'..." oninput="filterInstList(this.value)" style="width:100%;box-sizing:border-box;border:2px solid #f0f0f0;border-radius:12px;padding:10px 14px;font-family:inherit;font-size:13px;margin-bottom:12px"/>'+
+        '<div class="tb-subject-grid" id="inst-list">'+
+        list.map((u,i)=>'<button class="tb-subject-btn" onclick="pickUni('+i+')">'+u.name+'</button>').join('')+
+        '</div>';
+    }
+    window.filterInstList=(q)=>{
+      const list=INSTITUTIONS[typePicked.key];
+      q=q.trim().toLowerCase();
+      const filtered = q ? list.map((u,i)=>({u,i})).filter(x=>x.u.name.toLowerCase().includes(q)) : list.map((u,i)=>({u,i}));
+      document.getElementById('inst-list').innerHTML = filtered.map(x=>'<button class="tb-subject-btn" onclick="pickUni('+x.i+')">'+x.u.name+'</button>').join('') || '<p class="loading-msg">No matches</p>';
+    };
     window.pickUni=(i)=>{
-      uniPicked=UNIVERSITIES[i];
+      uniPicked=INSTITUTIONS[typePicked.key][i];
       renderCampusList();
     };
     function renderCampusList(){
       const body=document.getElementById('uni-modal-body');
       body.innerHTML='<div class="tb-crumbs">'+
-        '<span class="tb-crumb" onclick="renderUniListInModal()">Universities</span>'+
+        '<span class="tb-crumb" onclick="renderTypeList()">Institution type</span>'+
+        '<span class="tb-crumb-sep">›</span>'+
+        '<span class="tb-crumb" onclick="renderUniList()">'+typePicked.label+'</span>'+
         '<span class="tb-crumb-sep">›</span>'+
         '<span class="tb-crumb-current">'+uniPicked.name+'</span>'+
         '</div>'+
