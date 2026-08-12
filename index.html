@@ -13,7 +13,7 @@
 </head>
 <body>
   <nav class="nav">
-    <a href="index.html" class="nav-logo">student<span>market</span> 🎓</a>
+    <a href="index.html" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
     <div class="nav-links">
       <a href="index.html">Browse</a>
       <a href="#" id="nav-favorites" onclick="toggleFavoritesView();return false" style="display:none">❤️ Favorites</a>
@@ -72,25 +72,29 @@
   <main class="main">
     <div class="filter-toolbar">
       <div class="filter-group">
-        <span class="filter-label">Sort by</span>
+        <span class="filter-label">🔀 Sort by</span>
         <select id="sort-select" onchange="doFilter()">
           <option value="newest">Newest first</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
         </select>
       </div>
+      <div class="filter-divider"></div>
       <div class="filter-group">
-        <span class="filter-label">Price range (R)</span>
+        <span class="filter-label">💰 Price range (R)</span>
         <div class="filter-price-inputs">
           <input type="number" id="price-min" placeholder="Min" min="0" onchange="doFilter()"/>
           <span class="filter-price-sep">–</span>
           <input type="number" id="price-max" placeholder="Max" min="0" onchange="doFilter()"/>
         </div>
       </div>
-      <label class="filter-campus">
+      <div class="filter-divider"></div>
+      <label class="filter-toggle">
         <input type="checkbox" id="my-campus-only" onchange="doFilter()"/>
-        Only my campus
+        <span class="filter-toggle-track"><span class="filter-toggle-thumb"></span></span>
+        <span class="filter-toggle-text">📍 Only my campus</span>
       </label>
+      <button class="filter-reset" onclick="resetFilters()" type="button">↺ Reset</button>
     </div>
 
     <div class="grid" id="listings-grid">
@@ -1407,6 +1411,12 @@
     }
     updateUniBtnLabel();
 
+    const INST_TYPE_META={
+      university:{icon:'🎓',desc:'Public universities across South Africa'},
+      private:{icon:'🏫',desc:'Registered private higher education institutions'},
+      tvet:{icon:'🛠️',desc:'Public Technical & Vocational Education colleges'}
+    };
+
     window.openUniModal=()=>{
       typePicked=null;
       uniPicked=null;
@@ -1420,9 +1430,18 @@
     };
     function renderTypeList(){
       const body=document.getElementById('uni-modal-body');
-      body.innerHTML='<div class="tb-heading">🎓 Select your Institution</div>'+
-        '<div class="tb-subject-grid">'+
-        INSTITUTION_TYPES.map(t=>'<button class="tb-subject-btn" onclick="pickType(\''+t.key+'\')">'+t.label+'</button>').join('')+
+      body.innerHTML='<div class="inst-modal-title">🎓 Select your Institution</div>'+
+        '<div class="inst-modal-sub">What type of institution do you study at?</div>'+
+        '<div class="inst-type-list">'+
+        INSTITUTION_TYPES.map(t=>{
+          const meta=INST_TYPE_META[t.key]||{icon:'🎓',desc:''};
+          return '<button type="button" class="inst-type-card" onclick="pickType(\''+t.key+'\')">'+
+            '<span class="inst-type-icon">'+meta.icon+'</span>'+
+            '<span class="inst-type-text"><span class="inst-type-name">'+t.label+'</span>'+
+            '<span class="inst-type-desc">'+meta.desc+'</span></span>'+
+            '<span class="inst-type-chevron">›</span>'+
+            '</button>';
+        }).join('')+
         '</div>';
     }
     window.pickType=(key)=>{
@@ -1432,13 +1451,11 @@
     function renderUniList(){
       const body=document.getElementById('uni-modal-body');
       const list=INSTITUTIONS[typePicked.key];
-      body.innerHTML='<div class="tb-crumbs">'+
-        '<span class="tb-crumb" onclick="renderTypeList()">Institution type</span>'+
-        '<span class="tb-crumb-sep">›</span>'+
-        '<span class="tb-crumb-current">'+typePicked.label+'</span>'+
-        '</div>'+
-        '<div class="tb-heading">Select your '+(typePicked.key==='university'?'university':'institution')+'</div>'+
-        '<input type="text" id="inst-search" placeholder="Search '+typePicked.label.toLowerCase()+'..." oninput="filterInstList(this.value)" style="width:100%;box-sizing:border-box;border:2px solid #f0f0f0;border-radius:12px;padding:10px 14px;font-family:inherit;font-size:13px;margin-bottom:12px"/>'+
+      body.innerHTML='<button type="button" class="inst-back-btn" onclick="renderTypeList()">← Back</button>'+
+        '<div class="inst-modal-title">Select your '+(typePicked.key==='university'?'university':'institution')+'</div>'+
+        '<div class="inst-modal-sub">'+typePicked.label+'</div>'+
+        '<input type="text" id="inst-search" class="inst-search" placeholder="Search '+typePicked.label.toLowerCase()+'..." oninput="filterInstList(this.value)"/>'+
+        '<div class="inst-count" id="inst-count">'+list.length+' institutions</div>'+
         '<div class="tb-subject-grid" id="inst-list">'+
         list.map((u,i)=>'<button class="tb-subject-btn" onclick="pickUni('+i+')">'+u.name+'</button>').join('')+
         '</div>';
@@ -1447,6 +1464,7 @@
       const list=INSTITUTIONS[typePicked.key];
       q=q.trim().toLowerCase();
       const filtered = q ? list.map((u,i)=>({u,i})).filter(x=>x.u.name.toLowerCase().includes(q)) : list.map((u,i)=>({u,i}));
+      document.getElementById('inst-count').textContent = filtered.length+' institution'+(filtered.length===1?'':'s');
       document.getElementById('inst-list').innerHTML = filtered.map(x=>'<button class="tb-subject-btn" onclick="pickUni('+x.i+')">'+x.u.name+'</button>').join('') || '<p class="loading-msg">No matches</p>';
     };
     window.pickUni=(i)=>{
@@ -1455,14 +1473,9 @@
     };
     function renderCampusList(){
       const body=document.getElementById('uni-modal-body');
-      body.innerHTML='<div class="tb-crumbs">'+
-        '<span class="tb-crumb" onclick="renderTypeList()">Institution type</span>'+
-        '<span class="tb-crumb-sep">›</span>'+
-        '<span class="tb-crumb" onclick="renderUniList()">'+typePicked.label+'</span>'+
-        '<span class="tb-crumb-sep">›</span>'+
-        '<span class="tb-crumb-current">'+uniPicked.name+'</span>'+
-        '</div>'+
-        '<div class="tb-heading">Select your campus</div>'+
+      body.innerHTML='<button type="button" class="inst-back-btn" onclick="renderUniList()">← Back</button>'+
+        '<div class="inst-modal-title">Select your campus</div>'+
+        '<div class="inst-modal-sub">'+uniPicked.name+'</div>'+
         '<div class="tb-subject-grid">'+
         uniPicked.campuses.map(c=>'<button class="tb-subject-btn" onclick="pickCampus(\''+c.replace(/'/g,"\\'")+'\')">'+c+'</button>').join('')+
         '</div>';
