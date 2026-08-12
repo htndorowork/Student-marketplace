@@ -640,10 +640,6 @@
       }
     };
 
-    function infoCard(icon,label,value){
-      return '<div class="list-card"><span class="list-card-icon">'+icon+'</span><span class="list-card-body"><span class="list-card-title">'+value+'</span><span class="list-card-sub">'+label+'</span></span></div>';
-    }
-
     window._open=(id)=>{
       const l=all.find(x=>x.id===id);if(!l)return;
       currentListing=l;modalQty=1;galleryIdx=0;
@@ -682,15 +678,8 @@
       const flatConf2=FLAT_SUBCATS[l.category];
       const flatVal2=flatConf2?l[flatConf2.field]:null;
       const deliveryTxt = l.profiles?.university ? (l.profiles.deliver_all_campuses ? 'All '+l.profiles.university+' campuses' : (l.profiles.delivery_campuses||[]).join(', ')||l.profiles.university) : null;
-      const extraTags = (l.condition?infoCard('🏷️','Condition',l.condition):'')+(l.is_negotiable?infoCard('💬','Price','Negotiable'):'')+(l.delivery_fee>0?infoCard('🚚','Delivery fee','R'+l.delivery_fee):'');
-      const rows = infoCard('👤','Seller',(l.profiles?.full_name||'Unknown'))
-        +(l.profiles?.residence?infoCard('📍','Residence',l.profiles.residence):'')
-        +((l.category==='Textbooks'&&l.textbook_year)?infoCard('🎓','Year',l.textbook_year)+(l.textbook_subject?infoCard('📖','Subject',l.textbook_subject):''):'')
-        +(flatVal2?infoCard(flatConf2.emoji,'Type',flatVal2):'')
-        +extraTags
-        +(deliveryTxt?infoCard('🚚','Delivers to',deliveryTxt):'');
-      document.getElementById('modal-seller-info').innerHTML='<div class="list-card-list">'+rows+'</div>'+
-        '<div class="list-card-actions"><a href="store.html?seller='+l.seller_id+'" class="list-card-action">🏪 Visit store</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" class="list-card-action">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" class="list-card-action">🔗 Share</a></div>';
+      const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+l.condition+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -1435,22 +1424,13 @@
       document.getElementById('uni-modal-overlay').style.display='none';
       document.body.style.overflow='';
     };
-    const INST_TYPE_DESC={
-      university:'Public universities across South Africa',
-      private:'Registered private higher education institutions',
-      tvet:'Public Technical & Vocational Education colleges'
-    };
     function renderTypeList(){
       const body=document.getElementById('uni-modal-body');
       body.innerHTML='<div class="inst-modal-title">Select your Institution</div>'+
         '<div class="inst-modal-sub">What type of institution do you study at?</div>'+
-        '<div class="list-card-list">'+
-        INSTITUTION_TYPES.map(t=>'<button type="button" class="list-card" onclick="pickType(\''+t.key+'\')">'+
-          '<span class="list-card-icon">'+(INST_TYPE_ICON[t.key]||'')+'</span>'+
-          '<span class="list-card-body"><span class="list-card-title">'+t.label+'</span>'+
-          '<span class="list-card-sub">'+(INST_TYPE_DESC[t.key]||'')+'</span></span>'+
-          '<span class="list-card-chevron">›</span>'+
-          '</button>').join('')+
+        '<div class="inst-count">'+INSTITUTION_TYPES.length+' institution types</div>'+
+        '<div class="tb-subject-grid">'+
+        INSTITUTION_TYPES.map(t=>'<button class="tb-subject-btn" onclick="pickType(\''+t.key+'\')">'+(INST_TYPE_ICON[t.key]||'')+' '+t.label+'</button>').join('')+
         '</div>';
     }
     window.renderTypeList=renderTypeList;
@@ -1458,14 +1438,6 @@
       typePicked=INSTITUTION_TYPES.find(t=>t.key===key);
       renderUniList();
     };
-    function instCardsHtml(pairs){
-      return pairs.map(x=>'<button type="button" class="list-card" onclick="pickUni('+x.i+')">'+
-        '<span class="list-card-icon">'+(INST_TYPE_ICON[typePicked.key]||'')+'</span>'+
-        '<span class="list-card-body"><span class="list-card-title">'+x.u.name+'</span>'+
-        '<span class="list-card-sub">'+x.u.campuses.length+' campus'+(x.u.campuses.length===1?'':'es')+'</span></span>'+
-        '<span class="list-card-chevron">›</span>'+
-        '</button>').join('');
-    }
     function renderUniList(){
       const body=document.getElementById('uni-modal-body');
       const list=INSTITUTIONS[typePicked.key];
@@ -1474,8 +1446,8 @@
         '<div class="inst-modal-sub">'+typePicked.label+'</div>'+
         '<input type="text" id="inst-search" class="inst-search" placeholder="Search '+typePicked.label.toLowerCase()+'..." oninput="filterInstList(this.value)"/>'+
         '<div class="inst-count" id="inst-count">'+list.length+' institutions</div>'+
-        '<div class="list-card-list" id="inst-list">'+
-        instCardsHtml(list.map((u,i)=>({u,i})))+
+        '<div class="tb-subject-grid" id="inst-list">'+
+        list.map((u,i)=>'<button class="tb-subject-btn" onclick="pickUni('+i+')">'+u.name+'</button>').join('')+
         '</div>';
     }
     window.renderUniList=renderUniList;
@@ -1484,7 +1456,7 @@
       q=q.trim().toLowerCase();
       const filtered = q ? list.map((u,i)=>({u,i})).filter(x=>x.u.name.toLowerCase().includes(q)) : list.map((u,i)=>({u,i}));
       document.getElementById('inst-count').textContent = filtered.length+' institution'+(filtered.length===1?'':'s');
-      document.getElementById('inst-list').innerHTML = filtered.length ? instCardsHtml(filtered) : '<p class="loading-msg">No matches</p>';
+      document.getElementById('inst-list').innerHTML = filtered.map(x=>'<button class="tb-subject-btn" onclick="pickUni('+x.i+')">'+x.u.name+'</button>').join('') || '<p class="loading-msg">No matches</p>';
     };
     window.pickUni=(i)=>{
       uniPicked=INSTITUTIONS[typePicked.key][i];

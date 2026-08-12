@@ -181,7 +181,7 @@ body { font-family: 'Nunito', sans-serif; background: #fafafa; color: #111; }
 .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
 .modal-price { margin-bottom: 10px; }
 .modal-desc { font-size: 14px; color: #666; margin-bottom: 12px; line-height: 1.5; font-weight: 600; }
-.seller-info-box { margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+.seller-info-box { background: #f9f9f9; border: 2px solid #f0f0f0; border-radius: 12px; padding: 12px 14px; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
 .qty-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .qty-label { font-size: 13px; font-weight: 700; color: #444; }
 .qty-ctrl { display: flex; align-items: center; gap: 8px; }
@@ -371,30 +371,3 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 }
 .inst-search:focus { border-color: #c4a8f5; background: #fff; }
 .inst-count { font-size: 12px; color: #aaa; font-weight: 700; margin-bottom: 10px; }
-
-/* REUSABLE LIST-CARD ROW (institution type, institution list, listing detail info) */
-.list-card-list { display: flex; flex-direction: column; gap: 10px; }
-.list-card {
-  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
-  background: #fafafa; border: 2px solid #f0f0f0; border-radius: 16px;
-  padding: 14px 16px; font-family: inherit;
-}
-button.list-card { cursor: pointer; transition: 0.15s; }
-button.list-card:hover { background: #f5f0fe; border-color: #d8c4f7; }
-.list-card-icon {
-  width: 40px; height: 40px; border-radius: 12px; background: #fff;
-  display: flex; align-items: center; justify-content: center; font-size: 18px;
-  flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-.list-card-body { flex: 1; min-width: 0; }
-.list-card-title { font-size: 14px; font-weight: 800; color: #111; }
-.list-card-sub { font-size: 12px; color: #888; font-weight: 600; margin-top: 2px; }
-.list-card-chevron { color: #ccc; font-size: 18px; font-weight: 800; flex-shrink: 0; }
-.list-card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-.list-card-action {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: #f5f0fe; color: #7c3aed; text-decoration: none;
-  font-size: 12.5px; font-weight: 800; padding: 9px 14px; border-radius: 50px;
-  transition: background 0.15s;
-}
-.list-card-action:hover { background: #ebe0fc; }
