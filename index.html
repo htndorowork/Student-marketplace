@@ -1411,11 +1411,7 @@
     }
     updateUniBtnLabel();
 
-    const INST_TYPE_META={
-      university:{icon:'🎓',desc:'Public universities across South Africa'},
-      private:{icon:'🏫',desc:'Registered private higher education institutions'},
-      tvet:{icon:'🛠️',desc:'Public Technical & Vocational Education colleges'}
-    };
+    const INST_TYPE_ICON={university:'🎓',private:'🏫',tvet:'🛠️'};
 
     window.openUniModal=()=>{
       typePicked=null;
@@ -1430,20 +1426,14 @@
     };
     function renderTypeList(){
       const body=document.getElementById('uni-modal-body');
-      body.innerHTML='<div class="inst-modal-title">🎓 Select your Institution</div>'+
+      body.innerHTML='<div class="inst-modal-title">Select your Institution</div>'+
         '<div class="inst-modal-sub">What type of institution do you study at?</div>'+
-        '<div class="inst-type-list">'+
-        INSTITUTION_TYPES.map(t=>{
-          const meta=INST_TYPE_META[t.key]||{icon:'🎓',desc:''};
-          return '<button type="button" class="inst-type-card" onclick="pickType(\''+t.key+'\')">'+
-            '<span class="inst-type-icon">'+meta.icon+'</span>'+
-            '<span class="inst-type-text"><span class="inst-type-name">'+t.label+'</span>'+
-            '<span class="inst-type-desc">'+meta.desc+'</span></span>'+
-            '<span class="inst-type-chevron">›</span>'+
-            '</button>';
-        }).join('')+
+        '<div class="inst-count">'+INSTITUTION_TYPES.length+' institution types</div>'+
+        '<div class="tb-subject-grid">'+
+        INSTITUTION_TYPES.map(t=>'<button class="tb-subject-btn" onclick="pickType(\''+t.key+'\')">'+(INST_TYPE_ICON[t.key]||'')+' '+t.label+'</button>').join('')+
         '</div>';
     }
+    window.renderTypeList=renderTypeList;
     window.pickType=(key)=>{
       typePicked=INSTITUTION_TYPES.find(t=>t.key===key);
       renderUniList();
@@ -1460,6 +1450,7 @@
         list.map((u,i)=>'<button class="tb-subject-btn" onclick="pickUni('+i+')">'+u.name+'</button>').join('')+
         '</div>';
     }
+    window.renderUniList=renderUniList;
     window.filterInstList=(q)=>{
       const list=INSTITUTIONS[typePicked.key];
       q=q.trim().toLowerCase();
@@ -1480,7 +1471,7 @@
         uniPicked.campuses.map(c=>'<button class="tb-subject-btn" onclick="pickCampus(\''+c.replace(/'/g,"\\'")+'\')">'+c+'</button>').join('')+
         '</div>';
     }
-    window.renderUniListInModal=renderUniList;
+    window.renderCampusList=renderCampusList;
     window.pickCampus=(campus)=>{
       localStorage.setItem('sm_university',JSON.stringify({uni:uniPicked.name,campus}));
       updateUniBtnLabel();
