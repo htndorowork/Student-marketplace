@@ -293,7 +293,11 @@
           </div>
           <div class="form-group" id="p-university-group" style="display:none">
             <label>Which institution do you sell to? *</label>
-            <select id="p-university"><option value="">Select institution</option></select>
+            <div class="inst-select-wrap" id="p-university-wrap">
+              <input type="text" id="p-university-search" class="inst-search" placeholder="Search institution..." autocomplete="off" oninput="filterUniOptions(this.value)" onfocus="openUniDropdown()"/>
+              <div id="p-university-dropdown" class="inst-dropdown" style="display:none"></div>
+            </div>
+            <select id="p-university" style="display:none"><option value="">Select institution</option></select>
           </div>
           <div class="form-group" id="p-campuses-group" style="display:none">
             <label>Which campuses can you deliver to? *</label>
@@ -767,12 +771,47 @@
     function populateUniSelect(typeKey, selectedName){
       const uniSel=document.getElementById('p-university');
       const group=document.getElementById('p-university-group');
-      if(!typeKey){ group.style.display='none'; uniSel.innerHTML='<option value="">Select institution</option>'; return; }
+      const searchInp=document.getElementById('p-university-search');
+      const dd=document.getElementById('p-university-dropdown');
+      if(!typeKey){ group.style.display='none'; uniSel.innerHTML='<option value="">Select institution</option>'; searchInp.value=''; dd.style.display='none'; return; }
       group.style.display='block';
       const list=INSTITUTIONS[typeKey]||[];
       uniSel.innerHTML='<option value="">Select institution</option>'+
         list.map(u=>'<option'+(u.name===selectedName?' selected':'')+'>'+u.name+'</option>').join('');
+      searchInp.value = selectedName || '';
+      searchInp.dataset.typeKey = typeKey;
+      dd.style.display='none';
     }
+
+    function renderUniDropdown(list){
+      const dd=document.getElementById('p-university-dropdown');
+      dd.innerHTML = list.length
+        ? list.map(u=>'<div class="inst-dd-item" onclick="pickUniOption(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</div>').join('')
+        : '<div class="inst-dd-empty">No matches</div>';
+    }
+    window.filterUniOptions=(q)=>{
+      const typeKey=document.getElementById('p-university-search').dataset.typeKey;
+      const list=(INSTITUTIONS[typeKey]||[]).filter(u=>u.name.toLowerCase().includes(q.trim().toLowerCase()));
+      renderUniDropdown(list);
+      document.getElementById('p-university-dropdown').style.display='block';
+    };
+    window.openUniDropdown=()=>{
+      const typeKey=document.getElementById('p-university-search').dataset.typeKey;
+      if(!typeKey) return;
+      renderUniDropdown(INSTITUTIONS[typeKey]||[]);
+      document.getElementById('p-university-dropdown').style.display='block';
+    };
+    window.pickUniOption=(name)=>{
+      document.getElementById('p-university-search').value=name;
+      document.getElementById('p-university-dropdown').style.display='none';
+      const uniSel=document.getElementById('p-university');
+      uniSel.value=name;
+      uniSel.dispatchEvent(new Event('change'));
+    };
+    document.addEventListener('click', e=>{
+      const wrap=document.getElementById('p-university-wrap');
+      if(wrap && !wrap.contains(e.target)) document.getElementById('p-university-dropdown').style.display='none';
+    });
 
     window.onInstTypeChange=(typeKey)=>{
       populateUniSelect(typeKey, '');
