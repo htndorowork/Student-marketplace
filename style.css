@@ -1,11 +1,11 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Nunito', sans-serif; background: #fafafa; color: #111; }
 
-.nav { background: #fff; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; border-bottom: 2px solid #f0f0f0; position: sticky; top: 0; z-index: 100; }
-.nav-logo { font-size: 22px; font-weight: 800; color: #111; letter-spacing: -0.5px; text-decoration: none; }
+.nav { background: #fff; padding: 10px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; min-height: 64px; border-bottom: 2px solid #f0f0f0; position: sticky; top: 0; z-index: 100; }
+.nav-logo { font-size: 22px; font-weight: 800; color: #111; letter-spacing: -0.5px; text-decoration: none; white-space: nowrap; }
 .nav-logo span { color: #7c3aed; }
-.nav-links { display: flex; gap: 16px; align-items: center; }
-.nav-links a { color: #666; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.nav-links { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: flex-end; min-width: 0; }
+.nav-links a { color: #666; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap; }
 .nav-links a:hover { color: #7c3aed; }
 .nav-cart { position: relative; cursor: pointer; font-size: 22px; }
 .cart-badge { position: absolute; top: -6px; right: -8px; background: #7c3aed; color: #fff; font-size: 10px; font-weight: 800; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
@@ -105,6 +105,9 @@ body { font-family: 'Nunito', sans-serif; background: #fafafa; color: #111; }
   .filter-group { flex: 1 1 140px; }
   .filter-toggle { width: 100%; }
   .filter-reset { margin-left: 0; }
+  .main { padding: 16px; }
+  .hero { padding: 32px 16px 30px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 }
 .search-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-radius: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.15); margin-top: 8px; overflow: hidden; z-index: 50; text-align: left; }
 .search-suggestion-item { padding: 12px 18px; font-size: 13.5px; font-weight: 700; color: #333; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
@@ -321,13 +324,19 @@ body { font-family: 'Nunito', sans-serif; background: #fafafa; color: #111; }
 input:checked + .toggle-slider { background: #7c3aed; }
 input:checked + .toggle-slider:before { transform: translateX(24px); }
 
+@media (max-width: 640px) {
+  .nav { padding: 8px 16px; }
+  .nav-logo { font-size: 18px; }
+  .nav-links { gap: 8px 12px; }
+  .nav-links a { font-size: 12.5px; }
+}
 @media (max-width: 500px) {
   .hero h1 { font-size: 24px; }
   .form-row { grid-template-columns: 1fr; }
   .stats { gap: 6px; }
   .stat { padding: 12px 8px; }
   .stat-num { font-size: 20px; }
-  .nav-links a:nth-child(1), .nav-links a:nth-child(2) { display: none; }
+  #nav-favorites, #nav-messages { display: none !important; }
 }
 
 /* TEXTBOOK DRILL-DOWN PANEL */
