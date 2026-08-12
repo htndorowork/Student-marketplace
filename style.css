@@ -336,17 +336,13 @@ input:checked + .toggle-slider { background: #7c3aed; }
 input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 @media (max-width: 640px) {
-  .nav { padding: 12px 56px 12px 16px; row-gap: 10px; }
+  .nav { padding: 12px 56px 10px 16px; row-gap: 10px; }
   .nav-logo { font-size: 18px; }
   .nav-cart { position: absolute; top: 12px; right: 16px; font-size: 22px; }
   .nav-links {
     width: 100%;
-    background: #faf7ff;
-    margin: 0 -16px -12px;
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    border-radius: 0 0 16px 16px;
-    justify-content: space-between;
-    gap: 10px 6px;
+    justify-content: flex-start;
+    gap: 10px 14px;
   }
   .nav-links a { font-size: 12.5px; }
 }
