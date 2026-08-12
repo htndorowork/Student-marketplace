@@ -347,7 +347,9 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
   .stats { gap: 6px; }
   .stat { padding: 12px 8px; }
   .stat-num { font-size: 20px; }
-  #nav-favorites, #nav-messages { display: none !important; }
+  .nav-links { gap: 6px 10px; }
+  .nav-links a { font-size: 11.5px; }
+  .nav-cart { font-size: 19px; }
 }
 
 /* TEXTBOOK DRILL-DOWN PANEL */
