@@ -108,10 +108,12 @@ button { -webkit-appearance: none; appearance: none; font-family: inherit; }
 }
 .filter-reset:hover { background: #f5f0fe; }
 @media (max-width: 640px) {
-  .filter-toolbar { padding: 14px 16px; }
+  .filter-toolbar { padding: 14px 16px; gap: 14px; }
   .filter-divider { display: none; }
   .filter-toolbar select { min-width: 0; flex: 1; width: 100%; }
-  .filter-group { flex: 1 1 140px; }
+  .filter-group { flex: 1 1 100%; width: 100%; }
+  .filter-price-inputs { width: 100%; }
+  .filter-toolbar input[type="number"] { flex: 1; width: 0; min-width: 0; }
   .filter-toggle { width: 100%; }
   .filter-reset { margin-left: 0; }
   .main { padding: 16px; }
