@@ -19,7 +19,7 @@
       <a href="#" id="nav-favorites" onclick="toggleFavoritesView();return false" style="display:none">❤️ Favorites</a>
       <a href="messages.html" id="nav-messages" style="display:none">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
       <div style="position:relative;display:inline-block" id="notif-wrap">
-        <a href="#" id="nav-notif" onclick="toggleNotifDropdown();return false" style="display:none">🔔<span class="inline-badge" id="notif-badge" style="display:none">0</span></a>
+        <a href="#" id="nav-notif" onclick="toggleNotifDropdown();return false" style="display:none">🔔 Notifications<span class="inline-badge" id="notif-badge" style="display:none">0</span></a>
         <div id="notif-dropdown" class="notif-dropdown" style="display:none"></div>
       </div>
       
@@ -573,7 +573,7 @@
     window.toggleFavoritesView=()=>{
       if(!currentUser){location.href='login.html';return;}
       showFavoritesOnly=!showFavoritesOnly;
-      document.getElementById('nav-favorites').style.color=showFavoritesOnly?'#7c3aed':'';
+      document.getElementById('nav-favorites').classList.toggle('fav-active',showFavoritesOnly);
       doFilter();
     };
     function renderRecentlyViewed(){
