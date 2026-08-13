@@ -343,10 +343,16 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
   .nav-cart { position: absolute; top: 12px; right: 16px; font-size: 22px; }
   .nav-links {
     width: 100%;
+    flex-wrap: nowrap;
     justify-content: flex-start;
-    gap: 10px 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 16px;
   }
-  .nav-links a { font-size: 12.5px; }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a, .nav-links #notif-wrap { flex-shrink: 0; }
+  .nav-links a { font-size: 13px; }
 }
 @media (max-width: 500px) {
   .hero h1 { font-size: 24px; }
