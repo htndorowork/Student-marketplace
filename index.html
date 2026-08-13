@@ -16,7 +16,7 @@
     <a href="index.html" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
     <div class="nav-links">
       <a href="index.html">Browse</a>
-      <a href="#" id="nav-favorites" onclick="toggleFavoritesView();return false" style="display:none">❤️ Favorites</a>
+      <a href="favorites.html" id="nav-favorites" style="display:none">❤️ Favorites</a>
       <a href="messages.html" id="nav-messages" style="display:none">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
       <div style="position:relative;display:inline-block" id="notif-wrap">
         <a href="#" id="nav-notif" onclick="toggleNotifDropdown();return false" style="display:none">🔔 Notifications<span class="inline-badge" id="notif-badge" style="display:none">0</span></a>
@@ -556,7 +556,6 @@
       document.getElementById('price-max').value='';
       document.getElementById('sort-select').value='newest';
       document.getElementById('my-campus-only').checked=false;
-      showFavoritesOnly=false;
       selectCat('All',document.querySelector('.cat'));
     };
     window._toggleFav=async(id)=>{
@@ -570,13 +569,6 @@
         const {error}=await supabase.from('favorites').insert({user_id:currentUser.id,listing_id:id});
         if(error){myFavorites.delete(id);alert('Could not save favorite: '+error.message);return;}
       }
-      doFilter();
-    };
-    let showFavoritesOnly=false;
-    window.toggleFavoritesView=()=>{
-      if(!currentUser){location.href='login.html';return;}
-      showFavoritesOnly=!showFavoritesOnly;
-      document.getElementById('nav-favorites').classList.toggle('fav-active',showFavoritesOnly);
       doFilter();
     };
     function renderRecentlyViewed(){
@@ -955,8 +947,6 @@
         f=f.filter(l=>l.category===cat);
       }
       if(q)f=f.filter(l=>fuzzyMatch(l.title,q)||fuzzyMatch(l.description||'',q));
-
-      if(showFavoritesOnly) f=f.filter(l=>myFavorites.has(l.id));
 
       const minP=parseFloat(document.getElementById('price-min').value);
       const maxP=parseFloat(document.getElementById('price-max').value);
