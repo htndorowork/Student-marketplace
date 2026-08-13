@@ -469,7 +469,8 @@
       loadNotifications();
       const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
       if(p?.role==='seller') document.getElementById('nav-profile').href='seller.html';
-      const {data:favs}=await supabase.from('favorites').select('listing_id').eq('user_id',user.id);
+      const {data:favs,error:favErr}=await supabase.from('favorites').select('listing_id').eq('user_id',user.id);
+      if(favErr) console.error('Could not load favorites:',favErr.message);
       myFavorites=new Set((favs||[]).map(f=>f.listing_id));
       loadCart();
     }
@@ -562,10 +563,12 @@
       if(!currentUser){location.href='login.html';return;}
       if(myFavorites.has(id)){
         myFavorites.delete(id);
-        await supabase.from('favorites').delete().eq('user_id',currentUser.id).eq('listing_id',id);
+        const {error}=await supabase.from('favorites').delete().eq('user_id',currentUser.id).eq('listing_id',id);
+        if(error){myFavorites.add(id);alert('Could not remove favorite: '+error.message);return;}
       } else {
         myFavorites.add(id);
-        await supabase.from('favorites').insert({user_id:currentUser.id,listing_id:id});
+        const {error}=await supabase.from('favorites').insert({user_id:currentUser.id,listing_id:id});
+        if(error){myFavorites.delete(id);alert('Could not save favorite: '+error.message);return;}
       }
       doFilter();
     };
