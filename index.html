@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <div id="toast-stack" aria-live="polite"></div>
   <nav class="nav">
     <a href="index.html" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
     <div class="nav-links">
@@ -60,6 +61,7 @@
     <div class="cat" id="cat-transport" onclick="openFlatSubcats('Transport',this)">🚲 Transport</div>
     <div class="cat" id="cat-services" onclick="openFlatSubcats('Services',this)">🛠️ Services</div>
     <div class="cat" id="cat-stationary" onclick="openFlatSubcats('Stationary',this)">✏️ Stationary</div>
+    <div class="cat" id="cat-utensils" onclick="openFlatSubcats('Utensils',this)">🍴 Utensils</div>
     <div class="cat" id="cat-appliances" onclick="openFlatSubcats('Appliances',this)">🔌 Appliances</div>
     <div class="cat" id="cat-rentals" onclick="openFlatSubcats('Rentals',this)">🔁 Rentals</div>
     <div class="cat" id="cat-furniture" onclick="openFlatSubcats('Furniture',this)">🛋️ Furniture</div>
@@ -242,8 +244,8 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
-    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
-    const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Wigs:{bg:'#f3e5f5',text:'#7b1fa2'},Perfumes:{bg:'#e0f7fa',text:'#00838f'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'}};
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓',Utensils:'🍴'};
+    const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Wigs:{bg:'#f3e5f5',text:'#7b1fa2'},Perfumes:{bg:'#e0f7fa',text:'#00838f'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'},Utensils:{bg:'#fff3e0',text:'#e65100'}};
 
     const TB_YEARS=['1st Year','2nd Year','3rd Year','Postgraduate'];
     const TB_TAXONOMY={
@@ -406,9 +408,21 @@
       'Kitchen trolley','Bar stools','Plastic storage drawers','Storage cubes','Foldable wardrobe'
     ];
 
+    const UTENSILS_SUBCATS=[
+      'Forks','Tablespoons','Teaspoons','Dessert spoons','Serving spoons','Ladles','Salad servers',
+      'Butter knives','Steak knives','Bread knives','Chef\'s knives','Paring knives','Cutlery sets',
+      'Chopsticks','Spatulas','Tongs','Whisks','Can openers','Bottle openers','Peelers','Graters',
+      'Garlic press','Pizza cutters','Cutting boards','Mixing bowls','Colanders/Strainers',
+      'Measuring cups','Measuring spoons','Rolling pins','Kitchen scissors','Plates','Bowls',
+      'Cups','Mugs','Drinking glasses','Lunch boxes','Food storage containers','Tupperware',
+      'Thermos flasks','Water bottles','Baking trays','Pots','Frying pans','Saucepans',
+      'Stove-top kettles','Trivets','Oven mitts','Dish racks','Placemats','Coasters'
+    ];
+
     // Generic config for every category that gets a flat (single-level) subcategory drill-down
     const FLAT_SUBCATS={
       Electronics:{field:'electronics_subcategory',emoji:'📱',items:ELECTRONICS_SUBCATS},
+      Utensils:{field:'utensils_subcategory',emoji:'🍴',items:UTENSILS_SUBCATS},
       Clothing:{field:'clothing_subcategory',emoji:'👗',items:CLOTHING_SUBCATS},
       Food:{field:'food_subcategory',emoji:'🍱',items:FOOD_SUBCATS},
       Beauty:{field:'beauty_subcategory',emoji:'💄',items:BEAUTY_SUBCATS},
@@ -424,6 +438,7 @@
       Furniture:{field:'furniture_subcategory',emoji:'🛋️',items:FURNITURE_SUBCATS}
     };
     let flatSubcat=null; // currently selected subcategory value for whichever flat category is active
+    let flatChipsExpanded=false; // whether the full subcategory chip grid is currently revealed (only after "Show all" is pressed)
 
     let all=[], cat='All', currentListing=null, galleryIdx=0, modalQty=1, currentUser=null, cart=[], renderLimit=24, lastFilteredList=[];
 
@@ -770,10 +785,21 @@
       openCart();
     };
 
-    document.getElementById('btn-order-now').onclick=()=>{
+    document.getElementById('btn-order-now').onclick=async()=>{
       if(!currentUser){window.location.href='login.html';return;}
       if(!currentListing)return;
-      placeOrder([{listing:currentListing,qty:modalQty}]);
+      const btn=document.getElementById('btn-order-now');
+      if(btn.dataset.busy==='1')return; // guard against double-clicks
+      btn.dataset.busy='1';
+      const origTxt=btn.textContent;
+      btn.textContent='Placing order...';btn.disabled=true;
+      try{
+        await placeOrder([{listing:currentListing,qty:modalQty}]);
+      } finally {
+        btn.dataset.busy='0';
+        btn.textContent=origTxt;
+        btn.disabled = currentListing ? currentListing.quantity<=0 : false;
+      }
     };
 
     function addToCart(l,qty){
@@ -781,7 +807,22 @@
       if(existing){existing.qty=Math.min(l.quantity,existing.qty+qty);}
       else{cart.push({listing:l,qty});}
       saveCart();updateCartUI();
+      showToast('✅ Added "'+l.title+'" to cart');
     }
+
+    window.showToast=(msg,type)=>{
+      const stack=document.getElementById('toast-stack');
+      if(!stack)return;
+      const el=document.createElement('div');
+      el.className='toast'+(type?' toast-'+type:'');
+      el.textContent=msg;
+      stack.appendChild(el);
+      requestAnimationFrame(()=>el.classList.add('toast-show'));
+      setTimeout(()=>{
+        el.classList.remove('toast-show');
+        setTimeout(()=>el.remove(),250);
+      },2400);
+    };
 
     function saveCart(){localStorage.setItem('cv_cart',JSON.stringify(cart.map(c=>({id:c.listing.id,qty:c.qty}))));}
     async function loadCart(){
@@ -861,25 +902,44 @@
       return {name:p.full_name, wa:p.whatsapp};
     }
 
+    function orderErrorMessage(error){
+      const raw=error?.message||'Unknown error';
+      // A missing RPC (schema/migration not applied yet) surfaces as a "not found" style error from PostgREST
+      if(/function .*place_order.*does not exist|could not find the function|schema cache/i.test(raw)){
+        return 'Ordering isn\'t set up yet on this store (missing database function). Please contact the site owner.';
+      }
+      return raw;
+    }
+
     window.checkout=async()=>{
       if(!currentUser){window.location.href='login.html';return;}
       if(!cart.length)return;
       const info=await getBuyerContactInfo();
       if(!info)return;
+      const btn=document.querySelector('.btn-checkout');
+      const origTxt=btn?btn.textContent:'';
+      if(btn){btn.disabled=true;btn.textContent='Placing order...';}
       let sellers={};
-      for(const c of cart){
-        const l=c.listing;
-        const {data,error}=await supabase.rpc('place_order',{p_listing_id:l.id,p_quantity:c.qty});
-        if(error){alert('Order failed: '+error.message);return;}
-        const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
-        const sid=data.seller_id;
-        if(!sellers[sid])sellers[sid]={name:data.seller_name||'Seller',wa:data.seller_whatsapp||'N/A',res:data.seller_residence||'',items:[]};
-        sellers[sid].items.push((data.listing_title||l.title)+' ×'+c.qty+' (R'+(fp*c.qty)+')');
-        l.quantity=Math.max(0,(l.quantity||0)-c.qty);
+      try{
+        for(const c of cart){
+          const l=c.listing;
+          const {data,error}=await supabase.rpc('place_order',{p_listing_id:l.id,p_quantity:c.qty});
+          if(error){showToast('❌ Order failed: '+orderErrorMessage(error),'error');return;}
+          const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+          const sid=data.seller_id;
+          if(!sellers[sid])sellers[sid]={name:data.seller_name||'Seller',wa:data.seller_whatsapp||'N/A',res:data.seller_residence||'',items:[]};
+          sellers[sid].items.push((data.listing_title||l.title)+' ×'+c.qty+' (R'+(fp*c.qty)+')');
+          l.quantity=Math.max(0,(l.quantity||0)-c.qty);
+        }
+        cart=[];saveCart();updateCartUI();closeCart();
+        showToast('✅ Order placed! Contact details below.','success');
+        showSellerContacts(sellers);
+        doFilter();
+      } catch(e){
+        showToast('❌ Order failed: '+(e?.message||'Unknown error'),'error');
+      } finally {
+        if(btn){btn.disabled=false;btn.textContent=origTxt;}
       }
-      cart=[];saveCart();updateCartUI();closeCart();
-      showSellerContacts(sellers);
-      doFilter();
     };
 
     async function placeOrder(items){
@@ -887,23 +947,28 @@
       const info=await getBuyerContactInfo();
       if(!info)return;
       let sellers={};
-      for(const {listing:l,qty} of items){
-        const {data,error}=await supabase.rpc('place_order',{p_listing_id:l.id,p_quantity:qty});
-        if(error){alert('Order failed: '+error.message);return;}
-        const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
-        const sid=data.seller_id;
-        if(!sellers[sid])sellers[sid]={name:data.seller_name||'Seller',wa:data.seller_whatsapp||'N/A',res:data.seller_residence||'',items:[]};
-        sellers[sid].items.push((data.listing_title||l.title)+' ×'+qty+' (R'+(fp*qty)+')');
-        l.quantity=Math.max(0,(l.quantity||0)-qty);
+      try{
+        for(const {listing:l,qty} of items){
+          const {data,error}=await supabase.rpc('place_order',{p_listing_id:l.id,p_quantity:qty});
+          if(error){showToast('❌ Order failed: '+orderErrorMessage(error),'error');return;}
+          const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+          const sid=data.seller_id;
+          if(!sellers[sid])sellers[sid]={name:data.seller_name||'Seller',wa:data.seller_whatsapp||'N/A',res:data.seller_residence||'',items:[]};
+          sellers[sid].items.push((data.listing_title||l.title)+' ×'+qty+' (R'+(fp*qty)+')');
+          l.quantity=Math.max(0,(l.quantity||0)-qty);
+        }
+        closeModal();
+        showToast('✅ Order placed! Contact details below.','success');
+        showSellerContacts(sellers);
+        doFilter();
+      } catch(e){
+        showToast('❌ Order failed: '+(e?.message||'Unknown error'),'error');
       }
-      closeModal();
-      showSellerContacts(sellers);
-      doFilter();
     }
 
     window.closeModal=()=>{document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
     window.selectCat=(c,el)=>{
-      cat=c;tbYear=null;tbSubject=null;flatSubcat=null;stationaryGroup=null;
+      cat=c;tbYear=null;tbSubject=null;flatSubcat=null;stationaryGroup=null;flatChipsExpanded=false;
       document.getElementById('tb-panel').style.display='none';
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
@@ -995,7 +1060,7 @@
 
     // ===== GENERIC FLAT SUBCATEGORY DRILL-DOWN (Clothing, Electronics, Food, Beauty, Wigs, Tutoring, …) =====
     window.openFlatSubcats=(catName,el)=>{
-      cat=catName;flatSubcat=null;tbYear=null;tbSubject=null;stationaryGroup=null;
+      cat=catName;flatSubcat=null;tbYear=null;tbSubject=null;stationaryGroup=null;flatChipsExpanded=false;
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
       renderFlatSubcats();
@@ -1011,27 +1076,32 @@
       }
       let html='<div class="tb-heading">'+conf.emoji+' Browse '+cat.toLowerCase()+' by type</div>';
       html+='<button class="tb-view-all-year" onclick="viewAllFlat()">Show all '+cat.toLowerCase()+'</button>';
-      html+='<div class="tb-subject-grid">'+
-        conf.items.map(sub=>{
-          if(cat==='Beauty' && sub==='Perfume'){
-            return '<button class="tb-subject-btn'+(flatSubcat==='Perfume'||flatSubcat==="Men's Perfume"||flatSubcat==="Women's Perfume"?' active':'')+'" onclick="openPerfumeGender()">Perfume</button>';
-          }
-          return '<button class="tb-subject-btn'+(flatSubcat===sub?' active':'')+'" onclick="selectFlatSubcat(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>';
-        }).join('')+
-        '</div>';
+      if(flatChipsExpanded){
+        html+='<div class="tb-subject-grid">'+
+          conf.items.map(sub=>{
+            if(cat==='Beauty' && sub==='Perfume'){
+              return '<button class="tb-subject-btn'+(flatSubcat==='Perfume'||flatSubcat==="Men's Perfume"||flatSubcat==="Women's Perfume"?' active':'')+'" onclick="openPerfumeGender()">Perfume</button>';
+            }
+            return '<button class="tb-subject-btn'+(flatSubcat===sub?' active':'')+'" onclick="selectFlatSubcat(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>';
+          }).join('')+
+          '</div>';
+      }
       p.innerHTML=html;
     }
     function renderStationaryPanel(){
       const p=document.getElementById('tb-panel');
       if(!stationaryGroup){
-        p.innerHTML=
+        let html=
           '<div class="tb-heading">✏️ Browse stationary by type</div>'+
-          '<button class="tb-view-all-year" onclick="viewAllFlat()">Show all stationary</button>'+
-          '<div class="tb-subject-grid">'+
-          Object.keys(STATIONARY_GROUPS).map(g=>
-            '<button class="tb-subject-btn" onclick="openStationaryGroup(\''+g.replace(/'/g,"\\'")+'\')">'+g+'</button>'
-          ).join('')+
-          '</div>';
+          '<button class="tb-view-all-year" onclick="viewAllFlat()">Show all stationary</button>';
+        if(flatChipsExpanded){
+          html+='<div class="tb-subject-grid">'+
+            Object.keys(STATIONARY_GROUPS).map(g=>
+              '<button class="tb-subject-btn" onclick="openStationaryGroup(\''+g.replace(/'/g,"\\'")+'\')">'+g+'</button>'
+            ).join('')+
+            '</div>';
+        }
+        p.innerHTML=html;
         return;
       }
       const items=STATIONARY_GROUPS[stationaryGroup]||[];
@@ -1048,7 +1118,7 @@
         '</div>';
     }
     window.openStationaryGroup=(g)=>{stationaryGroup=g;flatSubcat=null;renderStationaryPanel();doFilter();};
-    window.viewAllFlat=()=>{flatSubcat=null;stationaryGroup=null;renderFlatSubcats();doFilter();};
+    window.viewAllFlat=()=>{flatSubcat=null;stationaryGroup=null;flatChipsExpanded=true;renderFlatSubcats();doFilter();};
     window.selectFlatSubcat=(sub)=>{
       flatSubcat=sub;
       if(cat==='Stationary') renderStationaryPanel();

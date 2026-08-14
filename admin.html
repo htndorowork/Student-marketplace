@@ -37,7 +37,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
             <div style="font-size:16px;font-weight:800;margin-bottom:4px">🔒 Listing Paywall</div>
-            <div style="font-size:13px;color:#888;font-weight:600">Emergency pause: when ON, all sellers see a blocked screen. Turn OFF once PayFast is live so sellers can pay R159 / R49 to unlock selling.</div>
+            <div style="font-size:13px;color:#888;font-weight:600">Emergency pause: when ON, all sellers see a blocked screen. Turn OFF once PayFast is live so sellers can pay from R19 to unlock selling.</div>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="paywall-toggle" onchange="togglePaywall(this.checked)"/>
@@ -320,7 +320,10 @@
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',30)">✅ +30d (R159)</button>'+
-          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',7)">✅ +7d (R49)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',7)">✅ +7d (R39)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',2)">✅ +48h (R19)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',90)">✅ +3mo (R399)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',180)">✅ +6mo (R699)</button>'+
           '</div>';
       }).join('');
     }

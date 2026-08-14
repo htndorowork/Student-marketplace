@@ -62,23 +62,69 @@
           <div style="text-align:center;font-size:42px;margin-bottom:8px">💼</div>
           <h2 style="font-size:22px;font-weight:900;margin-bottom:8px;text-align:center">Start selling</h2>
           <p style="font-size:14px;color:#888;font-weight:600;line-height:1.6;margin-bottom:20px;text-align:center">No free trial — pay securely with PayFast to unlock your seller dashboard and post listings.</p>
-          <div class="plan-grid" style="display:grid;gap:12px;margin-bottom:16px">
-            <button type="button" class="plan-card" id="plan-month" onclick="startPayfastCheckout('month')" style="text-align:left;background:#faf7ff;border:2.5px solid #d8c4f7;border-radius:16px;padding:18px 16px;cursor:pointer;font-family:inherit">
+          <div class="plan-grid" style="display:grid;gap:10px;margin-bottom:16px">
+            <button type="button" class="plan-card" id="plan-flash" onclick="startPayfastCheckout('flash')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
-                  <div style="font-weight:900;font-size:16px;color:#111">30 days</div>
-                  <div style="font-size:12.5px;color:#888;font-weight:700;margin-top:4px">Best value for active sellers</div>
+                  <div style="font-weight:900;font-size:15px;color:#111">Flash Sale · 48 hours</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Urgent single-item clearance</div>
                 </div>
-                <div style="font-weight:900;font-size:22px;color:#7c3aed">R159</div>
+                <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R19</div>
               </div>
             </button>
-            <button type="button" class="plan-card" id="plan-week" onclick="startPayfastCheckout('week')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:18px 16px;cursor:pointer;font-family:inherit">
+            <button type="button" class="plan-card" id="plan-quicklister" onclick="startPayfastCheckout('quicklister')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
-                  <div style="font-weight:900;font-size:16px;color:#111">1 week</div>
-                  <div style="font-size:12.5px;color:#888;font-weight:700;margin-top:4px">Try selling for a short stretch</div>
+                  <div style="font-weight:900;font-size:15px;color:#111">Quick Lister · 7 days</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Low-commitment entry point</div>
                 </div>
-                <div style="font-weight:900;font-size:22px;color:#7c3aed">R49</div>
+                <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R39</div>
+              </div>
+            </button>
+            <button type="button" class="plan-card" id="plan-casual" onclick="startPayfastCheckout('casual')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div>
+                  <div style="font-weight:900;font-size:15px;color:#111">Casual Seller · 1 month</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Budget-conscious · up to 2 active listings</div>
+                </div>
+                <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R89</div>
+              </div>
+            </button>
+            <button type="button" class="plan-card" id="plan-standard" onclick="startPayfastCheckout('standard')" style="text-align:left;background:#faf7ff;border:2.5px solid #7c3aed;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit;position:relative">
+              <div style="position:absolute;top:-10px;left:14px;background:#7c3aed;color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:50px;letter-spacing:0.3px">MOST POPULAR</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div>
+                  <div style="font-weight:900;font-size:15px;color:#111">Standard Monthly · 1 month</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Full access to basic features for ongoing side-hustles</div>
+                </div>
+                <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R159</div>
+              </div>
+            </button>
+            <button type="button" class="plan-card" id="plan-power" onclick="startPayfastCheckout('power')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div>
+                  <div style="font-weight:900;font-size:15px;color:#111">Power Seller · 1 month</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Unlimited capacity + 2 featured badges per cycle</div>
+                </div>
+                <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R249</div>
+              </div>
+            </button>
+            <button type="button" class="plan-card" id="plan-quarter" onclick="startPayfastCheckout('quarter')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div>
+                  <div style="font-weight:900;font-size:15px;color:#111">Quarter Pass · 3 months</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Aligned with a university term or exam block <span style="color:#2e7d32">· SAVE ~R80</span></div>
+                </div>
+                <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R399</div>
+              </div>
+            </button>
+            <button type="button" class="plan-card" id="plan-semester" onclick="startPayfastCheckout('semester')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div>
+                  <div style="font-weight:900;font-size:15px;color:#111">Semester Pass · 6 months</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Best for established brands & tutoring agencies <span style="color:#2e7d32">· SAVE ~R250</span></div>
+                </div>
+                <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R699</div>
               </div>
             </button>
           </div>
@@ -138,6 +184,7 @@
                 <option>Tutoring</option><option>Accommodation</option>
                 <option>Transport</option><option>Services</option><option>Stationary</option>
                 <option>Appliances</option><option>Rentals</option><option>Furniture</option>
+                <option>Utensils</option>
               </select>
             </div>
           </div>
@@ -161,6 +208,10 @@
             <select id="f-flat-subcat">
               <option value="">Select type</option>
             </select>
+          </div>
+          <div class="form-group" id="f-flat-other-row" style="display:none">
+            <label>Please describe the item *</label>
+            <input type="text" id="f-flat-other" placeholder="e.g. Cheese grater with wooden handle"/>
           </div>
           <div class="form-group">
             <label>Description</label>
@@ -497,9 +548,21 @@
       'Kitchen trolley','Bar stools','Plastic storage drawers','Storage cubes','Foldable wardrobe'
     ];
 
+    const UTENSILS_SUBCATS=[
+      'Forks','Tablespoons','Teaspoons','Dessert spoons','Serving spoons','Ladles','Salad servers',
+      'Butter knives','Steak knives','Bread knives','Chef\'s knives','Paring knives','Cutlery sets',
+      'Chopsticks','Spatulas','Tongs','Whisks','Can openers','Bottle openers','Peelers','Graters',
+      'Garlic press','Pizza cutters','Cutting boards','Mixing bowls','Colanders/Strainers',
+      'Measuring cups','Measuring spoons','Rolling pins','Kitchen scissors','Plates','Bowls',
+      'Cups','Mugs','Drinking glasses','Lunch boxes','Food storage containers','Tupperware',
+      'Thermos flasks','Water bottles','Baking trays','Pots','Frying pans','Saucepans',
+      'Stove-top kettles','Trivets','Oven mitts','Dish racks','Placemats','Coasters'
+    ];
+
     // Generic config: category -> {DB field name, dropdown label, options}
     const FLAT_SUBCATS={
       Electronics:{field:'electronics_subcategory',label:'Electronics Type *',items:ELECTRONICS_SUBCATS},
+      Utensils:{field:'utensils_subcategory',label:'Utensil Type *',items:UTENSILS_SUBCATS},
       Clothing:{field:'clothing_subcategory',label:'Clothing Type *',items:CLOTHING_SUBCATS},
       Food:{field:'food_subcategory',label:'Food Item *',items:FOOD_SUBCATS},
       Beauty:{field:'beauty_subcategory',label:'Beauty Item *',items:BEAUTY_SUBCATS},
@@ -519,20 +582,28 @@
       document.getElementById('f-tb-row').style.display = v==='Textbooks' ? 'grid' : 'none';
       const conf=FLAT_SUBCATS[v];
       const flatRow=document.getElementById('f-flat-row');
+      document.getElementById('f-flat-other-row').style.display='none';
+      document.getElementById('f-flat-other').value='';
       if(conf){
         document.getElementById('f-flat-label').textContent=conf.label;
         if(v==='Stationary'){
           document.getElementById('f-flat-subcat').innerHTML='<option value="">Select type</option>'+
             Object.keys(STATIONARY_GROUPS).map(g=>
               '<optgroup label="'+g+'">'+STATIONARY_GROUPS[g].map(s=>'<option>'+s+'</option>').join('')+'</optgroup>'
-            ).join('');
+            ).join('')+'<option value="Other">Other</option>';
         } else {
-          document.getElementById('f-flat-subcat').innerHTML='<option value="">Select type</option>'+conf.items.map(s=>'<option>'+s+'</option>').join('');
+          document.getElementById('f-flat-subcat').innerHTML='<option value="">Select type</option>'+conf.items.map(s=>'<option>'+s+'</option>').join('')+'<option value="Other">Other</option>';
         }
         flatRow.style.display='block';
       } else {
         flatRow.style.display='none';
       }
+    });
+
+    document.getElementById('f-flat-subcat').addEventListener('change',e=>{
+      const otherRow=document.getElementById('f-flat-other-row');
+      otherRow.style.display = e.target.value==='Other' ? 'block' : 'none';
+      if(e.target.value!=='Other') document.getElementById('f-flat-other').value='';
     });
 
     // ===== INSTITUTION / CAMPUS DELIVERY COVERAGE =====
@@ -823,10 +894,11 @@
     function siteBase(){
       return window.location.href.replace(/[^/]*$/, '');
     }
+    const VALID_PLAN_KEYS=['flash','quicklister','casual','standard','power','quarter','semester'];
     window.startPayfastCheckout = async (planKey)=>{
       const errEl = document.getElementById('payfast-error');
       errEl.style.display='none';
-      if (planKey!=='week' && planKey!=='month') return;
+      if (!VALID_PLAN_KEYS.includes(planKey)) return;
       if (!currentUser) {
         errEl.style.display='block';
         errEl.textContent='Please sign in first.';
@@ -1051,7 +1123,8 @@
       const tbYear = document.getElementById('f-tb-year').value;
       const tbSubject = document.getElementById('f-tb-subject').value;
       const flatConf = FLAT_SUBCATS[cat];
-      const flatVal = document.getElementById('f-flat-subcat').value;
+      let flatVal = document.getElementById('f-flat-subcat').value;
+      const flatOtherDesc = document.getElementById('f-flat-other').value.trim();
       const err   = document.getElementById('form-error');
       err.style.color='#9333ea'; err.textContent='';
 
@@ -1075,6 +1148,8 @@
       if (!isDraft && !condition) { err.textContent='❌ Select the item\'s condition'; return; }
       if (cat==='Textbooks' && (!tbYear || !tbSubject)) { err.textContent='❌ Select a study year and subject for this textbook'; return; }
       if (flatConf && !flatVal) { err.textContent='❌ Select a '+flatConf.label.replace(' *','').toLowerCase(); return; }
+      if (flatConf && flatVal==='Other' && !flatOtherDesc) { err.textContent='❌ Please describe the item since you selected "Other"'; return; }
+      if (flatConf && flatVal==='Other') { flatVal = flatOtherDesc; }
       const btn = document.getElementById(isDraft?'btn-draft':'btn-post');
       const origTxt = btn.textContent;
       btn.textContent=editingListingId?'Saving...':(isDraft?'Saving...':'Posting...'); btn.disabled=true;
@@ -1119,6 +1194,8 @@
       document.getElementById('f-tb-row').style.display='none';
       document.getElementById('f-flat-subcat').value='';
       document.getElementById('f-flat-row').style.display='none';
+      document.getElementById('f-flat-other').value='';
+      document.getElementById('f-flat-other-row').style.display='none';
       [1,2,3,4,5,6].forEach(n=>{imgs[n]=null;document.getElementById('fi-'+n).value='';document.getElementById('slot-'+n).innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>';});
     }
 
@@ -1145,7 +1222,21 @@
         document.getElementById('f-tb-subject').value = l.textbook_subject||'';
       }
       const flatConf = FLAT_SUBCATS[l.category];
-      if (flatConf) document.getElementById('f-flat-subcat').value = l[flatConf.field]||'';
+      if (flatConf) {
+        const sel = document.getElementById('f-flat-subcat');
+        const storedVal = l[flatConf.field]||'';
+        sel.value = storedVal;
+        const otherRow = document.getElementById('f-flat-other-row');
+        if (storedVal && sel.value !== storedVal) {
+          // stored value isn't one of the preset options — it was a custom "Other" description
+          sel.value = 'Other';
+          otherRow.style.display = 'block';
+          document.getElementById('f-flat-other').value = storedVal;
+        } else {
+          otherRow.style.display = 'none';
+          document.getElementById('f-flat-other').value = '';
+        }
+      }
       [1,2,3,4,5,6].forEach(n=>{
         const url = l['image_url'+(n===1?'':'_'+n)];
         imgs[n] = url||null;

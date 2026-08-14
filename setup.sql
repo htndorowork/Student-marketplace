@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS listings (
   appliances_subcategory text,
   rentals_subcategory text,
   furniture_subcategory text,
+  utensils_subcategory text,
   created_at timestamp DEFAULT now()
 );
 
@@ -93,6 +94,7 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS stationary_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS appliances_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS rentals_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS furniture_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS utensils_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_4 text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_5 text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_6 text;
