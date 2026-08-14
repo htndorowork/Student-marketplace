@@ -185,6 +185,7 @@
                 <option>Transport</option><option>Services</option><option>Stationary</option>
                 <option>Appliances</option><option>Rentals</option><option>Furniture</option>
                 <option>Utensils</option>
+                <option>Jewellery</option><option>Bags</option><option>Toys</option><option>Pets</option>
               </select>
             </div>
           </div>
@@ -562,11 +563,38 @@
       'Thermos flasks','Water bottles','Baking trays','Pots','Frying pans','Saucepans',
       'Stove-top kettles','Trivets','Oven mitts','Dish racks','Placemats','Coasters'
     ];
+    const JEWELLERY_SUBCATS=[
+      'Necklaces','Chains','Pendants','Earrings','Studs','Hoops','Rings','Bracelets',
+      'Bangles','Anklets','Watches','Brooches','Cufflinks','Charms','Jewellery sets',
+      'Body jewellery','Piercing jewellery','Hair jewellery','Jewellery boxes','Jewellery cleaning kits'
+    ];
+    const BAGS_SUBCATS=[
+      'Backpacks','Laptop bags','Handbags','Tote bags','Crossbody bags','Shoulder bags',
+      'Clutch bags','Sling bags','Duffel bags','Gym bags','Sports bags','Drawstring bags',
+      'Waist bags/Fanny packs','Wallets','Purses','Makeup bags','Toiletry bags','Lunch bags',
+      'Suitcases','Travel bags','School bags','Tote/Grocery bags','Pouches'
+    ];
+    const TOYS_SUBCATS=[
+      'Board games','Card games','Puzzles','Building blocks/Lego','Action figures','Dolls',
+      'Plush toys/Stuffed animals','Remote control toys','Educational toys','Outdoor toys',
+      'Water toys','Toy cars','Play sets','Art & craft kits','Musical toys','Party games',
+      'Fidget toys','Baby toys','Video game consoles','Video games'
+    ];
+    const PETS_SUBCATS=[
+      'Dog food','Cat food','Fish food','Bird food','Small pet food','Pet treats',
+      'Leashes & collars','Pet carriers','Pet beds','Pet bowls','Litter boxes','Cat litter',
+      'Aquariums & tanks','Bird cages','Pet toys','Pet grooming supplies','Pet clothing',
+      'Pet training supplies','Fish tank accessories','Pet health & supplements'
+    ];
 
     // Generic config: category -> {DB field name, dropdown label, options}
     const FLAT_SUBCATS={
       Electronics:{field:'electronics_subcategory',label:'Electronics Type *',items:ELECTRONICS_SUBCATS},
       Utensils:{field:'utensils_subcategory',label:'Utensil Type *',items:UTENSILS_SUBCATS},
+      Jewellery:{field:'jewellery_subcategory',label:'Jewellery Type *',items:JEWELLERY_SUBCATS},
+      Bags:{field:'bags_subcategory',label:'Bag Type *',items:BAGS_SUBCATS},
+      Toys:{field:'toys_subcategory',label:'Toy Type *',items:TOYS_SUBCATS},
+      Pets:{field:'pets_subcategory',label:'Pet Item Type *',items:PETS_SUBCATS},
       Clothing:{field:'clothing_subcategory',label:'Clothing Type *',items:CLOTHING_SUBCATS},
       Food:{field:'food_subcategory',label:'Food Item *',items:FOOD_SUBCATS},
       Beauty:{field:'beauty_subcategory',label:'Beauty Item *',items:BEAUTY_SUBCATS},
@@ -880,23 +908,28 @@
         INSTITUTION_TYPES.map(t=>'<button type="button" class="tb-subject-btn" onclick="pickInstType(\''+t.key+'\')">'+(INST_TYPE_ICON[t.key]||'')+' '+t.label+'</button>').join('')+
         '</div>';
     }
-    window.pickInstType=(key)=>{ instAddType=key; renderInstPickStep(''); };
-    function renderInstPickStep(q){
+    window.pickInstType=(key)=>{ instAddType=key; renderInstPickStep(); };
+    function renderInstPickStep(){
       const typeObj=INSTITUTION_TYPES.find(t=>t.key===instAddType);
       const list=INSTITUTIONS[instAddType]||[];
-      q=(q||'').trim().toLowerCase();
-      const filtered=q?list.filter(u=>u.name.toLowerCase().includes(q)):list;
       document.getElementById('inst-modal-body').innerHTML=
         '<button type="button" class="inst-back-btn" onclick="renderInstTypeStep()">← Back</button>'+
         '<div class="inst-modal-title">Select the institution</div>'+
         '<div class="inst-modal-sub">'+typeObj.label+'</div>'+
-        '<input type="text" class="inst-search" placeholder="Search '+typeObj.label.toLowerCase()+'..." oninput="renderInstPickStep(this.value)" value="'+q.replace(/"/g,'&quot;')+'"/>'+
-        '<div class="inst-count">'+filtered.length+' institution'+(filtered.length===1?'':'s')+'</div>'+
-        '<div class="tb-subject-grid">'+
-        (filtered.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickInstInstitution(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')||'<p class="loading-msg">No matches</p>')+
+        '<input type="text" class="inst-search" placeholder="Search '+typeObj.label.toLowerCase()+'..." oninput="filterInstPickList(this.value)"/>'+
+        '<div class="inst-count" id="inst-pick-count">'+list.length+' institution'+(list.length===1?'':'s')+'</div>'+
+        '<div class="tb-subject-grid" id="inst-pick-list">'+
+        list.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickInstInstitution(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')+
         '</div>';
     }
     window.renderInstPickStep=renderInstPickStep;
+    window.filterInstPickList=(q)=>{
+      const list=INSTITUTIONS[instAddType]||[];
+      q=(q||'').trim().toLowerCase();
+      const filtered=q?list.filter(u=>u.name.toLowerCase().includes(q)):list;
+      document.getElementById('inst-pick-count').textContent=filtered.length+' institution'+(filtered.length===1?'':'s');
+      document.getElementById('inst-pick-list').innerHTML=filtered.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickInstInstitution(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')||'<p class="loading-msg">No matches</p>';
+    };
     window.pickInstInstitution=(name)=>{
       instAddInst=findInstitution(name);
       const existing=sellerInstitutions.find(x=>x.name===instAddInst.name);
@@ -906,7 +939,7 @@
     function renderInstCampusStep(){
       const allSelected = instAddInst.campuses.every(c=>instAddCampuses.includes(c));
       document.getElementById('inst-modal-body').innerHTML=
-        '<button type="button" class="inst-back-btn" onclick="renderInstPickStep(\'\')">← Back</button>'+
+        '<button type="button" class="inst-back-btn" onclick="renderInstPickStep()">← Back</button>'+
         '<div class="inst-modal-title">Which campuses?</div>'+
         '<div class="inst-modal-sub">'+instAddInst.name+'</div>'+
         '<label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin:10px 0;cursor:pointer">'+

@@ -393,29 +393,34 @@
         INSTITUTION_TYPES.map(t=>'<button type="button" class="tb-subject-btn" onclick="pickBuyerType(\''+t.key+'\')">'+(INST_TYPE_ICON[t.key]||'')+' '+t.label+'</button>').join('')+
         '</div>';
     }
-    window.pickBuyerType=(key)=>{ buyerTypePicked=INSTITUTION_TYPES.find(t=>t.key===key); renderBuyerInstStep(''); };
-    function renderBuyerInstStep(q){
+    window.pickBuyerType=(key)=>{ buyerTypePicked=INSTITUTION_TYPES.find(t=>t.key===key); renderBuyerInstStep(); };
+    function renderBuyerInstStep(){
       const list=INSTITUTIONS[buyerTypePicked.key]||[];
-      q=(q||'').trim().toLowerCase();
-      const filtered=q?list.filter(u=>u.name.toLowerCase().includes(q)):list;
       document.getElementById('buyer-inst-modal-body').innerHTML=
         '<button type="button" class="inst-back-btn" onclick="renderBuyerTypeStep()">← Back</button>'+
         '<div class="inst-modal-title">Select your '+(buyerTypePicked.key==='university'?'university':'institution')+'</div>'+
         '<div class="inst-modal-sub">'+buyerTypePicked.label+'</div>'+
-        '<input type="text" class="inst-search" placeholder="Search '+buyerTypePicked.label.toLowerCase()+'..." oninput="renderBuyerInstStep(this.value)" value="'+q.replace(/"/g,'&quot;')+'"/>'+
-        '<div class="inst-count">'+filtered.length+' institution'+(filtered.length===1?'':'s')+'</div>'+
-        '<div class="tb-subject-grid">'+
-        (filtered.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickBuyerInst(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')||'<p class="loading-msg">No matches</p>')+
+        '<input type="text" class="inst-search" placeholder="Search '+buyerTypePicked.label.toLowerCase()+'..." oninput="filterBuyerInstList(this.value)"/>'+
+        '<div class="inst-count" id="buyer-inst-count">'+list.length+' institution'+(list.length===1?'':'s')+'</div>'+
+        '<div class="tb-subject-grid" id="buyer-inst-list">'+
+        list.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickBuyerInst(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')+
         '</div>';
     }
     window.renderBuyerInstStep=renderBuyerInstStep;
+    window.filterBuyerInstList=(q)=>{
+      const list=INSTITUTIONS[buyerTypePicked.key]||[];
+      q=(q||'').trim().toLowerCase();
+      const filtered=q?list.filter(u=>u.name.toLowerCase().includes(q)):list;
+      document.getElementById('buyer-inst-count').textContent=filtered.length+' institution'+(filtered.length===1?'':'s');
+      document.getElementById('buyer-inst-list').innerHTML=filtered.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickBuyerInst(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')||'<p class="loading-msg">No matches</p>';
+    };
     window.pickBuyerInst=(name)=>{
       buyerInstPicked=(INSTITUTIONS[buyerTypePicked.key]||[]).find(u=>u.name===name);
       renderBuyerCampusStep();
     };
     function renderBuyerCampusStep(){
       document.getElementById('buyer-inst-modal-body').innerHTML=
-        '<button type="button" class="inst-back-btn" onclick="renderBuyerInstStep(\'\')">← Back</button>'+
+        '<button type="button" class="inst-back-btn" onclick="renderBuyerInstStep()">← Back</button>'+
         '<div class="inst-modal-title">Select your campus</div>'+
         '<div class="inst-modal-sub">'+buyerInstPicked.name+'</div>'+
         '<div class="tb-subject-grid">'+
@@ -468,23 +473,28 @@
         INSTITUTION_TYPES.map(t=>'<button type="button" class="tb-subject-btn" onclick="pickSellerType(\''+t.key+'\')">'+(INST_TYPE_ICON[t.key]||'')+' '+t.label+'</button>').join('')+
         '</div>';
     }
-    window.pickSellerType=(key)=>{ sellerAddType=key; renderSellerInstStep(''); };
-    function renderSellerInstStep(q){
+    window.pickSellerType=(key)=>{ sellerAddType=key; renderSellerInstStep(); };
+    function renderSellerInstStep(){
       const typeObj=INSTITUTION_TYPES.find(t=>t.key===sellerAddType);
       const list=INSTITUTIONS[sellerAddType]||[];
-      q=(q||'').trim().toLowerCase();
-      const filtered=q?list.filter(u=>u.name.toLowerCase().includes(q)):list;
       document.getElementById('seller-inst-modal-body').innerHTML=
         '<button type="button" class="inst-back-btn" onclick="renderSellerTypeStep()">← Back</button>'+
         '<div class="inst-modal-title">Select the institution</div>'+
         '<div class="inst-modal-sub">'+typeObj.label+'</div>'+
-        '<input type="text" class="inst-search" placeholder="Search '+typeObj.label.toLowerCase()+'..." oninput="renderSellerInstStep(this.value)" value="'+q.replace(/"/g,'&quot;')+'"/>'+
-        '<div class="inst-count">'+filtered.length+' institution'+(filtered.length===1?'':'s')+'</div>'+
-        '<div class="tb-subject-grid">'+
-        (filtered.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickSellerInst(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')||'<p class="loading-msg">No matches</p>')+
+        '<input type="text" class="inst-search" placeholder="Search '+typeObj.label.toLowerCase()+'..." oninput="filterSellerInstList(this.value)"/>'+
+        '<div class="inst-count" id="seller-inst-count">'+list.length+' institution'+(list.length===1?'':'s')+'</div>'+
+        '<div class="tb-subject-grid" id="seller-inst-list">'+
+        list.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickSellerInst(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')+
         '</div>';
     }
     window.renderSellerInstStep=renderSellerInstStep;
+    window.filterSellerInstList=(q)=>{
+      const list=INSTITUTIONS[sellerAddType]||[];
+      q=(q||'').trim().toLowerCase();
+      const filtered=q?list.filter(u=>u.name.toLowerCase().includes(q)):list;
+      document.getElementById('seller-inst-count').textContent=filtered.length+' institution'+(filtered.length===1?'':'s');
+      document.getElementById('seller-inst-list').innerHTML=filtered.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickSellerInst(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')||'<p class="loading-msg">No matches</p>';
+    };
     window.pickSellerInst=(name)=>{
       sellerAddInst=findInstitutionByName(name);
       const existing=sellerInstitutions.find(x=>x.name===sellerAddInst.name);
@@ -494,7 +504,7 @@
     function renderSellerCampusStep(){
       const allSelected = sellerAddInst.campuses.every(c=>sellerAddCampuses.includes(c));
       document.getElementById('seller-inst-modal-body').innerHTML=
-        '<button type="button" class="inst-back-btn" onclick="renderSellerInstStep(\'\')">← Back</button>'+
+        '<button type="button" class="inst-back-btn" onclick="renderSellerInstStep()">← Back</button>'+
         '<div class="inst-modal-title">Which campuses?</div>'+
         '<div class="inst-modal-sub">'+sellerAddInst.name+'</div>'+
         '<label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin:10px 0;cursor:pointer">'+

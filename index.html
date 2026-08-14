@@ -65,6 +65,10 @@
     <div class="cat" id="cat-appliances" onclick="openFlatSubcats('Appliances',this)">🔌 Appliances</div>
     <div class="cat" id="cat-rentals" onclick="openFlatSubcats('Rentals',this)">🔁 Rentals</div>
     <div class="cat" id="cat-furniture" onclick="openFlatSubcats('Furniture',this)">🛋️ Furniture</div>
+    <div class="cat" id="cat-jewellery" onclick="openFlatSubcats('Jewellery',this)">💍 Jewellery</div>
+    <div class="cat" id="cat-bags" onclick="openFlatSubcats('Bags',this)">👜 Bags</div>
+    <div class="cat" id="cat-toys" onclick="openFlatSubcats('Toys',this)">🧸 Toys</div>
+    <div class="cat" id="cat-pets" onclick="openFlatSubcats('Pets',this)">🐾 Pets</div>
     </div>
     <button class="cats-arrow cats-arrow-right" onclick="scrollCats(1)" aria-label="Scroll right">›</button>
   </div>
@@ -244,8 +248,8 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
-    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓',Utensils:'🍴'};
-    const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Wigs:{bg:'#f3e5f5',text:'#7b1fa2'},Perfumes:{bg:'#e0f7fa',text:'#00838f'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'},Utensils:{bg:'#fff3e0',text:'#e65100'}};
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾'};
+    const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Wigs:{bg:'#f3e5f5',text:'#7b1fa2'},Perfumes:{bg:'#e0f7fa',text:'#00838f'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'},Utensils:{bg:'#fff3e0',text:'#e65100'},Jewellery:{bg:'#fdf0e6',text:'#a0522d'},Bags:{bg:'#ede7f6',text:'#5e35b1'},Toys:{bg:'#e3f2fd',text:'#1565c0'},Pets:{bg:'#f1f8e9',text:'#558b2f'}};
 
     const TB_YEARS=['1st Year','2nd Year','3rd Year','Postgraduate'];
     const TB_TAXONOMY={
@@ -418,11 +422,38 @@
       'Thermos flasks','Water bottles','Baking trays','Pots','Frying pans','Saucepans',
       'Stove-top kettles','Trivets','Oven mitts','Dish racks','Placemats','Coasters'
     ];
+    const JEWELLERY_SUBCATS=[
+      'Necklaces','Chains','Pendants','Earrings','Studs','Hoops','Rings','Bracelets',
+      'Bangles','Anklets','Watches','Brooches','Cufflinks','Charms','Jewellery sets',
+      'Body jewellery','Piercing jewellery','Hair jewellery','Jewellery boxes','Jewellery cleaning kits'
+    ];
+    const BAGS_SUBCATS=[
+      'Backpacks','Laptop bags','Handbags','Tote bags','Crossbody bags','Shoulder bags',
+      'Clutch bags','Sling bags','Duffel bags','Gym bags','Sports bags','Drawstring bags',
+      'Waist bags/Fanny packs','Wallets','Purses','Makeup bags','Toiletry bags','Lunch bags',
+      'Suitcases','Travel bags','School bags','Tote/Grocery bags','Pouches'
+    ];
+    const TOYS_SUBCATS=[
+      'Board games','Card games','Puzzles','Building blocks/Lego','Action figures','Dolls',
+      'Plush toys/Stuffed animals','Remote control toys','Educational toys','Outdoor toys',
+      'Water toys','Toy cars','Play sets','Art & craft kits','Musical toys','Party games',
+      'Fidget toys','Baby toys','Video game consoles','Video games'
+    ];
+    const PETS_SUBCATS=[
+      'Dog food','Cat food','Fish food','Bird food','Small pet food','Pet treats',
+      'Leashes & collars','Pet carriers','Pet beds','Pet bowls','Litter boxes','Cat litter',
+      'Aquariums & tanks','Bird cages','Pet toys','Pet grooming supplies','Pet clothing',
+      'Pet training supplies','Fish tank accessories','Pet health & supplements'
+    ];
 
     // Generic config for every category that gets a flat (single-level) subcategory drill-down
     const FLAT_SUBCATS={
       Electronics:{field:'electronics_subcategory',emoji:'📱',items:ELECTRONICS_SUBCATS},
       Utensils:{field:'utensils_subcategory',emoji:'🍴',items:UTENSILS_SUBCATS},
+      Jewellery:{field:'jewellery_subcategory',emoji:'💍',items:JEWELLERY_SUBCATS},
+      Bags:{field:'bags_subcategory',emoji:'👜',items:BAGS_SUBCATS},
+      Toys:{field:'toys_subcategory',emoji:'🧸',items:TOYS_SUBCATS},
+      Pets:{field:'pets_subcategory',emoji:'🐾',items:PETS_SUBCATS},
       Clothing:{field:'clothing_subcategory',emoji:'👗',items:CLOTHING_SUBCATS},
       Food:{field:'food_subcategory',emoji:'🍱',items:FOOD_SUBCATS},
       Beauty:{field:'beauty_subcategory',emoji:'💄',items:BEAUTY_SUBCATS},
@@ -487,6 +518,7 @@
       return parts.length ? parts.join(' · ') : null;
     }
     let tbYear=null, tbSubject=null;
+    let tbSubjectsExpanded=false; // whether the faculty/subject grid is currently revealed (only after "View all X textbooks" is pressed)
 
     // Init
     const {data:{user}}=await supabase.auth.getUser();
@@ -999,7 +1031,7 @@
 
     window.closeModal=()=>{document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
     window.selectCat=(c,el)=>{
-      cat=c;tbYear=null;tbSubject=null;flatSubcat=null;stationaryGroup=null;flatChipsExpanded=false;
+      cat=c;tbYear=null;tbSubject=null;tbSubjectsExpanded=false;flatSubcat=null;stationaryGroup=null;flatChipsExpanded=false;
       document.getElementById('tb-panel').style.display='none';
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
@@ -1086,7 +1118,7 @@
 
     // ===== GENERIC FLAT SUBCATEGORY DRILL-DOWN (Clothing, Electronics, Food, Beauty, Wigs, Tutoring, …) =====
     window.openFlatSubcats=(catName,el)=>{
-      cat=catName;flatSubcat=null;tbYear=null;tbSubject=null;stationaryGroup=null;flatChipsExpanded=false;
+      cat=catName;flatSubcat=null;tbYear=null;tbSubject=null;tbSubjectsExpanded=false;stationaryGroup=null;flatChipsExpanded=false;
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
       renderFlatSubcats();
@@ -1183,7 +1215,7 @@
 
     // ===== TEXTBOOK YEAR / FACULTY / SUBJECT DRILL-DOWN =====
     window.openTextbookYears=(el)=>{
-      cat='Textbooks';tbYear=null;tbSubject=null;flatSubcat=null;
+      cat='Textbooks';tbYear=null;tbSubject=null;tbSubjectsExpanded=false;flatSubcat=null;
       document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
       renderTbYearPicker();
@@ -1200,33 +1232,45 @@
         '</div>';
     }
     window.viewAllTextbooks=()=>{
-      tbYear=null;tbSubject=null;
+      tbYear=null;tbSubject=null;tbSubjectsExpanded=false;
       document.getElementById('tb-panel').style.display='none';
       doFilter();
     };
     window.openTbFaculties=(year)=>{
-      tbYear=year;tbSubject=null;
+      tbYear=year;tbSubject=null;tbSubjectsExpanded=false;
       renderTbFaculties();
       doFilter();
     };
     function renderTbFaculties(){
       const p=document.getElementById('tb-panel');
       let html='<div class="tb-crumbs">'+
-        '<span class="tb-crumb" onclick="renderTbYearPicker()">Textbooks</span>'+
+        '<span class="tb-crumb" onclick="backToTbYears()">Textbooks</span>'+
         '<span class="tb-crumb-sep">›</span>'+
         '<span class="tb-crumb-current">'+tbYear+'</span>'+
         '</div>';
-      html+='<button class="tb-view-all-year" onclick="viewAllInYear()">View all '+tbYear+' textbooks</button>';
-      html+=Object.keys(TB_TAXONOMY).map(fac=>
-        '<div class="tb-faculty-block">'+
-        '<div class="tb-faculty-title">'+fac+'</div>'+
-        '<div class="tb-subject-grid">'+
-        TB_TAXONOMY[fac].map(sub=>'<button class="tb-subject-btn'+(tbSubject===sub?' active':'')+'" onclick="selectTbSubject(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>').join('')+
-        '</div></div>'
-      ).join('');
+      html+='<button class="tb-view-all-year" onclick="viewAllInYear()">'+(tbSubjectsExpanded?'Hide subjects':'View all '+tbYear+' textbooks')+'</button>';
+      if(tbSubjectsExpanded){
+        html+=Object.keys(TB_TAXONOMY).map(fac=>
+          '<div class="tb-faculty-block">'+
+          '<div class="tb-faculty-title">'+fac+'</div>'+
+          '<div class="tb-subject-grid">'+
+          TB_TAXONOMY[fac].map(sub=>'<button class="tb-subject-btn'+(tbSubject===sub?' active':'')+'" onclick="selectTbSubject(\''+sub.replace(/'/g,"\\'")+'\')">'+sub+'</button>').join('')+
+          '</div></div>'
+        ).join('');
+      }
       p.innerHTML=html;
     }
-    window.viewAllInYear=()=>{tbSubject=null;doFilter();renderTbFaculties();};
+    window.backToTbYears=()=>{
+      tbYear=null;tbSubject=null;tbSubjectsExpanded=false;
+      renderTbYearPicker();
+      doFilter();
+    };
+    window.viewAllInYear=()=>{
+      tbSubjectsExpanded=!tbSubjectsExpanded;
+      if(tbSubjectsExpanded){tbSubject=null;}
+      renderTbFaculties();
+      doFilter();
+    };
     window.selectTbSubject=(sub)=>{tbSubject=sub;renderTbFaculties();doFilter();};
 
     // LIGHTBOX
