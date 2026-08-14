@@ -334,24 +334,21 @@
           <div class="form-group"><label>WhatsApp *</label><input type="text" id="p-whatsapp" placeholder="0812345678"/></div>
           <div class="form-group"><label>Residence</label><input type="text" id="p-residence" placeholder="e.g. Heroes Residence, NWU Potchefstroom"/></div>
           <div class="form-group">
-            <label>Select your Institution *</label>
-            <select id="p-inst-type" onchange="onInstTypeChange(this.value)">
-              <option value="">Select institution type</option>
-              <option value="university">University</option>
-              <option value="private">Private Higher Education Institution</option>
-              <option value="tvet">Public TVET College</option>
-            </select>
-          </div>
-          <div class="form-group" id="p-university-group" style="display:none">
-            <label>Which institution do you sell to? *</label>
-            <select id="p-university"><option value="">Select institution</option></select>
-          </div>
-          <div class="form-group" id="p-campuses-group" style="display:none">
-            <label>Which campuses can you deliver to? *</label>
-            <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin-bottom:8px;cursor:pointer">
-              <input type="checkbox" id="p-campus-all" onchange="toggleAllCampuses(this.checked)" style="width:16px;height:16px"/> All campuses
-            </label>
-            <div id="p-campus-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+            <label>Where do you sell? *</label>
+            <p style="font-size:12px;color:#888;font-weight:600;margin:-4px 0 10px">Buyers can filter listings by their campus, so tell us every institution & campus you deliver to.</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+              <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="p-sell-all-uni" style="width:16px;height:16px"/> 🎓 All universities (every campus)
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="p-sell-all-tvet" style="width:16px;height:16px"/> 🛠️ All public TVET colleges (every campus)
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="p-sell-all-private" style="width:16px;height:16px"/> 🏫 All private higher-education institutions (every campus)
+              </label>
+            </div>
+            <div id="p-inst-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+            <button type="button" class="btn-sm btn-toggle" onclick="openInstAddModal()">+ Add a specific institution</button>
           </div>
           <div class="form-error" id="profile-error"></div>
           <button class="btn-primary" id="btn-save">Save Profile ✅</button>
@@ -372,6 +369,13 @@
       </div>
     </div>
   </main>
+
+  <div class="modal-overlay" id="inst-modal-overlay" onclick="closeInstAddModal()">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+      <button class="modal-close" onclick="closeInstAddModal()">✕</button>
+      <div class="modal-body" id="inst-modal-body"></div>
+    </div>
+  </div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -833,30 +837,9 @@
       ]
     };
     const INSTITUTION_TYPES=[{key:'university',label:'University'},{key:'private',label:'Private Higher Education Institution'},{key:'tvet',label:'Public TVET College'}];
-    let selectedCampuses=[];
-
-    function populateUniSelect(typeKey, selectedName){
-      const uniSel=document.getElementById('p-university');
-      const group=document.getElementById('p-university-group');
-      if(!typeKey){ group.style.display='none'; uniSel.innerHTML='<option value="">Select institution</option>'; return; }
-      group.style.display='block';
-      const list=INSTITUTIONS[typeKey]||[];
-      uniSel.innerHTML='<option value="">Select institution</option>'+
-        list.map(u=>'<option'+(u.name===selectedName?' selected':'')+'>'+u.name+'</option>').join('');
-    }
-
-    window.onInstTypeChange=(typeKey)=>{
-      populateUniSelect(typeKey, '');
-      document.getElementById('p-campuses-group').style.display='none';
-    };
-
-    function findInstType(uniName){
-      if(!uniName) return '';
-      for(const key of ['university','private','tvet']){
-        if((INSTITUTIONS[key]||[]).some(u=>u.name===uniName)) return key;
-      }
-      return '';
-    }
+    const INST_TYPE_ICON={university:'🎓',private:'🏫',tvet:'🛠️'};
+    let sellerInstitutions=[]; // [{type,name,campuses:[...]}]
+    let instAddType=null, instAddInst=null, instAddCampuses=[];
 
     function findInstitution(uniName){
       for(const key of ['university','private','tvet']){
@@ -866,30 +849,90 @@
       return null;
     }
 
-    function renderCampusChoices(uniName, preSelected, allFlag){
-      const group=document.getElementById('p-campuses-group');
-      const uni=findInstitution(uniName);
-      if(!uni){ group.style.display='none'; return; }
-      group.style.display='block';
-      selectedCampuses = allFlag ? [...uni.campuses] : (preSelected||[]);
-      document.getElementById('p-campus-all').checked = !!allFlag;
-      const list=document.getElementById('p-campus-list');
-      list.innerHTML=uni.campuses.map(c=>'<button type="button" class="tb-subject-btn'+(selectedCampuses.includes(c)?' active':'')+'" onclick="toggleCampus(\''+c.replace(/'/g,"\\'")+'\')">'+c+'</button>').join('');
-      list.style.opacity = allFlag ? '0.5' : '1';
-      list.style.pointerEvents = allFlag ? 'none' : 'auto';
+    function renderInstList(){
+      const box=document.getElementById('p-inst-list');
+      if(!sellerInstitutions.length){ box.innerHTML=''; return; }
+      box.innerHTML=sellerInstitutions.map((inst,i)=>
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;background:#faf7ff;border:1.5px solid #eadcfb;border-radius:12px;padding:10px 12px">'+
+          '<div><div style="font-weight:800;font-size:13px;color:#111">'+(INST_TYPE_ICON[inst.type]||'')+' '+inst.name+'</div>'+
+          '<div style="font-size:12px;color:#888;font-weight:600;margin-top:2px">'+(inst.campuses||[]).join(', ')+'</div></div>'+
+          '<button type="button" onclick="removeInstitution('+i+')" style="border:none;background:none;color:#c62828;font-weight:900;font-size:16px;cursor:pointer;line-height:1">✕</button>'+
+        '</div>'
+      ).join('');
     }
-    document.getElementById('p-university').addEventListener('change',e=>{
-      renderCampusChoices(e.target.value, [], false);
-    });
-    window.toggleAllCampuses=(checked)=>{
-      const uniName=document.getElementById('p-university').value;
-      renderCampusChoices(uniName, selectedCampuses, checked);
+    window.removeInstitution=(i)=>{ sellerInstitutions.splice(i,1); renderInstList(); };
+
+    window.openInstAddModal=()=>{
+      instAddType=null; instAddInst=null; instAddCampuses=[];
+      renderInstTypeStep();
+      document.getElementById('inst-modal-overlay').style.display='flex';
+      document.body.style.overflow='hidden';
     };
-    window.toggleCampus=(c)=>{
-      if(selectedCampuses.includes(c)) selectedCampuses=selectedCampuses.filter(x=>x!==c);
-      else selectedCampuses.push(c);
-      renderCampusChoices(document.getElementById('p-university').value, selectedCampuses, false);
+    window.closeInstAddModal=()=>{
+      document.getElementById('inst-modal-overlay').style.display='none';
+      document.body.style.overflow='';
     };
+    function renderInstTypeStep(){
+      document.getElementById('inst-modal-body').innerHTML=
+        '<div class="inst-modal-title">Add an institution</div>'+
+        '<div class="inst-modal-sub">What type of institution is it?</div>'+
+        '<div class="tb-subject-grid">'+
+        INSTITUTION_TYPES.map(t=>'<button type="button" class="tb-subject-btn" onclick="pickInstType(\''+t.key+'\')">'+(INST_TYPE_ICON[t.key]||'')+' '+t.label+'</button>').join('')+
+        '</div>';
+    }
+    window.pickInstType=(key)=>{ instAddType=key; renderInstPickStep(''); };
+    function renderInstPickStep(q){
+      const typeObj=INSTITUTION_TYPES.find(t=>t.key===instAddType);
+      const list=INSTITUTIONS[instAddType]||[];
+      q=(q||'').trim().toLowerCase();
+      const filtered=q?list.filter(u=>u.name.toLowerCase().includes(q)):list;
+      document.getElementById('inst-modal-body').innerHTML=
+        '<button type="button" class="inst-back-btn" onclick="renderInstTypeStep()">← Back</button>'+
+        '<div class="inst-modal-title">Select the institution</div>'+
+        '<div class="inst-modal-sub">'+typeObj.label+'</div>'+
+        '<input type="text" class="inst-search" placeholder="Search '+typeObj.label.toLowerCase()+'..." oninput="renderInstPickStep(this.value)" value="'+q.replace(/"/g,'&quot;')+'"/>'+
+        '<div class="inst-count">'+filtered.length+' institution'+(filtered.length===1?'':'s')+'</div>'+
+        '<div class="tb-subject-grid">'+
+        (filtered.map(u=>'<button type="button" class="tb-subject-btn" onclick="pickInstInstitution(\''+u.name.replace(/'/g,"\\'")+'\')">'+u.name+'</button>').join('')||'<p class="loading-msg">No matches</p>')+
+        '</div>';
+    }
+    window.renderInstPickStep=renderInstPickStep;
+    window.pickInstInstitution=(name)=>{
+      instAddInst=findInstitution(name);
+      const existing=sellerInstitutions.find(x=>x.name===instAddInst.name);
+      instAddCampuses = existing ? [...existing.campuses] : [];
+      renderInstCampusStep();
+    };
+    function renderInstCampusStep(){
+      const allSelected = instAddInst.campuses.every(c=>instAddCampuses.includes(c));
+      document.getElementById('inst-modal-body').innerHTML=
+        '<button type="button" class="inst-back-btn" onclick="renderInstPickStep(\'\')">← Back</button>'+
+        '<div class="inst-modal-title">Which campuses?</div>'+
+        '<div class="inst-modal-sub">'+instAddInst.name+'</div>'+
+        '<label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin:10px 0;cursor:pointer">'+
+          '<input type="checkbox" id="inst-campus-all" '+(allSelected?'checked':'')+' onchange="toggleInstAllCampuses(this.checked)" style="width:16px;height:16px"/> All campuses'+
+        '</label>'+
+        '<div class="tb-subject-grid" id="inst-campus-grid">'+
+        instAddInst.campuses.map(c=>'<button type="button" class="tb-subject-btn'+(instAddCampuses.includes(c)?' active':'')+'" onclick="toggleInstCampus(\''+c.replace(/'/g,"\\'")+'\')">'+c+'</button>').join('')+
+        '</div>'+
+        '<button type="button" class="btn-primary" style="margin-top:14px" onclick="confirmInstAdd()">Add ✅</button>';
+    }
+    window.toggleInstAllCampuses=(checked)=>{
+      instAddCampuses = checked ? [...instAddInst.campuses] : [];
+      renderInstCampusStep();
+    };
+    window.toggleInstCampus=(c)=>{
+      instAddCampuses = instAddCampuses.includes(c) ? instAddCampuses.filter(x=>x!==c) : [...instAddCampuses,c];
+      renderInstCampusStep();
+    };
+    window.confirmInstAdd=()=>{
+      if(!instAddCampuses.length){ alert('Select at least one campus (or tick "All campuses").'); return; }
+      sellerInstitutions = sellerInstitutions.filter(x=>x.name!==instAddInst.name);
+      sellerInstitutions.push({type:instAddType,name:instAddInst.name,campuses:instAddCampuses});
+      renderInstList();
+      closeInstAddModal();
+    };
+
 
     function siteBase(){
       return window.location.href.replace(/[^/]*$/, '');
@@ -997,10 +1040,11 @@
         document.getElementById('p-name').value = p.full_name||'';
         document.getElementById('p-whatsapp').value = p.whatsapp||'';
         document.getElementById('p-residence').value = p.residence||'';
-        const savedType = findInstType(p.university);
-        document.getElementById('p-inst-type').value = savedType;
-        populateUniSelect(savedType, p.university||'');
-        if (p.university) renderCampusChoices(p.university, p.delivery_campuses||[], p.deliver_all_campuses);
+        document.getElementById('p-sell-all-uni').checked = !!p.deliver_all_universities;
+        document.getElementById('p-sell-all-tvet').checked = !!p.deliver_all_tvet;
+        document.getElementById('p-sell-all-private').checked = !!p.deliver_all_private;
+        sellerInstitutions = Array.isArray(p.seller_institutions) ? p.seller_institutions : [];
+        renderInstList();
         if (p.is_admin) document.getElementById('admin-link').style.display = 'inline';
         supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+currentUser.id+',seller_id.eq.'+currentUser.id).neq('sender_id',currentUser.id).eq('is_read',false).then(({count})=>{
           if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
@@ -1129,14 +1173,15 @@
       err.style.color='#9333ea'; err.textContent='';
 
       // Fix 4 — check profile is complete first
-      const {data:p} = await supabase.from('profiles').select('full_name,whatsapp,residence,university,delivery_campuses,deliver_all_campuses').eq('id',currentUser.id).single();
+      const {data:p} = await supabase.from('profiles').select('full_name,whatsapp,residence,deliver_all_universities,deliver_all_tvet,deliver_all_private,seller_institutions').eq('id',currentUser.id).single();
       if (!p?.full_name || !p?.whatsapp) {
         err.textContent='❌ Please complete your profile (name & WhatsApp) before listing. Go to the Profile tab.';
         showTab('profile', document.querySelectorAll('.dash-tab')[4]);
         return;
       }
-      if (!p?.university || (!p?.deliver_all_campuses && !(p?.delivery_campuses||[]).length)) {
-        err.textContent='❌ Set which institution & campuses you deliver to before listing. Go to the Profile tab.';
+      const hasDeliveryScope = p?.deliver_all_universities || p?.deliver_all_tvet || p?.deliver_all_private || (Array.isArray(p?.seller_institutions) && p.seller_institutions.length>0);
+      if (!hasDeliveryScope) {
+        err.textContent='❌ Set which institutions & campuses you sell to before listing. Go to the Profile tab.';
         showTab('profile', document.querySelectorAll('.dash-tab')[4]);
         return;
       }
@@ -1309,18 +1354,19 @@
       const name = document.getElementById('p-name').value.trim();
       const wa   = document.getElementById('p-whatsapp').value.trim();
       const res  = document.getElementById('p-residence').value.trim();
-      const uni  = document.getElementById('p-university').value;
-      const allCampuses = document.getElementById('p-campus-all').checked;
+      const allUni = document.getElementById('p-sell-all-uni').checked;
+      const allTvet = document.getElementById('p-sell-all-tvet').checked;
+      const allPrivate = document.getElementById('p-sell-all-private').checked;
       const err  = document.getElementById('profile-error');
       err.style.color='#9333ea'; err.textContent='';
       if (!name||!wa) { err.textContent='❌ Name and WhatsApp are required'; return; }
-      if (!uni) { err.textContent='❌ Select which institution you sell to'; return; }
-      if (!allCampuses && !selectedCampuses.length) { err.textContent='❌ Select at least one campus you can deliver to (or choose "All campuses")'; return; }
+      if (!allUni && !allTvet && !allPrivate && !sellerInstitutions.length) { err.textContent='❌ Choose at least one institution you sell to (tick an "All X" option or add a specific institution)'; return; }
 
       // No free trial — sellers must pay via PayFast before posting
       const updatePayload = {
         full_name:name, whatsapp:wa, residence:res,
-        university:uni, delivery_campuses:selectedCampuses, deliver_all_campuses:allCampuses
+        deliver_all_universities:allUni, deliver_all_tvet:allTvet, deliver_all_private:allPrivate,
+        seller_institutions:sellerInstitutions
       };
 
       const {error} = await supabase.from('profiles').update(updatePayload).eq('id',currentUser.id);

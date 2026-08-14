@@ -34,6 +34,13 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS delivery_campuses text[] DEFAULT '
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS deliver_all_campuses boolean DEFAULT false;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_paid_until date;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_blocked boolean DEFAULT false;
+-- Institution/campus support (universities, TVET colleges, private higher-ed institutions)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS institution_type text; -- 'university' | 'tvet' | 'private' — buyer's own institution type
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS campus text; -- buyer's own campus (university/institution name reuses the existing `university` column)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS deliver_all_universities boolean DEFAULT false; -- seller sells to every university, any campus
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS deliver_all_tvet boolean DEFAULT false; -- seller sells to every TVET college, any campus
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS deliver_all_private boolean DEFAULT false; -- seller sells to every private higher-ed institution, any campus
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS seller_institutions jsonb DEFAULT '[]'::jsonb; -- [{type,name,campuses:[...]}, ...] specific institutions a seller delivers to (beyond the "all X" toggles above)
 
 -- Listings
 CREATE TABLE IF NOT EXISTS listings (

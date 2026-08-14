@@ -283,6 +283,16 @@
       ).join('');
     }
 
+    function sellerScopeSummary(s){
+      const parts=[];
+      if(s.deliver_all_universities) parts.push('All universities');
+      if(s.deliver_all_tvet) parts.push('All TVET colleges');
+      if(s.deliver_all_private) parts.push('All private institutions');
+      const list=Array.isArray(s.seller_institutions)?s.seller_institutions:[];
+      list.forEach(inst=>parts.push(inst.name));
+      return parts.length ? parts.join(', ') : 'No institutions set';
+    }
+
     async function loadPaidSellers(){
       const {data}=await supabase.from('profiles').select('*').eq('role','seller').order('full_name');
       const today=new Date().toISOString().slice(0,10);
@@ -293,7 +303,7 @@
         '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
-        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
+        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+sellerScopeSummary(s)+'</div>'+
         '<div class="listing-meta" style="color:#2e7d32;font-weight:700">✅ Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
@@ -316,7 +326,7 @@
           '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
           '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
           '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
-          '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+(s.university||'No university set')+'</div>'+
+          '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+sellerScopeSummary(s)+'</div>'+
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',30)">✅ +30d (R159)</button>'+

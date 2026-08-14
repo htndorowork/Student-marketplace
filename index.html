@@ -464,6 +464,28 @@
         return textWords.some(tw=>tw.includes(qw)||(tw.length>=4&&levenshtein(tw,qw)<=1));
       });
     }
+
+    // Does this seller (profile) deliver to the buyer's saved {uni,campus,type}?
+    function sellerDeliversTo(p,saved){
+      if(!p||!saved) return false;
+      if(saved.type==='university' && p.deliver_all_universities) return true;
+      if(saved.type==='tvet' && p.deliver_all_tvet) return true;
+      if(saved.type==='private' && p.deliver_all_private) return true;
+      const list=Array.isArray(p.seller_institutions)?p.seller_institutions:[];
+      return list.some(inst=>inst.name===saved.uni && (inst.campuses||[]).includes(saved.campus));
+    }
+
+    // Human-readable summary of where a seller delivers, for the listing modal
+    function describeDeliveryScope(p){
+      if(!p) return null;
+      const parts=[];
+      if(p.deliver_all_universities) parts.push('all universities');
+      if(p.deliver_all_tvet) parts.push('all TVET colleges');
+      if(p.deliver_all_private) parts.push('all private institutions');
+      const list=Array.isArray(p.seller_institutions)?p.seller_institutions:[];
+      list.forEach(inst=>parts.push(inst.name+' ('+(inst.campuses||[]).join(', ')+')'));
+      return parts.length ? parts.join(' · ') : null;
+    }
     let tbYear=null, tbSubject=null;
 
     // Init
@@ -481,6 +503,15 @@
       supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).neq('sender_id',user.id).eq('is_read',false).then(({count})=>{
         if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
       });
+      // If the buyer hasn't picked an institution on this device yet, use the one they set at signup
+      if(!localStorage.getItem('sm_university')){
+        supabase.from('profiles').select('institution_type,university,campus').eq('id',user.id).single().then(({data:pr})=>{
+          if(pr?.institution_type && pr?.university && pr?.campus){
+            localStorage.setItem('sm_university',JSON.stringify({uni:pr.university,campus:pr.campus,type:pr.institution_type}));
+            if(typeof updateUniBtnLabel==='function') updateUniBtnLabel();
+          }
+        });
+      }
       loadNotifications();
       const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
       if(p?.role==='seller') document.getElementById('nav-profile').href='seller.html';
@@ -490,7 +521,7 @@
       loadCart();
     }
 
-    const {data}=await supabase.from('listings').select('*,profiles(full_name,residence,university,delivery_campuses,deliver_all_campuses,is_blocked,subscription_paid_until,is_admin)').eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('renewed_at',{ascending:false,nullsFirst:false});
+    const {data}=await supabase.from('listings').select('*,profiles(full_name,residence,university,deliver_all_universities,deliver_all_tvet,deliver_all_private,seller_institutions,is_blocked,subscription_paid_until,is_admin)').eq('is_available',true).eq('is_draft',false).gt('quantity',0).order('renewed_at',{ascending:false,nullsFirst:false});
     const today=new Date().toISOString().slice(0,10);
     all=(data||[]).filter(l=>{
       const p=l.profiles;
@@ -687,7 +718,7 @@
       document.getElementById('modal-desc').textContent=l.description||'No description.';
       const flatConf2=FLAT_SUBCATS[l.category];
       const flatVal2=flatConf2?l[flatConf2.field]:null;
-      const deliveryTxt = l.profiles?.university ? (l.profiles.deliver_all_campuses ? 'All '+l.profiles.university+' campuses' : (l.profiles.delivery_campuses||[]).join(', ')||l.profiles.university) : null;
+      const deliveryTxt = describeDeliveryScope(l.profiles);
       const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+l.condition+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
       document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
       document.getElementById('modal-qty').textContent=1;
@@ -1021,12 +1052,7 @@
       if(document.getElementById('my-campus-only').checked){
         const saved=JSON.parse(localStorage.getItem('sm_university')||'null');
         if(saved){
-          f=f.filter(l=>{
-            const p=l.profiles;
-            if(!p?.university) return false;
-            if(p.university!==saved.uni) return false;
-            return p.deliver_all_campuses || (p.delivery_campuses||[]).includes(saved.campus);
-          });
+          f=f.filter(l=>sellerDeliversTo(l.profiles,saved));
         }
       }
 
@@ -1075,7 +1101,7 @@
         return;
       }
       let html='<div class="tb-heading">'+conf.emoji+' Browse '+cat.toLowerCase()+' by type</div>';
-      html+='<button class="tb-view-all-year" onclick="viewAllFlat()">Show all '+cat.toLowerCase()+'</button>';
+      html+='<button class="tb-view-all-year" onclick="viewAllFlat()">'+(flatChipsExpanded?'Hide subcategories':'Show all '+cat.toLowerCase())+'</button>';
       if(flatChipsExpanded){
         html+='<div class="tb-subject-grid">'+
           conf.items.map(sub=>{
@@ -1093,7 +1119,7 @@
       if(!stationaryGroup){
         let html=
           '<div class="tb-heading">✏️ Browse stationary by type</div>'+
-          '<button class="tb-view-all-year" onclick="viewAllFlat()">Show all stationary</button>';
+          '<button class="tb-view-all-year" onclick="viewAllFlat()">'+(flatChipsExpanded?'Hide subcategories':'Show all stationary')+'</button>';
         if(flatChipsExpanded){
           html+='<div class="tb-subject-grid">'+
             Object.keys(STATIONARY_GROUPS).map(g=>
@@ -1118,7 +1144,12 @@
         '</div>';
     }
     window.openStationaryGroup=(g)=>{stationaryGroup=g;flatSubcat=null;renderStationaryPanel();doFilter();};
-    window.viewAllFlat=()=>{flatSubcat=null;stationaryGroup=null;flatChipsExpanded=true;renderFlatSubcats();doFilter();};
+    window.viewAllFlat=()=>{
+      flatChipsExpanded=!flatChipsExpanded;
+      if(flatChipsExpanded){flatSubcat=null;stationaryGroup=null;}
+      renderFlatSubcats();
+      doFilter();
+    };
     window.selectFlatSubcat=(sub)=>{
       flatSubcat=sub;
       if(cat==='Stationary') renderStationaryPanel();
@@ -1536,7 +1567,7 @@
     }
     window.renderCampusList=renderCampusList;
     window.pickCampus=(campus)=>{
-      localStorage.setItem('sm_university',JSON.stringify({uni:uniPicked.name,campus}));
+      localStorage.setItem('sm_university',JSON.stringify({uni:uniPicked.name,campus,type:typePicked.key}));
       updateUniBtnLabel();
       closeUniModal();
     };
