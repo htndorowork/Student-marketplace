@@ -117,6 +117,7 @@
         <span class="filter-toggle-text">📍 Only my campus</span>
       </label>
       <button class="filter-reset" onclick="resetFilters()" type="button">↺ Reset</button>
+      <button class="filter-apply" onclick="applyFilters()" type="button">Apply ✓</button>
     </div>
 
     <div class="grid" id="listings-grid">
@@ -742,6 +743,12 @@
     window.toggleFilterPanel=()=>{
       document.getElementById('filter-toolbar').classList.toggle('open');
       document.getElementById('filter-toggle-btn').classList.toggle('open');
+    };
+    window.applyFilters=()=>{
+      doFilter();
+      document.getElementById('filter-toolbar').classList.remove('open');
+      document.getElementById('filter-toggle-btn').classList.remove('open');
+      document.getElementById('listings-grid').scrollIntoView({block:'start'});
     };
     window._toggleFav=async(id)=>{
       if(!currentUser){location.href='login.html';return;}
