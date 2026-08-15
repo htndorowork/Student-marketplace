@@ -720,7 +720,7 @@
           (verifiedTag?'<div class="card-seller">'+verifiedTag+'</div>':'')+
           (l.profiles?.residence?'<div class="card-residence">📍 '+l.profiles.residence+'</div>':'')+
           tbTag+
-          '<div>'+condTag+negTag+'</div>'+
+          (negTag?'<div>'+negTag+'</div>':'')+
           stock+
           '<div class="card-footer"><span class="price">R'+fp+'</span>'+
           '<button class="btn-add-cart" '+(outOfStock?'disabled':'')+' onclick="event.stopPropagation();window._quickAdd(\''+l.id+'\')">'+(outOfStock?'Out of stock':'+ Cart')+'</button>'+
