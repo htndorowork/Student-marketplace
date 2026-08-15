@@ -704,9 +704,6 @@
         const photoCount=[l.image_url,l.image_url_2,l.image_url_3,l.image_url_4,l.image_url_5,l.image_url_6].filter(Boolean).length;
         const photoDots=photoCount>1?'<div class="photo-dots">'+Array(photoCount).fill('•').join('')+'</div>':'';
         const stock=l.quantity>5?'<div class="card-stock">'+l.quantity+' in stock</div>':l.quantity>0?'<div class="card-stock low">Only '+l.quantity+' left!</div>':'<div class="card-stock out">Out of stock</div>';
-        const flatConf=FLAT_SUBCATS[l.category];
-        const flatVal=flatConf?l[flatConf.field]:null;
-        const tbTag=(l.category==='Textbooks'&&l.textbook_year)?'<div class="card-residence">🎓 '+l.textbook_year+(l.textbook_subject?' · '+l.textbook_subject:'')+'</div>':(flatVal?'<div class="card-residence">'+flatConf.emoji+' '+flatVal+'</div>':'');
         const outOfStock=l.quantity<=0;
         const isFav=myFavorites.has(l.id);
         const heart=currentUser?'<button class="fav-heart" onclick="event.stopPropagation();window._toggleFav(\''+l.id+'\')" aria-label="Favorite">'+(isFav?'❤️':'🤍')+'</button>':'';
@@ -719,7 +716,6 @@
           '<div class="card-title">'+l.title+'</div>'+
           (verifiedTag?'<div class="card-seller">'+verifiedTag+'</div>':'')+
           (l.profiles?.residence?'<div class="card-residence">📍 '+l.profiles.residence+'</div>':'')+
-          tbTag+
           (negTag?'<div>'+negTag+'</div>':'')+
           stock+
           '<div class="card-footer"><span class="price">R'+fp+'</span>'+
