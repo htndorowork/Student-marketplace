@@ -337,6 +337,13 @@ button { -webkit-appearance: none; appearance: none; font-family: inherit; }
 input:checked + .toggle-slider { background: #7c3aed; }
 input:checked + .toggle-slider:before { transform: translateX(24px); }
 
+@media (max-width: 600px) {
+  .seller-row { flex-wrap: wrap; }
+  .seller-row .listing-info { flex: 1 1 200px; min-width: 0; }
+  .seller-row .listing-meta { word-break: break-word; }
+  .seller-row > button, .seller-row > .toggle-switch { flex: 0 0 auto; }
+}
+
 @media (max-width: 640px) {
   .nav { padding: 12px 56px 10px 16px; row-gap: 10px; }
   .nav-logo { font-size: 18px; }

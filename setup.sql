@@ -85,6 +85,19 @@ CREATE TABLE IF NOT EXISTS listings (
   bags_subcategory text,
   toys_subcategory text,
   pets_subcategory text,
+  tools_subcategory text,
+  snacks_subcategory text,
+  sports_subcategory text,
+  books_subcategory text,
+  music_subcategory text,
+  cameras_subcategory text,
+  events_subcategory text,
+  plants_subcategory text,
+  decor_subcategory text,
+  baby_subcategory text,
+  data_subcategory text,
+  health_subcategory text,
+  career_subcategory text,
   created_at timestamp DEFAULT now()
 );
 
@@ -110,6 +123,19 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS jewellery_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS bags_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS toys_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS pets_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS tools_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS snacks_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS sports_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS books_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS music_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS cameras_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS events_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS plants_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS decor_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS baby_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS data_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS health_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS career_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_4 text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_5 text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS image_url_6 text;

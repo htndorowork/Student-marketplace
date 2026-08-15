@@ -115,7 +115,7 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
-    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓'};
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️'};
     let allListings=[];
     let currentAdminId=null;
 
@@ -244,7 +244,7 @@
         '<div class="seller-avatar">👤</div>'+
         '<div class="listing-info" style="flex:1'+(isSeller?';cursor:pointer':'')+'"'+(isSeller?' onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store"':'')+'>'+
         '<div class="listing-title">'+(s.full_name||'No name')+(s.is_admin?' <span class="badge-admin">Admin</span>':'')+' <span style="background:#f0f0f0;color:#555;font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px">'+(s.role||'buyer')+'</span></div>'+
-        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 📍 '+(s.residence||'No res')+' · '+new Date(s.created_at).toLocaleDateString('en-ZA')+'</div>'+
+        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 📍 '+(s.residence||'No res')+'&nbsp;· '+new Date(s.created_at).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
         '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._toggleRole(\''+s.id+'\',\''+(s.role||'buyer')+'\')">Make '+(isSeller?'Buyer':'Seller')+'</button>'+
         '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._toggleAdmin(\''+s.id+'\','+!!s.is_admin+')">'+(s.is_admin?'Remove Admin':'Make Admin')+'</button>'+
@@ -303,7 +303,7 @@
         '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
-        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+sellerScopeSummary(s)+'</div>'+
+        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
         '<div class="listing-meta" style="color:#2e7d32;font-weight:700">✅ Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
@@ -326,7 +326,7 @@
           '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
           '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
           '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
-          '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+' · 🎓 '+sellerScopeSummary(s)+'</div>'+
+          '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',30)">✅ +30d (R159)</button>'+

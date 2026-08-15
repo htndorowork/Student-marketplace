@@ -51,24 +51,35 @@
     <div class="cats" id="cats-bar">
     <div class="cat active" onclick="selectCat('All',this)">All 🛍️</div>
     <div class="cat" id="cat-textbooks" onclick="openTextbookYears(this)">📚 Textbooks</div>
-    <div class="cat" id="cat-clothing" onclick="openFlatSubcats('Clothing',this)">👗 Clothing</div>
-    <div class="cat" id="cat-electronics" onclick="openFlatSubcats('Electronics',this)">📱 Electronics</div>
-    <div class="cat" id="cat-food" onclick="openFlatSubcats('Food',this)">🍱 Food</div>
-    <div class="cat" id="cat-beauty" onclick="openFlatSubcats('Beauty',this)">💄 Beauty</div>
-    <div class="cat" id="cat-wigs" onclick="openFlatSubcats('Wigs',this)">💇 Wigs</div>
-    <div class="cat" id="cat-tutoring" onclick="openFlatSubcats('Tutoring',this)">🎓 Tutoring</div>
-    <div class="cat" id="cat-accommodation" onclick="openFlatSubcats('Accommodation',this)">🏠 Accommodation</div>
-    <div class="cat" id="cat-transport" onclick="openFlatSubcats('Transport',this)">🚲 Transport</div>
-    <div class="cat" id="cat-services" onclick="openFlatSubcats('Services',this)">🛠️ Services</div>
     <div class="cat" id="cat-stationary" onclick="openFlatSubcats('Stationary',this)">✏️ Stationary</div>
-    <div class="cat" id="cat-utensils" onclick="openFlatSubcats('Utensils',this)">🍴 Utensils</div>
-    <div class="cat" id="cat-appliances" onclick="openFlatSubcats('Appliances',this)">🔌 Appliances</div>
-    <div class="cat" id="cat-rentals" onclick="openFlatSubcats('Rentals',this)">🔁 Rentals</div>
-    <div class="cat" id="cat-furniture" onclick="openFlatSubcats('Furniture',this)">🛋️ Furniture</div>
+    <div class="cat" id="cat-electronics" onclick="openFlatSubcats('Electronics',this)">📱 Electronics</div>
+    <div class="cat" id="cat-clothing" onclick="openFlatSubcats('Clothing',this)">👗 Clothing</div>
+    <div class="cat" id="cat-beauty" onclick="openFlatSubcats('Beauty',this)">💄 Beauty</div>
     <div class="cat" id="cat-jewellery" onclick="openFlatSubcats('Jewellery',this)">💍 Jewellery</div>
     <div class="cat" id="cat-bags" onclick="openFlatSubcats('Bags',this)">👜 Bags</div>
-    <div class="cat" id="cat-toys" onclick="openFlatSubcats('Toys',this)">🧸 Toys</div>
+    <div class="cat" id="cat-food" onclick="openFlatSubcats('Food',this)">🍱 Food</div>
+    <div class="cat" id="cat-snacks" onclick="openFlatSubcats('Snacks',this)">🍿 Snacks</div>
+    <div class="cat" id="cat-utensils" onclick="openFlatSubcats('Utensils',this)">🍴 Utensils</div>
+    <div class="cat" id="cat-furniture" onclick="openFlatSubcats('Furniture',this)">🛋️ Furniture</div>
+    <div class="cat" id="cat-decor" onclick="openFlatSubcats('Decor',this)">🖼️ Home Decor</div>
+    <div class="cat" id="cat-appliances" onclick="openFlatSubcats('Appliances',this)">🔌 Appliances</div>
+    <div class="cat" id="cat-tools" onclick="openFlatSubcats('Tools',this)">🔧 Tools</div>
+    <div class="cat" id="cat-sports" onclick="openFlatSubcats('Sports',this)">🏃 Sports & Outdoor</div>
+    <div class="cat" id="cat-toys" onclick="openFlatSubcats('Toys',this)">🧸 Toys & Hobbies</div>
+    <div class="cat" id="cat-books" onclick="openFlatSubcats('Books',this)">📖 Books & Media</div>
+    <div class="cat" id="cat-music" onclick="openFlatSubcats('Music',this)">🎸 Music</div>
+    <div class="cat" id="cat-cameras" onclick="openFlatSubcats('Cameras',this)">📸 Cameras</div>
     <div class="cat" id="cat-pets" onclick="openFlatSubcats('Pets',this)">🐾 Pets</div>
+    <div class="cat" id="cat-baby" onclick="openFlatSubcats('Baby',this)">👶 Baby & Kids</div>
+    <div class="cat" id="cat-plants" onclick="openFlatSubcats('Plants',this)">🌱 Plants & Garden</div>
+    <div class="cat" id="cat-events" onclick="openFlatSubcats('Events',this)">🎉 Events & Party</div>
+    <div class="cat" id="cat-health" onclick="openFlatSubcats('Health',this)">🩹 Health & Wellness</div>
+    <div class="cat" id="cat-data" onclick="openFlatSubcats('Data',this)">📶 Data & Airtime</div>
+    <div class="cat" id="cat-career" onclick="openFlatSubcats('Career',this)">💼 Career</div>
+    <div class="cat" id="cat-transport" onclick="openFlatSubcats('Transport',this)">🚲 Transport</div>
+    <div class="cat" id="cat-accommodation" onclick="openFlatSubcats('Accommodation',this)">🏠 Accommodation</div>
+    <div class="cat" id="cat-tutoring" onclick="openFlatSubcats('Tutoring',this)">🎓 Tutoring</div>
+    <div class="cat" id="cat-services" onclick="openFlatSubcats('Services',this)">🛠️ Services</div>
     </div>
     <button class="cats-arrow cats-arrow-right" onclick="scrollCats(1)" aria-label="Scroll right">›</button>
   </div>
@@ -248,8 +259,8 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
-    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Wigs:'💇',Perfumes:'🌸',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾'};
-    const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Wigs:{bg:'#f3e5f5',text:'#7b1fa2'},Perfumes:{bg:'#e0f7fa',text:'#00838f'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'},Utensils:{bg:'#fff3e0',text:'#e65100'},Jewellery:{bg:'#fdf0e6',text:'#a0522d'},Bags:{bg:'#ede7f6',text:'#5e35b1'},Toys:{bg:'#e3f2fd',text:'#1565c0'},Pets:{bg:'#f1f8e9',text:'#558b2f'}};
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼'};
+    const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'},Utensils:{bg:'#fff3e0',text:'#e65100'},Jewellery:{bg:'#fdf0e6',text:'#a0522d'},Bags:{bg:'#ede7f6',text:'#5e35b1'},Toys:{bg:'#e3f2fd',text:'#1565c0'},Pets:{bg:'#f1f8e9',text:'#558b2f'},Tools:{bg:'#eceff1',text:'#37474f'},Snacks:{bg:'#fff8e1',text:'#f9a825'},Sports:{bg:'#e8f5e9',text:'#1b5e20'},Books:{bg:'#efebe9',text:'#4e342e'},Music:{bg:'#f3e5f5',text:'#6a1b9a'},Cameras:{bg:'#eceff1',text:'#263238'},Events:{bg:'#fce4ec',text:'#d81b60'},Plants:{bg:'#e8f5e9',text:'#33691e'},Decor:{bg:'#fff3e0',text:'#bf360c'},Baby:{bg:'#e1f5fe',text:'#0277bd'},Data:{bg:'#e8eaf6',text:'#283593'},Health:{bg:'#ffebee',text:'#c62828'},Career:{bg:'#e0f2f1',text:'#00695c'}};
 
     const TB_YEARS=['1st Year','2nd Year','3rd Year','Postgraduate'];
     const TB_TAXONOMY={
@@ -302,7 +313,12 @@
       'Cuticle oil','Hand cream','Body lotion','Body butter','Body scrub','Shower gel','Bar soap','Shampoo',
       'Conditioner','Hair oil','Hair serum','Hair gel','Hair wax','Hair spray','Hair mousse','Dry shampoo',
       'Hair dye','Perfume','Body mist','Deodorant','Roll-on deodorant','Antiperspirant','Cotton pads',
-      'Cotton buds','Tweezers','Razor','Shaving cream','Wax strips','Facial cleansing brush'
+      'Cotton buds','Tweezers','Razor','Shaving cream','Wax strips','Facial cleansing brush',
+      'Men\'s Perfume','Women\'s Perfume','Straight wig','Body wave wig','Loose wave wig','Deep wave wig',
+      'Water wave wig','Curly wig','Kinky curly wig','Afro kinky wig','Yaki straight wig','Bob wig',
+      'Pixie cut wig','Lace front wig','Full lace wig','360 lace wig','HD lace wig','Closure wig',
+      'U-part wig','V-part wig','Headband wig','Glueless wig','Human hair wig','Synthetic wig',
+      'Colored wig','Braiding hair','Hair extensions'
     ];
 
     const WIGS_SUBCATS=[
@@ -352,7 +368,11 @@
       'Laundry and ironing','Carpet cleaning','Move-in/move-out cleaning','Graphic design','Logo design',
       'Photography','Videography','Social media management','Website creation',
       'Printing business cards and flyers','Water delivery','Gas refill delivery','Convenience Services',
-      'Transport services','Dj services'
+      'Transport services','Dj services',
+      'Rental: Bicycle','Rental: Electric scooter','Rental: Skateboard','Rental: Motorcycle/Moped',
+      'Rental: Car','Rental: Laptop','Rental: Projector','Rental: Speaker/PA system',
+      'Rental: Camera/Photography gear','Rental: Furniture','Rental: Costume','Rental: Event equipment',
+      'Rental: Tools'
     ];
 
     const STATIONARY_GROUPS={
@@ -445,6 +465,77 @@
       'Aquariums & tanks','Bird cages','Pet toys','Pet grooming supplies','Pet clothing',
       'Pet training supplies','Fish tank accessories','Pet health & supplements'
     ];
+    const TOOLS_SUBCATS=[
+      'Hammers','Screwdrivers','Screwdriver sets','Pliers','Wrenches/Spanners','Adjustable wrenches',
+      'Allen keys/Hex keys','Tape measures','Spirit levels','Utility knives','Hand saws','Hacksaws',
+      'Cordless drills','Corded drills','Drill bits','Angle grinders','Electric sanders','Jigsaws',
+      'Circular saws','Soldering irons','Multimeters','Staple guns','Glue guns','Tool belts',
+      'Tool boxes','Tool bags','Work gloves','Safety goggles','Extension cords','Ladders',
+      'Step stools','Wheelbarrows','Garden tools','Shovels','Rakes','Paint brushes','Paint rollers',
+      'Sandpaper','Nails','Screws','Bolts & nuts','Cable ties','Duct tape','Super glue','Lubricants/WD-40'
+    ];
+    const SNACKS_SUBCATS=[
+      'Chips (crisps)','Popcorn','Chocolate','Chocolate bars','Sweets/Candy','Biscuits','Cookies',
+      'Wafers','Nuts','Trail mix','Dried fruit','Protein bars','Granola bars','Rusks','Crackers',
+      'Pretzels','Beef jerky/Biltong','Chewing gum','Mints','Ice lollies/Ice cream','Cupcakes/Muffins','Doughnuts'
+    ];
+    const SPORTS_SUBCATS=[
+      'Dumbbells','Resistance bands','Yoga mats','Gym gloves','Skipping ropes','Weight plates',
+      'Treadmills','Exercise bikes','Soccer balls','Rugby balls','Netballs','Basketballs','Cricket bats',
+      'Team jerseys','Cycling helmets','Running shoes','Sports water bottles','Shaker bottles',
+      'Camping tents','Sleeping bags','Camping chairs','Coolers/cooler boxes','Braai stands',
+      'Hiking backpacks','Fishing rods','Swimming goggles','Gum guards/mouthguards','Shin guards',
+      'Boxing gloves','Sports/gym bags'
+    ];
+    const BOOKS_SUBCATS=[
+      'Fiction novels','Non-fiction books','Comics & manga','Magazines','Poetry collections',
+      'Self-help books','Biographies','Vinyl records','CDs','DVDs & Blu-rays','Audiobooks',
+      'Journals & diaries','Bookmarks','Book series/box sets'
+    ];
+    const MUSIC_SUBCATS=[
+      'Acoustic guitars','Electric guitars','Bass guitars','Keyboards/pianos','Drum kits','Violins',
+      'Ukuleles','Microphones','DJ equipment','Amplifiers','Guitar picks & straps','Sheet music',
+      'Music stands','Instrument cases','Cajons/percussion','Turntables'
+    ];
+    const CAMERAS_SUBCATS=[
+      'DSLR cameras','Mirrorless cameras','Point-and-shoot cameras','Instant/Polaroid cameras',
+      'Camera lenses','Tripods','Ring lights','Photo backdrops','Camera bags','Memory cards',
+      'Drones','GoPros/action cameras','Camera batteries & chargers','Gimbals/stabilizers'
+    ];
+    const EVENTS_SUBCATS=[
+      'Balloons','Party decorations','Banners & bunting','Costumes','Party lighting',
+      'Speakers for events','Disposable cups & plates','Photo booth props','Candles',
+      'Gift wrapping supplies','Fairy lights','Table linens','Party favors','Cake toppers'
+    ];
+    const PLANTS_SUBCATS=[
+      'Indoor plants','Succulents','Cacti','Plant pots','Hanging planters','Fertilizer','Potting soil',
+      'Gardening tools','Seeds','Watering cans','Outdoor plants','Herb gardens','Plant stands','Artificial plants'
+    ];
+    const DECOR_SUBCATS=[
+      'Wall art & posters','Photo frames','Fairy lights','Canvas prints','Tapestries','Wall mirrors',
+      'Wall clocks','Candles & holders','Decorative cushions','Throw blankets','Room dividers','Rugs',
+      'Vases','Wall stickers'
+    ];
+    const BABY_SUBCATS=[
+      'Baby clothing','Kids clothing','School uniforms','Prams & strollers','Car seats',
+      'Baby feeding gear','Baby bottles','Nappies/diapers','Baby toys','Cots & cribs','Baby monitors',
+      'Baby carriers','High chairs','Baby bathing supplies'
+    ];
+    const DATA_SUBCATS=[
+      'Data bundles','Airtime vouchers','SIM cards','WiFi routers/MiFi devices',
+      'Prepaid electricity vouchers','Shared streaming subscriptions','Mobile banking assistance',
+      'Data-saving device setup'
+    ];
+    const HEALTH_SUBCATS=[
+      'First aid supplies','Vitamins & supplements','Pain relief medication','Feminine hygiene products',
+      'Contact lenses','Contact lens solution','Face masks','Hand sanitizer','Thermometers',
+      'Fitness trackers','Reading glasses','Sunscreen (medical/SPF)','Braces & supports','Ear plugs'
+    ];
+    const CAREER_SUBCATS=[
+      'CV/resume templates','Portfolio folders','Interview attire','Business cards',
+      'Laptop bags for work','Office/desk organizers','Name badges','Networking event tickets',
+      'Graduation attire','Internship starter kits'
+    ];
 
     // Generic config for every category that gets a flat (single-level) subcategory drill-down
     const FLAT_SUBCATS={
@@ -454,18 +545,28 @@
       Bags:{field:'bags_subcategory',emoji:'👜',items:BAGS_SUBCATS},
       Toys:{field:'toys_subcategory',emoji:'🧸',items:TOYS_SUBCATS},
       Pets:{field:'pets_subcategory',emoji:'🐾',items:PETS_SUBCATS},
+      Tools:{field:'tools_subcategory',emoji:'🔧',items:TOOLS_SUBCATS},
+      Snacks:{field:'snacks_subcategory',emoji:'🍿',items:SNACKS_SUBCATS},
+      Sports:{field:'sports_subcategory',emoji:'🏃',items:SPORTS_SUBCATS},
+      Books:{field:'books_subcategory',emoji:'📖',items:BOOKS_SUBCATS},
+      Music:{field:'music_subcategory',emoji:'🎸',items:MUSIC_SUBCATS},
+      Cameras:{field:'cameras_subcategory',emoji:'📸',items:CAMERAS_SUBCATS},
+      Events:{field:'events_subcategory',emoji:'🎉',items:EVENTS_SUBCATS},
+      Plants:{field:'plants_subcategory',emoji:'🌱',items:PLANTS_SUBCATS},
+      Decor:{field:'decor_subcategory',emoji:'🖼️',items:DECOR_SUBCATS},
+      Baby:{field:'baby_subcategory',emoji:'👶',items:BABY_SUBCATS},
+      Data:{field:'data_subcategory',emoji:'📶',items:DATA_SUBCATS},
+      Health:{field:'health_subcategory',emoji:'🩹',items:HEALTH_SUBCATS},
+      Career:{field:'career_subcategory',emoji:'💼',items:CAREER_SUBCATS},
       Clothing:{field:'clothing_subcategory',emoji:'👗',items:CLOTHING_SUBCATS},
       Food:{field:'food_subcategory',emoji:'🍱',items:FOOD_SUBCATS},
       Beauty:{field:'beauty_subcategory',emoji:'💄',items:BEAUTY_SUBCATS},
-      Wigs:{field:'wigs_subcategory',emoji:'💇',items:WIGS_SUBCATS},
-      Perfumes:{field:'perfumes_subcategory',emoji:'🌸',items:PERFUMES_SUBCATS},
       Tutoring:{field:'tutoring_subcategory',emoji:'🎓',items:TUTORING_SUBCATS},
       Accommodation:{field:'accommodation_subcategory',emoji:'🏠',items:ACCOMMODATION_SUBCATS},
       Transport:{field:'transport_subcategory',emoji:'🚲',items:TRANSPORT_SUBCATS},
       Services:{field:'services_subcategory',emoji:'🛠️',items:SERVICES_SUBCATS},
       Stationary:{field:'stationary_subcategory',emoji:'✏️',items:STATIONARY_SUBCATS,groups:STATIONARY_GROUPS},
       Appliances:{field:'appliances_subcategory',emoji:'🔌',items:APPLIANCES_SUBCATS},
-      Rentals:{field:'rentals_subcategory',emoji:'🔁',items:RENTALS_SUBCATS},
       Furniture:{field:'furniture_subcategory',emoji:'🛋️',items:FURNITURE_SUBCATS}
     };
     let flatSubcat=null; // currently selected subcategory value for whichever flat category is active
