@@ -88,7 +88,11 @@
   <div class="tb-panel" id="tb-panel" style="display:none"></div>
 
   <main class="main">
-    <div class="filter-toolbar">
+    <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleFilterPanel()" type="button">
+      <span>🔀 Sort &amp; Filter</span>
+      <span class="filter-toggle-btn-chevron" id="filter-toggle-chevron">▾</span>
+    </button>
+    <div class="filter-toolbar" id="filter-toolbar">
       <div class="filter-group">
         <span class="filter-label">🔀 Sort by</span>
         <select id="sort-select" onchange="doFilter()">
@@ -738,6 +742,10 @@
       document.getElementById('sort-select').value='newest';
       document.getElementById('my-campus-only').checked=false;
       selectCat('All',document.querySelector('.cat'));
+    };
+    window.toggleFilterPanel=()=>{
+      document.getElementById('filter-toolbar').classList.toggle('open');
+      document.getElementById('filter-toggle-btn').classList.toggle('open');
     };
     window._toggleFav=async(id)=>{
       if(!currentUser){location.href='login.html';return;}

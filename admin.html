@@ -244,10 +244,8 @@
         '<div class="seller-avatar">👤</div>'+
         '<div class="listing-info" style="flex:1'+(isSeller?';cursor:pointer':'')+'"'+(isSeller?' onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store"':'')+'>'+
         '<div class="listing-title">'+(s.full_name||'No name')+(s.is_admin?' <span class="badge-admin">Admin</span>':'')+' <span style="background:#f0f0f0;color:#555;font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px">'+(s.role||'buyer')+'</span></div>'+
-        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 📍 '+(s.residence||'No res')+'&nbsp;· '+new Date(s.created_at).toLocaleDateString('en-ZA')+'</div>'+
+        '<div class="listing-meta"><span>📱 '+(s.whatsapp||'N/A')+'</span><span>📍 '+(s.residence||'No res')+'</span><span>'+new Date(s.created_at).toLocaleDateString('en-ZA')+'</span></div>'+
         '</div>'+
-        '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._toggleRole(\''+s.id+'\',\''+(s.role||'buyer')+'\')">Make '+(isSeller?'Buyer':'Seller')+'</button>'+
-        '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._toggleAdmin(\''+s.id+'\','+!!s.is_admin+')">'+(s.is_admin?'Remove Admin':'Make Admin')+'</button>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._deluser(\''+s.id+'\')">Remove</button>'+
         '</div>';
       }
