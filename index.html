@@ -717,7 +717,7 @@
           '<div class="card-img" style="background:'+c.bg+'">'+db+heart+img+photoDots+'</div>'+
           '<div class="card-body">'+
           '<div class="card-title">'+l.title+'</div>'+
-          '<div class="card-seller">👤 '+(l.profiles?.full_name||'Seller')+verifiedTag+'</div>'+
+          (verifiedTag?'<div class="card-seller">'+verifiedTag+'</div>':'')+
           (l.profiles?.residence?'<div class="card-residence">📍 '+l.profiles.residence+'</div>':'')+
           tbTag+
           '<div>'+condTag+negTag+'</div>'+

@@ -1118,6 +1118,7 @@
         return;
       }
       currentUser = user;
+      document.getElementById('signout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='login.html'; };
 
       if (paywallOn) {
         document.getElementById('paywall-screen').style.display = 'block';
@@ -1149,7 +1150,6 @@
 
       document.getElementById('main-dashboard').style.display = 'block';
       document.getElementById('seller-content').style.display = 'block';
-      document.getElementById('signout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='login.html'; };
 
       if (p) {
         document.getElementById('seller-name').textContent = 'Hi, '+(p.full_name||'Seller')+' 👋';
