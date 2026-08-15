@@ -7,16 +7,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
   <style>
-    .msg-wrap { max-width: 900px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 280px 1fr; gap: 16px; min-height: 60vh; }
-    @media (max-width: 700px) { .msg-wrap { grid-template-columns: 1fr; } }
-    .thread-list { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; overflow: hidden; max-height: 70vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .msg-wrap { max-width: 1400px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 320px 1fr; gap: 16px; height: calc(100vh - 90px); height: calc(100dvh - 90px); }
+    @media (max-width: 700px) {
+      .msg-wrap { grid-template-columns: 1fr; height: calc(100vh - 128px); height: calc(100dvh - 128px); }
+      .msg-wrap .chat-panel { display: none; }
+      .msg-wrap.chat-open .chat-panel { display: flex; }
+      .msg-wrap.chat-open .thread-list { display: none; }
+    }
+    .chat-back-btn { display: none; background: none; border: none; cursor: pointer; font-size: 18px; font-weight: 900; color: #7c3aed; padding: 0 12px 0 0; font-family: inherit; }
+    @media (max-width: 700px) { .chat-back-btn { display: inline-block; } }
+    .thread-list { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; overflow: hidden; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .thread-item { padding: 14px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
     .thread-item:hover, .thread-item.active { background: #f5f0fe; }
     .thread-name { font-weight: 800; font-size: 13.5px; color: #111; }
     .thread-preview { font-size: 12px; color: #888; font-weight: 600; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .thread-unread { display: inline-block; background: #7c3aed; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 50px; margin-left: 6px; }
-    .chat-panel { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; display: flex; flex-direction: column; min-height: 60vh; }
-    .chat-header { padding: 14px 18px; border-bottom: 2px solid #f5f5f5; font-weight: 800; font-size: 14px; }
+    .chat-panel { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; display: flex; flex-direction: column; height: 100%; min-height: 0; }
+    .chat-header { padding: 14px 18px; border-bottom: 2px solid #f5f5f5; font-weight: 800; font-size: 14px; display: flex; align-items: center; }
     .chat-messages { flex: 1; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 8px; }
     .bubble { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 13.5px; font-weight: 600; line-height: 1.4; }
     .bubble.me { align-self: flex-end; background: #7c3aed; color: #fff; border-bottom-right-radius: 4px; }
@@ -37,10 +44,10 @@
     </div>
   </nav>
 
-  <div class="msg-wrap">
+  <div class="msg-wrap" id="msg-wrap">
     <div class="thread-list" id="thread-list"><p class="loading-msg">Loading conversations... ⏳</p></div>
     <div class="chat-panel" id="chat-panel">
-      <div class="chat-header" id="chat-header">Select a conversation</div>
+      <div class="chat-header"><button class="chat-back-btn" onclick="closeThread()" aria-label="Back to conversations">←</button><span id="chat-header-text">Select a conversation</span></div>
       <div class="chat-messages" id="chat-messages"><p class="loading-msg" style="margin:auto">Pick a conversation on the left, or message a seller from a listing 💬</p></div>
       <div class="chat-input-row" id="chat-input-row" style="display:none">
         <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMessage()"/>
@@ -85,10 +92,8 @@
       list.innerHTML = threads.map((t,i)=>{
         const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
         const unread = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).length;
-        const last = t.messages[0];
         return '<div class="thread-item" data-idx="'+i+'" onclick="openThread('+i+')">'+
-          '<div class="thread-name">'+(names[counterpartId]||'User')+(t.listingTitle?' · '+t.listingTitle:'')+(unread?'<span class="thread-unread">'+unread+'</span>':'')+'</div>'+
-          '<div class="thread-preview">'+(last.sender_id===user.id?'You: ':'')+last.content+'</div>'+
+          '<div class="thread-name">'+(names[counterpartId]||'User')+(unread?'<span class="thread-unread">'+unread+'</span>':'')+'</div>'+
           '</div>';
       }).join('');
       window._threads = threads;
@@ -98,15 +103,20 @@
     window.openThread = async (idx) => {
       const t = window._threads[idx];
       activeThread = t;
+      document.getElementById('msg-wrap').classList.add('chat-open');
       document.querySelectorAll('.thread-item').forEach(el=>el.classList.remove('active'));
       document.querySelector('.thread-item[data-idx="'+idx+'"]')?.classList.add('active');
       const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
-      document.getElementById('chat-header').textContent = (window._names[counterpartId]||'User')+(t.listingTitle?' · '+t.listingTitle:'');
+      document.getElementById('chat-header-text').textContent = (window._names[counterpartId]||'User')+(t.listingTitle?' · '+t.listingTitle:'');
       document.getElementById('chat-input-row').style.display='flex';
       renderMessages();
       // Mark unread as read
       const unreadIds = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).map(m=>m.id);
       if(unreadIds.length) await supabase.from('messages').update({is_read:true}).in('id',unreadIds);
+    };
+
+    window.closeThread = () => {
+      document.getElementById('msg-wrap').classList.remove('chat-open');
     };
 
     function renderMessages(){
@@ -141,7 +151,8 @@
     if (toSeller && toSeller!==user.id) {
       const {data:sellerProfile} = await supabase.from('profiles').select('full_name,store_name').eq('id',toSeller).single();
       activeThread = { buyer_id:user.id, seller_id:toSeller, listing_id:listingId||null, messages:[] };
-      document.getElementById('chat-header').textContent = sellerProfile?.store_name||sellerProfile?.full_name||'Seller';
+      document.getElementById('msg-wrap').classList.add('chat-open');
+      document.getElementById('chat-header-text').textContent = sellerProfile?.store_name||sellerProfile?.full_name||'Seller';
       document.getElementById('chat-input-row').style.display='flex';
       document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
     }
