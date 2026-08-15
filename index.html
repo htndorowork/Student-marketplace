@@ -46,7 +46,7 @@
     </div>
   </section>
 
-  <div class="cats-wrap">
+  <div class="cats-wrap" id="categories">
     <button class="cats-arrow cats-arrow-left" onclick="scrollCats(-1)" aria-label="Scroll left">‹</button>
     <div class="cats" id="cats-bar">
     <div class="cat active" onclick="selectCat('All',this)">All 🛍️</div>
@@ -634,7 +634,7 @@
       document.getElementById('nav-messages').style.display='inline';
       document.getElementById('nav-notif').style.display='inline';
       supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).neq('sender_id',user.id).eq('is_read',false).then(({count})=>{
-        if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
+        if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';const bb=document.getElementById('bnav-msg-badge');if(bb){bb.textContent=count;bb.style.display='flex';}}
       });
       // If the buyer hasn't picked an institution on this device yet, use the one they set at signup
       if(!localStorage.getItem('sm_university')){
@@ -1720,5 +1720,12 @@
     // Auto-open a listing if we arrived here via a store.html link (?open=<id>)
     if(pendingOpenId && all.some(l=>l.id===pendingOpenId)) window._open(pendingOpenId);
   </script>
+  <nav class="bottom-nav">
+    <a class="bottom-nav-item active" href="index.html"><span class="bottom-nav-icon">🔍</span><span class="bottom-nav-label">Browse</span></a>
+    <a class="bottom-nav-item" href="index.html#categories"><span class="bottom-nav-icon">🗂️</span><span class="bottom-nav-label">Categories</span></a>
+    <a class="bottom-nav-item" href="messages.html" id="bnav-messages"><span class="bottom-nav-icon">💬</span><span class="bottom-nav-badge" id="bnav-msg-badge" style="display:none">0</span><span class="bottom-nav-label">Messages</span></a>
+    <a class="bottom-nav-item" href="favorites.html"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
+    <a class="bottom-nav-item" href="profile.html"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
+  </nav>
 </body>
 </html>
