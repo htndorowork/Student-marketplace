@@ -15,7 +15,7 @@
   <div id="toast-stack" aria-live="polite"></div>
   <nav class="nav">
     <a href="index.html" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
-    <div class="nav-links">
+    <div class="nav-links nav-links-simple">
       <a href="index.html">Browse</a>
       <a href="favorites.html" id="nav-favorites" style="display:none">❤️ Favorites</a>
       <a href="messages.html" id="nav-messages" style="display:none">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
@@ -26,8 +26,8 @@
       
       <a href="profile.html" id="nav-profile" style="display:none">My Profile</a>
       <a href="login.html" id="nav-auth">Sign in</a>
-      <div class="nav-cart" onclick="openCart()" title="Cart">🛒<span class="cart-badge" id="cart-badge" style="display:none">0</span></div>
     </div>
+    <div class="nav-cart" onclick="openCart()" title="Cart">🛒<span class="cart-badge" id="cart-badge" style="display:none">0</span></div>
   </nav>
 
   <section class="hero">
@@ -82,6 +82,7 @@
     <div class="cat" id="cat-services" onclick="openFlatSubcats('Services',this)">🛠️ Services</div>
     </div>
     <button class="cats-arrow cats-arrow-right" onclick="scrollCats(1)" aria-label="Scroll right">›</button>
+    <a href="categories.html" class="cats-all-btn" title="All categories">🗂️ All</a>
   </div>
 
   <div class="tb-panel" id="tb-panel" style="display:none"></div>
@@ -677,6 +678,7 @@
     render(all);
     renderRecentlyViewed();
     const pendingOpenId=new URLSearchParams(location.search).get('open');
+    const pendingCat=new URLSearchParams(location.search).get('cat');
 
     function render(list){
       const g=document.getElementById('listings-grid');
@@ -1719,10 +1721,24 @@
 
     // Auto-open a listing if we arrived here via a store.html link (?open=<id>)
     if(pendingOpenId && all.some(l=>l.id===pendingOpenId)) window._open(pendingOpenId);
+
+    // Auto-select a category if we arrived here via categories.html (?cat=<name>)
+    if(pendingCat){
+      const elId='cat-'+pendingCat.toLowerCase();
+      const el=document.getElementById(elId);
+      if(pendingCat==='Textbooks'){
+        openTextbookYears(document.getElementById('cat-textbooks'));
+      } else if(el){
+        openFlatSubcats(pendingCat,el);
+      }
+      const catsEl=document.getElementById('categories');
+      if(catsEl && catsEl.offsetParent!==null) catsEl.scrollIntoView({block:'start'});
+      else document.getElementById('listings-grid').scrollIntoView({block:'start'});
+    }
   </script>
   <nav class="bottom-nav">
     <a class="bottom-nav-item active" href="index.html"><span class="bottom-nav-icon">🔍</span><span class="bottom-nav-label">Browse</span></a>
-    <a class="bottom-nav-item" href="index.html#categories"><span class="bottom-nav-icon">🗂️</span><span class="bottom-nav-label">Categories</span></a>
+    <a class="bottom-nav-item" href="categories.html"><span class="bottom-nav-icon">🗂️</span><span class="bottom-nav-label">Categories</span></a>
     <a class="bottom-nav-item" href="messages.html" id="bnav-messages"><span class="bottom-nav-icon">💬</span><span class="bottom-nav-badge" id="bnav-msg-badge" style="display:none">0</span><span class="bottom-nav-label">Messages</span></a>
     <a class="bottom-nav-item" href="favorites.html"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
     <a class="bottom-nav-item" href="profile.html"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
