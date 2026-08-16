@@ -44,43 +44,83 @@
     </div>
 
     <div id="profile-content" style="display:none">
-      <div class="section-header" style="margin-bottom:20px">
-        <div class="section-title" id="profile-name">My Profile</div>
+      <div class="profile-header-card">
+        <div class="profile-avatar" id="profile-avatar">🙂</div>
+        <div>
+          <div class="profile-header-name" id="profile-name">My Profile</div>
+          <div class="profile-header-meta" id="profile-meta"></div>
+        </div>
       </div>
 
-      <div class="dash-tabs">
-        <button class="dash-tab active" onclick="showTab('orders',this)">📦 My Orders</button>
-        <button class="dash-tab" onclick="showTab('favorites',this)">❤️ Favorites</button>
-        <button class="dash-tab" onclick="showTab('edit',this)">✏️ Edit Profile</button>
+      <!-- MENU -->
+      <div id="profile-menu">
+        <div class="profile-section-label">My Account</div>
+        <div class="profile-menu-card">
+          <button class="profile-menu-row" onclick="showTab('orders')">
+            <span class="pmr-icon">📦</span><span class="pmr-label">My Orders</span>
+            <span class="pmr-badge" id="orders-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('favorites')">
+            <span class="pmr-icon">❤️</span><span class="pmr-label">Favorites</span>
+            <span class="pmr-badge" id="favorites-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('edit')">
+            <span class="pmr-icon">✏️</span><span class="pmr-label">Edit Profile</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('security')">
+            <span class="pmr-icon">🔐</span><span class="pmr-label">Security</span><span class="pmr-chevron">›</span>
+          </button>
+        </div>
+
+        <div class="profile-section-label">Support</div>
+        <div class="profile-menu-card">
+          <a class="profile-menu-row" href="faq.html"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="https://wa.me/27694520629" target="_blank" rel="noopener"><span class="pmr-icon">📱</span><span class="pmr-label">WhatsApp Support</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="mailto:urbanloom09@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
+        </div>
+
+        <div class="profile-section-label">Legal</div>
+        <div class="profile-menu-card">
+          <a class="profile-menu-row" href="terms.html"><span class="pmr-icon">📄</span><span class="pmr-label">Terms &amp; Policies</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="privacy.html"><span class="pmr-icon">🔒</span><span class="pmr-label">Privacy Policy</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="guidelines.html"><span class="pmr-icon">📋</span><span class="pmr-label">Community Guidelines</span><span class="pmr-chevron">›</span></a>
+        </div>
+
+        <button class="profile-logout-btn" id="profile-logout-btn">🚪 Sign out</button>
+        <div class="profile-version">Student Marketplace 🎓</div>
       </div>
 
-      <!-- ORDERS -->
-      <div id="tab-orders">
-        <div id="orders-container"><p class="loading-msg">Loading orders... ⏳</p></div>
-      </div>
+      <!-- DETAIL PANELS -->
+      <div id="profile-detail" style="display:none">
+        <button class="profile-back-btn" onclick="closeTab()">← Back</button>
 
-      <!-- FAVORITES -->
-      <div id="tab-favorites" style="display:none">
-        <div class="grid" id="favorites-container"><p class="loading-msg">Loading favorites... ⏳</p></div>
-      </div>
+        <div id="tab-orders" style="display:none">
+          <div id="orders-container"><p class="loading-msg">Loading orders... ⏳</p></div>
+        </div>
 
-      <!-- EDIT PROFILE -->
-      <div id="tab-edit" style="display:none">
-        <div class="form-card">
-          <h3 style="font-size:18px;font-weight:800;margin-bottom:16px">Edit Profile</h3>
-          <div class="form-group"><label>Full Name *</label><input type="text" id="p-name" placeholder="Your name"/></div>
-          <div class="form-group"><label>WhatsApp *</label><input type="text" id="p-wa" placeholder="0812345678"/></div>
-          <div class="form-group"><label>Residence</label><input type="text" id="p-res" placeholder="e.g. Heroes Residence"/></div>
-          <div class="form-group"><label>I am a</label>
-            <div class="role-selector">
-              <button class="role-btn" id="r-buyer" onclick="setRole('buyer')">🛍️ Buyer</button>
-              <button class="role-btn" id="r-seller" onclick="setRole('seller')">💼 Seller</button>
+        <div id="tab-favorites" style="display:none">
+          <div class="grid" id="favorites-container"><p class="loading-msg">Loading favorites... ⏳</p></div>
+        </div>
+
+        <div id="tab-edit" style="display:none">
+          <div class="form-card">
+            <h3 style="font-size:18px;font-weight:800;margin-bottom:16px">Edit Profile</h3>
+            <div class="form-group"><label>Full Name *</label><input type="text" id="p-name" placeholder="Your name"/></div>
+            <div class="form-group"><label>WhatsApp *</label><input type="text" id="p-wa" placeholder="0812345678"/></div>
+            <div class="form-group"><label>Residence</label><input type="text" id="p-res" placeholder="e.g. Heroes Residence"/></div>
+            <div class="form-group"><label>I am a</label>
+              <div class="role-selector">
+                <button class="role-btn" id="r-buyer" onclick="setRole('buyer')">🛍️ Buyer</button>
+                <button class="role-btn" id="r-seller" onclick="setRole('seller')">💼 Seller</button>
+              </div>
             </div>
+            <div class="form-error" id="profile-err"></div>
+            <button class="btn-primary" id="btn-save-profile">Save Profile ✅</button>
           </div>
-          <div class="form-error" id="profile-err"></div>
-          <button class="btn-primary" id="btn-save-profile">Save Profile ✅</button>
+        </div>
 
-          <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0">
+        <div id="tab-security" style="display:none">
+          <div class="form-card">
             <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔐 Two-Factor Authentication</h3>
             <div id="mfa-status" style="font-size:13px;color:#888;font-weight:600;margin-bottom:10px">Checking status...</div>
             <div id="mfa-enroll-box" style="display:none">
@@ -90,12 +130,12 @@
               <button class="btn-sm btn-delete" onclick="cancelMfaEnroll()">Cancel</button>
             </div>
             <button class="btn-sm btn-toggle" id="btn-mfa-toggle" style="display:none"></button>
-          </div>
 
-          <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0">
-            <button class="btn-sm btn-delete" onclick="requestAccountDeletion()">🗑️ Delete my account</button>
-            <button class="btn-sm btn-toggle" onclick="signOutEverywhere()" style="margin-left:8px">🔒 Sign out of all devices</button>
-            <p style="font-size:11px;color:#aaa;font-weight:600;margin-top:6px">This removes your profile data. Contact support to fully close your account and remove your listings/orders.</p>
+            <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0">
+              <button class="btn-sm btn-delete" onclick="requestAccountDeletion()">🗑️ Delete my account</button>
+              <button class="btn-sm btn-toggle" onclick="signOutEverywhere()" style="margin-left:8px">🔒 Sign out of all devices</button>
+              <p style="font-size:11px;color:#aaa;font-weight:600;margin-top:6px">This removes your profile data. Contact support to fully close your account and remove your listings/orders.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -119,8 +159,17 @@
 
   <script>
     function setRole(r){document.getElementById('r-buyer').classList.toggle('active',r==='buyer');document.getElementById('r-seller').classList.toggle('active',r==='seller');window._selectedRole=r;}
-    function showTab(t,el){['orders','favorites','edit'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'block':'none');document.querySelectorAll('.dash-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(t==='favorites')window._loadFavorites();}
-    window.showTab=showTab;window.setRole=setRole;
+    function showTab(t){
+      document.getElementById('profile-menu').style.display='none';
+      document.getElementById('profile-detail').style.display='block';
+      ['orders','favorites','edit','security'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'block':'none');
+      if(t==='favorites')window._loadFavorites();
+    }
+    function closeTab(){
+      document.getElementById('profile-detail').style.display='none';
+      document.getElementById('profile-menu').style.display='block';
+    }
+    window.showTab=showTab;window.setRole=setRole;window.closeTab=closeTab;
   </script>
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -146,8 +195,12 @@
       }
 
       document.getElementById('profile-content').style.display='block';
+      document.getElementById('profile-logout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
       if(p){
-        document.getElementById('profile-name').textContent=(p.full_name||'My Profile')+' 👋';
+        const displayName=p.full_name||'My Profile';
+        document.getElementById('profile-name').textContent=displayName;
+        document.getElementById('profile-avatar').textContent=(p.full_name||'?').trim().charAt(0).toUpperCase()||'🙂';
+        document.getElementById('profile-meta').textContent=[p.residence,user.email].filter(Boolean).join(' · ')||user.email;
         document.getElementById('p-name').value=p.full_name||'';
         document.getElementById('p-wa').value=p.whatsapp||'';
         document.getElementById('p-res').value=p.residence||'';
@@ -157,7 +210,14 @@
       }
       document.getElementById('btn-save-profile').onclick=saveProfile;
       loadBuyerOrders();
+      loadFavoritesBadge();
       refreshMfaStatus();
+    }
+
+    async function loadFavoritesBadge(){
+      const {count}=await supabase.from('favorites').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id);
+      const b=document.getElementById('favorites-badge');
+      if(count>0){b.textContent=count;b.style.display='inline-block';}
     }
 
     async function saveProfile(){
@@ -170,7 +230,8 @@
       if(!name||!wa){errEl.textContent='❌ Name and WhatsApp are required';return;}
       const {error}=await supabase.from('profiles').update({full_name:name,whatsapp:wa,residence:res,role}).eq('id',currentUser.id);
       if(error){errEl.textContent='❌ '+error.message;return;}
-      document.getElementById('profile-name').textContent=name+' 👋';
+      document.getElementById('profile-name').textContent=name;
+      document.getElementById('profile-avatar').textContent=name.trim().charAt(0).toUpperCase()||'🙂';
       if(role==='seller'){
         errEl.style.color='#2e7d32';errEl.textContent='✅ Saved! Taking you to your seller dashboard...';
         setTimeout(()=>window.location.href='seller.html',1200);
@@ -183,6 +244,9 @@
     async function loadBuyerOrders(){
       const {data}=await supabase.from('orders').select('*,listings(title,price,image_url,category),profiles!orders_seller_id_fkey(full_name,whatsapp,residence)').eq('buyer_id',currentUser.id).order('created_at',{ascending:false});
       const container=document.getElementById('orders-container');
+      const activeCount=(data||[]).filter(o=>o.status==='confirmed').length;
+      const ob=document.getElementById('orders-badge');
+      if(activeCount>0){ob.textContent=activeCount;ob.style.display='inline-block';}
       if(!data?.length){container.innerHTML='<p class="loading-msg">No orders yet — go browse! 🛍️</p>';return;}
 
       const completedIds=data.filter(o=>o.status==='completed').map(o=>o.id);
