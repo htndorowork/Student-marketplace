@@ -294,7 +294,7 @@
     async function loadPaidSellers(){
       const {data}=await supabase.from('profiles').select('*').eq('role','seller').order('full_name');
       const today=new Date().toISOString().slice(0,10);
-      const paid=(data||[]).filter(s=>!s.is_blocked && s.subscription_paid_until && s.subscription_paid_until>=today);
+      const paid=(data||[]).filter(s=>!s.is_blocked && (s.is_admin || (s.subscription_paid_until && s.subscription_paid_until>=today)));
       const c=document.getElementById('paid-sellers-container');
       if(!paid.length){c.innerHTML='<div class="empty-msg">No sellers with an active paid subscription 📭</div>';return;}
       c.innerHTML=paid.map(s=>'<div class="seller-row">'+
@@ -302,7 +302,7 @@
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
         '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
-        '<div class="listing-meta" style="color:#2e7d32;font-weight:700">✅ Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</div>'+
+        '<div class="listing-meta" style="color:#2e7d32;font-weight:700">'+(s.is_admin?'✅ Admin — no expiry':'✅ Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA'))+'</div>'+
         '</div>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
         '</div>'
@@ -312,7 +312,7 @@
     async function loadUnpaidSellers(){
       const {data}=await supabase.from('profiles').select('*').eq('role','seller').order('full_name');
       const today=new Date().toISOString().slice(0,10);
-      const unpaid=(data||[]).filter(s=>s.is_blocked || !s.subscription_paid_until || s.subscription_paid_until<today);
+      const unpaid=(data||[]).filter(s=>!s.is_admin && (s.is_blocked || !s.subscription_paid_until || s.subscription_paid_until<today));
       const c=document.getElementById('unpaid-sellers-container');
       if(!unpaid.length){c.innerHTML='<div class="empty-msg">All sellers are paid up 🎉</div>';return;}
       c.innerHTML=unpaid.map(s=>{
@@ -363,18 +363,21 @@
 
     async function loadReports(){
       const c=document.getElementById('reports-container');
-      const {data}=await supabase.from('reports').select('*,listings(title),reported:profiles!reports_reported_user_id_fkey(full_name)').order('created_at',{ascending:false});
+      const {data}=await supabase.from('reports').select('*,listings(title,is_available),reported:profiles!reports_reported_user_id_fkey(full_name)').order('created_at',{ascending:false});
       if(!data?.length){c.innerHTML='<div class="empty-msg">No reports filed 🎉</div>';return;}
-      c.innerHTML=data.map(r=>'<div class="seller-row">'+
-        '<div class="listing-info" style="flex:1">'+
+      c.innerHTML=data.map(r=>{
+        const canOpen=!!r.listing_id;
+        return '<div class="seller-row">'+
+        '<div class="listing-info" style="flex:1'+(canOpen?';cursor:pointer':'')+'"'+(canOpen?' onclick="window.open(\'index.html?open='+r.listing_id+'\',\'_blank\')" title="Open this listing"':'')+'>'+
         '<div class="listing-title">'+r.reason+(r.status==='open'?' <span style="color:#9333ea;font-weight:800">(open)</span>':' <span style="color:#2e7d32;font-weight:800">(resolved)</span>')+'</div>'+
-        '<div class="listing-meta">📦 Listing: '+(r.listings?.title||'—')+' · 👤 Reported: '+(r.reported?.full_name||'Unknown')+'</div>'+
+        '<div class="listing-meta">📦 Listing: '+(r.listings?.title||'—')+(canOpen?' 👁️':'')+' · 👤 Reported: '+(r.reported?.full_name||'Unknown')+'</div>'+
         (r.details?'<div class="listing-meta">💬 '+r.details+'</div>':'')+
         '<div class="listing-meta" style="color:#aaa">'+new Date(r.created_at).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
-        (r.status==='open'?'<button class="btn-sm btn-toggle" onclick="window._resolveReport(\''+r.id+'\')">Mark Resolved</button>':'')+
-        '</div>'
-      ).join('');
+        (canOpen?'<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._atoggle(\''+r.listing_id+'\','+!!r.listings?.is_available+')">'+(r.listings?.is_available?'Hide':'Show')+'</button>':'')+
+        (r.status==='open'?'<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._resolveReport(\''+r.id+'\')">Mark Resolved</button>':'')+
+        '</div>';
+      }).join('');
     }
     window._resolveReport=async(id)=>{
       await supabase.from('reports').update({status:'resolved'}).eq('id',id);

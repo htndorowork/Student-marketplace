@@ -554,7 +554,14 @@
       const err=document.getElementById('login-error');
       err.style.color='#9333ea';err.textContent='';
       const {error}=await supabase.auth.signInWithPassword({email,password});
-      if(error){err.textContent='❌ '+error.message;return;}
+      if(error){
+        if(error.message && error.message.toLowerCase().includes('email not confirmed')){
+          err.textContent='📩 Please check your notifications — we\'ve sent a confirmation email and SMS. Confirm your account before signing in.';
+        } else {
+          err.textContent='❌ '+error.message;
+        }
+        return;
+      }
       const {data:{user}}=await supabase.auth.getUser();
       const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
       window.location.href = p?.role==='seller' ? 'seller.html' : 'profile.html';

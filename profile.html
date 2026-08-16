@@ -121,6 +121,14 @@
 
         <div id="tab-security" style="display:none">
           <div class="form-card">
+            <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔑 Change Password</h3>
+            <div class="form-group"><label>New password</label><input type="password" id="pw-new" placeholder="At least 6 characters"/></div>
+            <div class="form-group"><label>Confirm new password</label><input type="password" id="pw-confirm" placeholder="Re-enter new password"/></div>
+            <div class="form-error" id="pw-error"></div>
+            <button class="btn-sm btn-toggle" onclick="changePassword()">Update Password</button>
+          </div>
+
+          <div class="form-card" style="margin-top:16px">
             <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔐 Two-Factor Authentication</h3>
             <div id="mfa-status" style="font-size:13px;color:#888;font-weight:600;margin-bottom:10px">Checking status...</div>
             <div id="mfa-enroll-box" style="display:none">
@@ -353,6 +361,20 @@
       if(!confirm('This signs you out on every device where you\'re logged in, not just this one. Continue?'))return;
       await supabase.auth.signOut({scope:'global'});
       window.location.href='login.html';
+    };
+
+    window.changePassword=async()=>{
+      const pw=document.getElementById('pw-new').value;
+      const pw2=document.getElementById('pw-confirm').value;
+      const err=document.getElementById('pw-error');
+      err.style.color='#9333ea';err.textContent='';
+      if(!pw||pw.length<6){err.textContent='❌ Password must be at least 6 characters';return;}
+      if(pw!==pw2){err.textContent='❌ Passwords don\'t match';return;}
+      const {error}=await supabase.auth.updateUser({password:pw});
+      if(error){err.textContent='❌ '+error.message;return;}
+      err.style.color='#2e7d32';err.textContent='✅ Password updated!';
+      document.getElementById('pw-new').value='';document.getElementById('pw-confirm').value='';
+      setTimeout(()=>err.textContent='',3000);
     };
 
     window.requestAccountDeletion=async()=>{
