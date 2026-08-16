@@ -143,21 +143,62 @@
     </div>
 
     <div id="seller-content" style="display:none">
-      <div class="section-header" style="margin-bottom:20px">
-        <div class="section-title">Dashboard 💼</div>
-        <span id="seller-name" style="font-size:14px;color:#888;font-weight:700"></span>
+      <div class="profile-header-card">
+        <div class="profile-avatar" id="seller-avatar">🏪</div>
+        <div>
+          <div class="profile-header-name" id="seller-header-name">Dashboard</div>
+          <div class="profile-header-meta" id="seller-header-meta"></div>
+        </div>
       </div>
 
-      <div class="dash-tabs">
-        <button class="dash-tab active" onclick="showTab('orders',this)">📬 Orders</button>
-        <button class="dash-tab" onclick="showTab('listings',this)">📦 My Listings</button>
-        <button class="dash-tab" onclick="showTab('add',this)">➕ Add Listing</button>
-        <button class="dash-tab" onclick="showTab('store',this)">🏪 My Store</button>
-        <button class="dash-tab" onclick="showTab('profile',this)">👤 Profile</button>
+      <!-- MENU -->
+      <div id="dashboard-menu">
+        <div class="profile-section-label">Selling</div>
+        <div class="profile-menu-card">
+          <button class="profile-menu-row" onclick="showTab('orders')">
+            <span class="pmr-icon">📬</span><span class="pmr-label">Orders</span>
+            <span class="pmr-badge" id="orders-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('listings')">
+            <span class="pmr-icon">📦</span><span class="pmr-label">My Listings</span>
+            <span class="pmr-badge" id="listings-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('add')">
+            <span class="pmr-icon">➕</span><span class="pmr-label">Add Listing</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('store')">
+            <span class="pmr-icon">🏪</span><span class="pmr-label">My Store</span><span class="pmr-chevron">›</span>
+          </button>
+        </div>
+
+        <div class="profile-section-label">Account</div>
+        <div class="profile-menu-card">
+          <button class="profile-menu-row" onclick="showTab('profile')">
+            <span class="pmr-icon">👤</span><span class="pmr-label">Profile</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('security')">
+            <span class="pmr-icon">🔐</span><span class="pmr-label">Security</span><span class="pmr-chevron">›</span>
+          </button>
+        </div>
+
+        <div class="profile-section-label">Support</div>
+        <div class="profile-menu-card">
+          <a class="profile-menu-row" href="faq.html"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="https://wa.me/27694520629" target="_blank" rel="noopener"><span class="pmr-icon">📱</span><span class="pmr-label">WhatsApp Support</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="mailto:urbanloom09@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
+        </div>
+
+        <button class="profile-logout-btn" id="dashboard-logout-btn">🚪 Sign out</button>
+        <div class="profile-version">Student Marketplace 🎓</div>
       </div>
+
+      <!-- DETAIL PANELS -->
+      <div id="dashboard-detail" style="display:none">
+        <button class="profile-back-btn" onclick="closeTab()">← Back to Dashboard</button>
+
 
       <!-- ORDERS -->
-      <div id="tab-orders">
+      <div id="tab-orders" style="display:none">
         <div id="orders-container"><p class="loading-msg">Loading orders... ⏳</p></div>
       </div>
 
@@ -355,20 +396,26 @@
           </div>
           <div class="form-error" id="profile-error"></div>
           <button class="btn-primary" id="btn-save">Save Profile ✅</button>
-          <button class="btn-sm btn-toggle" style="margin-top:8px" onclick="signOutEverywhere()">🔒 Sign out of all devices</button>
+        </div>
+      </div>
+
+      <div id="tab-security" style="display:none">
+        <div class="form-card">
+          <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔐 Two-Factor Authentication</h3>
+          <div id="mfa-status" style="font-size:13px;color:#888;font-weight:600;margin-bottom:10px">Checking status...</div>
+          <div id="mfa-enroll-box" style="display:none">
+            <div id="mfa-qr" style="margin-bottom:10px"></div>
+            <div class="form-group"><label>Enter the 6-digit code from your authenticator app</label><input type="text" id="mfa-code" placeholder="123456" maxlength="6"/></div>
+            <button class="btn-sm btn-toggle" onclick="verifyMfa()">Verify & Enable</button>
+            <button class="btn-sm btn-delete" onclick="cancelMfaEnroll()">Cancel</button>
+          </div>
+          <button class="btn-sm btn-toggle" id="btn-mfa-toggle" style="display:none"></button>
 
           <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0">
-            <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔐 Two-Factor Authentication</h3>
-            <div id="mfa-status" style="font-size:13px;color:#888;font-weight:600;margin-bottom:10px">Checking status...</div>
-            <div id="mfa-enroll-box" style="display:none">
-              <div id="mfa-qr" style="margin-bottom:10px"></div>
-              <div class="form-group"><label>Enter the 6-digit code from your authenticator app</label><input type="text" id="mfa-code" placeholder="123456" maxlength="6"/></div>
-              <button class="btn-sm btn-toggle" onclick="verifyMfa()">Verify & Enable</button>
-              <button class="btn-sm btn-delete" onclick="cancelMfaEnroll()">Cancel</button>
-            </div>
-            <button class="btn-sm btn-toggle" id="btn-mfa-toggle" style="display:none"></button>
+            <button class="btn-sm btn-toggle" onclick="signOutEverywhere()">🔒 Sign out of all devices</button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </main>
@@ -1150,9 +1197,12 @@
 
       document.getElementById('main-dashboard').style.display = 'block';
       document.getElementById('seller-content').style.display = 'block';
+      document.getElementById('dashboard-logout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='login.html'; };
 
       if (p) {
-        document.getElementById('seller-name').textContent = 'Hi, '+(p.full_name||'Seller')+' 👋';
+        document.getElementById('seller-header-name').textContent = p.full_name||'Seller';
+        document.getElementById('seller-avatar').textContent = (p.full_name||p.store_name||'?').trim().charAt(0).toUpperCase()||'🏪';
+        document.getElementById('seller-header-meta').textContent = [p.store_name,'Seller'].filter(Boolean).join(' · ');
         document.getElementById('p-name').value = p.full_name||'';
         document.getElementById('p-whatsapp').value = p.whatsapp||'';
         document.getElementById('p-residence').value = p.residence||'';
@@ -1166,6 +1216,8 @@
           if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
         });
         loadNotifications();
+        loadOrders();
+        loadMyListings();
 
         if (p.subscription_paid_until) {
           const banner = document.createElement('div');
@@ -1292,13 +1344,13 @@
       const {data:p} = await supabase.from('profiles').select('full_name,whatsapp,residence,deliver_all_universities,deliver_all_tvet,deliver_all_private,seller_institutions').eq('id',currentUser.id).single();
       if (!p?.full_name || !p?.whatsapp) {
         err.textContent='❌ Please complete your profile (name & WhatsApp) before listing. Go to the Profile tab.';
-        showTab('profile', document.querySelectorAll('.dash-tab')[4]);
+        showTab('profile');
         return;
       }
       const hasDeliveryScope = p?.deliver_all_universities || p?.deliver_all_tvet || p?.deliver_all_private || (Array.isArray(p?.seller_institutions) && p.seller_institutions.length>0);
       if (!hasDeliveryScope) {
         err.textContent='❌ Set which institutions & campuses you sell to before listing. Go to the Profile tab.';
-        showTab('profile', document.querySelectorAll('.dash-tab')[4]);
+        showTab('profile');
         return;
       }
 
@@ -1337,7 +1389,7 @@
       const wasEditing = !!editingListingId;
       resetAddForm();
       err.style.color='#2e7d32'; err.textContent=wasEditing?'✅ Listing updated!':(isDraft?'✅ Saved as draft!':'✅ Listing posted!');
-      setTimeout(()=>{err.textContent=''; showTab('listings',document.querySelectorAll('.dash-tab')[1]); loadMyListings();},1500);
+      setTimeout(()=>{err.textContent=''; showTab('listings'); loadMyListings();},1500);
     }
 
     function resetAddForm(){
@@ -1406,7 +1458,7 @@
           ? '<img loading="lazy" src="'+url+'"/><button class="slot-remove" style="display:flex" onclick="window.removeImg(event,'+n+')">✕</button>'
           : '<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>';
       });
-      showTab('add', document.querySelectorAll('.dash-tab')[2]);
+      showTab('add');
       window.scrollTo({top:0,behavior:'smooth'});
     };
     window._cancelEdit = resetAddForm;
@@ -1487,7 +1539,8 @@
 
       const {error} = await supabase.from('profiles').update(updatePayload).eq('id',currentUser.id);
       if (error) { err.textContent='❌ '+error.message; return; }
-      document.getElementById('seller-name').textContent='Hi, '+name+' 👋';
+      document.getElementById('seller-header-name').textContent=name;
+      document.getElementById('seller-avatar').textContent=name.trim().charAt(0).toUpperCase()||'🏪';
       err.style.color='#2e7d32'; err.textContent='✅ Profile saved!';
       setTimeout(()=>err.textContent='',3000);
     }
@@ -1495,6 +1548,9 @@
     async function loadOrders() {
       const c = document.getElementById('orders-container');
       const {data,error} = await supabase.from('orders').select('*,listings(title)').eq('seller_id',currentUser.id).order('created_at',{ascending:false});
+      const newCount = (data||[]).filter(o=>o.status==='confirmed').length;
+      const ob = document.getElementById('orders-badge');
+      if (newCount>0){ob.textContent=newCount;ob.style.display='inline-block';} else ob.style.display='none';
       if (error||!data?.length) { c.innerHTML='<p class="loading-msg">No orders yet 📬</p>'; return; }
 
       const completedIds = data.filter(o=>o.status==='completed').map(o=>o.id);
@@ -1538,6 +1594,9 @@
     async function loadMyListings() {
       const c = document.getElementById('my-listings');
       const {data,error} = await supabase.from('listings').select('*').eq('seller_id',currentUser.id).order('created_at',{ascending:false});
+      const activeCount = (data||[]).filter(l=>l.is_available && !l.is_draft && !l.is_sold).length;
+      const lb = document.getElementById('listings-badge');
+      if (activeCount>0){lb.textContent=activeCount;lb.style.display='inline-block';} else lb.style.display='none';
       if (error||!data?.length) { c.innerHTML='<p class="loading-msg">No listings yet.</p>'; return; }
       c.innerHTML = data.map(l => {
         const fp = l.discount_percent>0 ? Math.round(l.price*(1-l.discount_percent/100)) : l.price;
@@ -1604,13 +1663,17 @@
       else loadMyListings();
     };
 
-    window.showTab = (tab,el) => {
-      ['orders','listings','add','store','profile'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
-      document.querySelectorAll('.dash-tab').forEach(t=>t.classList.remove('active'));
-      el.classList.add('active');
+    window.showTab = (tab) => {
+      document.getElementById('dashboard-menu').style.display='none';
+      document.getElementById('dashboard-detail').style.display='block';
+      ['orders','listings','add','store','profile','security'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
       if (tab==='listings') loadMyListings();
       if (tab==='orders') loadOrders();
       if (tab==='store') loadStoreTab();
+    };
+    window.closeTab = () => {
+      document.getElementById('dashboard-detail').style.display='none';
+      document.getElementById('dashboard-menu').style.display='block';
     };
 
     let storeLogoUrl = null;
