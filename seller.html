@@ -129,6 +129,8 @@
           <div style="margin-top:16px;text-align:center">
             <a href="#" id="paywall-back-dashboard" style="display:none;color:#7c3aed;font-size:13px;font-weight:800;text-decoration:none" onclick="event.preventDefault();closeUpgrade()">← Back to dashboard</a>
             <a href="index.html" id="paywall-back-browse" style="color:#aaa;font-size:13px;font-weight:700;text-decoration:none">← Back to browsing</a>
+            <span style="color:#ddd;margin:0 8px">·</span>
+            <a href="#" id="paywall-signout" style="color:#aaa;font-size:13px;font-weight:700;text-decoration:none" onclick="event.preventDefault();paywallSignOut()">🚪 Sign out</a>
           </div>
         </div>
       </div>
@@ -1471,6 +1473,10 @@
       document.getElementById('paywall-screen').style.display='none';
       document.getElementById('seller-content').style.display='block';
       refreshPlanUsage();
+    };
+    window.paywallSignOut=async()=>{
+      await supabase.auth.signOut();
+      window.location.href='login.html';
     };
 
     function resetAddForm(){
