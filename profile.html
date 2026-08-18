@@ -9,6 +9,9 @@
   <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
   <meta property="og:type" content="website"/>
   <meta name="twitter:card" content="summary"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -76,7 +79,7 @@
         <div class="profile-menu-card">
           <a class="profile-menu-row" href="faq.html"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
           <a class="profile-menu-row" href="https://wa.me/27694520629" target="_blank" rel="noopener"><span class="pmr-icon">📱</span><span class="pmr-label">WhatsApp Support</span><span class="pmr-chevron">›</span></a>
-          <a class="profile-menu-row" href="mailto:urbanloom09@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="mailto:studentmarketplacehelp@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
         </div>
 
         <div class="profile-section-label">Legal</div>
@@ -121,6 +124,12 @@
 
         <div id="tab-security" style="display:none">
           <div class="form-card">
+            <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔔 Push Notifications</h3>
+            <p id="push-status" style="font-size:13px;color:#888;font-weight:600;margin-bottom:10px">Checking status...</p>
+            <button class="btn-sm btn-toggle" id="btn-push-toggle" onclick="togglePush()" style="display:none"></button>
+          </div>
+
+          <div class="form-card" style="margin-top:16px">
             <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔑 Change Password</h3>
             <div class="form-group"><label>New password</label><input type="password" id="pw-new" placeholder="At least 6 characters"/></div>
             <div class="form-group"><label>Confirm new password</label><input type="password" id="pw-confirm" placeholder="Re-enter new password"/></div>
@@ -154,7 +163,7 @@
     <div class="footer-title">Student Marketplace 🎓</div>
     <div class="footer-sub">The student marketplace for all</div>
     <div class="footer-links">
-      <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
+      <a class="footer-link" href="mailto:studentmarketplacehelp@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="index.html">Browse listings</a>
       <a class="footer-link" href="faq.html">How It Works</a>
@@ -172,6 +181,7 @@
       document.getElementById('profile-detail').style.display='block';
       ['orders','favorites','edit','security'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'block':'none');
       if(t==='favorites')window._loadFavorites();
+      if(t==='security')refreshPushStatus();
     }
     function closeTab(){
       document.getElementById('profile-detail').style.display='none';
@@ -265,7 +275,7 @@
       }
 
       container.innerHTML=data.map(o=>{
-        const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️'};
+        const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
         const e=CAT_EMOJI[o.listings?.category]||'📦';
         const img=o.listings?.image_url?'<img loading="lazy" src="'+o.listings.image_url+'" alt="'+(o.listings.title||'').replace(/"/g,'')+'" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0"/>':`<div style="width:52px;height:52px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${e}</div>`;
         const status=o.status==='confirmed'?'<span class="order-badge badge-new">🆕 Confirmed</span>':o.status==='cancelled'?'<span class="order-badge" style="background:#f0f0f0;color:#888">🚫 Cancelled</span>':'<span class="order-badge badge-done">✅ Completed</span>';
@@ -345,7 +355,7 @@
       const {data:favs}=await supabase.from('favorites').select('listing_id,listings(*)').eq('user_id',currentUser.id).order('created_at',{ascending:false});
       const items=(favs||[]).map(f=>f.listings).filter(Boolean);
       if(!items.length){c.innerHTML='<p class="loading-msg">No favorites yet — heart a listing while browsing! ❤️</p>';return;}
-      const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️'};
+      const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
       c.innerHTML=items.map(l=>{
         const e=CAT_EMOJI[l.category]||'🛍️';
         const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
@@ -361,6 +371,75 @@
       if(!confirm('This signs you out on every device where you\'re logged in, not just this one. Continue?'))return;
       await supabase.auth.signOut({scope:'global'});
       window.location.href='login.html';
+    };
+
+        const VAPID_PUBLIC_KEY = 'BMCQB-SziCpFZpfJ7VLwT4HmcXmqYs8JJ-t03A7Ra8MXsXeFmhIYGUIml5mZbNM2Ezzas1ZWl_k3qCA9gQR4YfY';
+    function urlBase64ToUint8Array(base64String){
+      const padding='='.repeat((4-base64String.length%4)%4);
+      const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+      const rawData=atob(base64);
+      const outputArray=new Uint8Array(rawData.length);
+      for(let i=0;i<rawData.length;i++) outputArray[i]=rawData.charCodeAt(i);
+      return outputArray;
+    }
+    async function refreshPushStatus(){
+      const statusEl=document.getElementById('push-status');
+      const btn=document.getElementById('btn-push-toggle');
+      if(!statusEl) return;
+      if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+        statusEl.textContent='Push notifications aren\'t supported in this browser.';
+        btn.style.display='none';
+        return;
+      }
+      if(Notification.permission==='denied'){
+        statusEl.textContent='❌ Blocked — you\'ve denied notification permission for this site in your browser settings.';
+        btn.style.display='none';
+        return;
+      }
+      try{
+        const reg=await navigator.serviceWorker.ready;
+        const sub=await reg.pushManager.getSubscription();
+        if(sub){
+          statusEl.textContent='✅ Push notifications are enabled on this device.';
+          btn.textContent='Disable on this device';
+          btn.style.display='inline-block';
+        } else {
+          statusEl.textContent='Get notified instantly for new messages and orders, even when the app is closed.';
+          btn.textContent='🔔 Enable Push Notifications';
+          btn.style.display='inline-block';
+        }
+      }catch(e){
+        statusEl.textContent='Could not check push status: '+e.message;
+      }
+    }
+    window.togglePush=async()=>{
+      const btn=document.getElementById('btn-push-toggle');
+      const statusEl=document.getElementById('push-status');
+      btn.disabled=true;
+      try{
+        const reg=await navigator.serviceWorker.ready;
+        const existing=await reg.pushManager.getSubscription();
+        if(existing){
+          await existing.unsubscribe();
+          await supabase.from('push_subscriptions').delete().eq('endpoint',existing.endpoint);
+        } else {
+          const perm=await Notification.requestPermission();
+          if(perm!=='granted'){ statusEl.textContent='Permission was not granted.'; btn.disabled=false; return; }
+          const sub=await reg.pushManager.subscribe({
+            userVisibleOnly:true,
+            applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+          });
+          const j=sub.toJSON();
+          const {error}=await supabase.from('push_subscriptions').upsert({
+            user_id:currentUser.id, endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth
+          }, {onConflict:'endpoint'});
+          if(error){ statusEl.textContent='Could not save subscription: '+error.message; btn.disabled=false; return; }
+        }
+      }catch(e){
+        statusEl.textContent='Error: '+e.message;
+      }
+      btn.disabled=false;
+      refreshPushStatus();
     };
 
     window.changePassword=async()=>{
@@ -473,5 +552,6 @@
     <a class="bottom-nav-item" href="favorites.html"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
     <a class="bottom-nav-item active" href="profile.html"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
   </nav>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>
 </html>

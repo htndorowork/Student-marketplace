@@ -9,6 +9,9 @@
   <meta property="og:description" content="Browse every category on Student Marketplace."/>
   <meta property="og:type" content="website"/>
   <meta name="twitter:card" content="summary"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <link rel="stylesheet" href="style.css"/>
   <style>
     .cat-page-wrap { max-width: 640px; margin: 0 auto; padding: 24px 20px 20px; }
@@ -88,7 +91,8 @@
       {value:'Transport', label:'Transport', emoji:'🚲'},
       {value:'Accommodation', label:'Accommodation', emoji:'🏠'},
       {value:'Tutoring', label:'Tutoring', emoji:'🎓'},
-      {value:'Services', label:'Services', emoji:'🛠️'}
+      {value:'Services', label:'Services', emoji:'🛠️'},
+      {value:'Others', label:'Others', emoji:'🔀'}
     ];
 
     function renderCats(list){
@@ -133,5 +137,6 @@
       });
     }
   </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>
 </html>

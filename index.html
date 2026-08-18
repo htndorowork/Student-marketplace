@@ -9,6 +9,9 @@
   <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
   <meta property="og:type" content="website"/>
   <meta name="twitter:card" content="summary"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -80,6 +83,7 @@
     <div class="cat" id="cat-accommodation" onclick="openFlatSubcats('Accommodation',this)">🏠 Accommodation</div>
     <div class="cat" id="cat-tutoring" onclick="openFlatSubcats('Tutoring',this)">🎓 Tutoring</div>
     <div class="cat" id="cat-services" onclick="openFlatSubcats('Services',this)">🛠️ Services</div>
+    <div class="cat" id="cat-others" onclick="selectCat('Others',this)">🔀 Others</div>
     </div>
     <button class="cats-arrow cats-arrow-right" onclick="scrollCats(1)" aria-label="Scroll right">›</button>
     <a href="categories.html" class="cats-all-btn" title="All categories">🗂️ All</a>
@@ -250,7 +254,7 @@
     <div class="footer-title">Student Marketplace 🎓</div>
     <div class="footer-sub">The student marketplace for all</div>
     <div class="footer-links">
-      <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
+      <a class="footer-link" href="mailto:studentmarketplacehelp@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="index.html">Browse listings</a>
       <a class="footer-link" href="faq.html">How It Works</a>
@@ -265,7 +269,7 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
-    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼'};
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Others:'🔀'};
     const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'},Utensils:{bg:'#fff3e0',text:'#e65100'},Jewellery:{bg:'#fdf0e6',text:'#a0522d'},Bags:{bg:'#ede7f6',text:'#5e35b1'},Toys:{bg:'#e3f2fd',text:'#1565c0'},Pets:{bg:'#f1f8e9',text:'#558b2f'},Tools:{bg:'#eceff1',text:'#37474f'},Snacks:{bg:'#fff8e1',text:'#f9a825'},Sports:{bg:'#e8f5e9',text:'#1b5e20'},Books:{bg:'#efebe9',text:'#4e342e'},Music:{bg:'#f3e5f5',text:'#6a1b9a'},Cameras:{bg:'#eceff1',text:'#263238'},Events:{bg:'#fce4ec',text:'#d81b60'},Plants:{bg:'#e8f5e9',text:'#33691e'},Decor:{bg:'#fff3e0',text:'#bf360c'},Baby:{bg:'#e1f5fe',text:'#0277bd'},Data:{bg:'#e8eaf6',text:'#283593'},Health:{bg:'#ffebee',text:'#c62828'},Career:{bg:'#e0f2f1',text:'#00695c'}};
 
     const TB_YEARS=['1st Year','2nd Year','3rd Year','Postgraduate'];
@@ -866,7 +870,7 @@
       const flatVal2=flatConf2?l[flatConf2.field]:null;
       const deliveryTxt = describeDeliveryScope(l.profiles);
       const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+l.condition+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="store.html?seller='+l.seller_id+'#store-reviews-section" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -1739,8 +1743,10 @@
       const el=document.getElementById(elId);
       if(pendingCat==='Textbooks'){
         openTextbookYears(document.getElementById('cat-textbooks'));
-      } else if(el){
+      } else if(el && FLAT_SUBCATS[pendingCat]){
         openFlatSubcats(pendingCat,el);
+      } else if(el){
+        selectCat(pendingCat,el);
       }
       const catsEl=document.getElementById('categories');
       if(catsEl && catsEl.offsetParent!==null) catsEl.scrollIntoView({block:'start'});
@@ -1754,5 +1760,6 @@
     <a class="bottom-nav-item" href="favorites.html"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
     <a class="bottom-nav-item" href="profile.html"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
   </nav>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>
 </html>

@@ -9,6 +9,9 @@
   <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
   <meta property="og:type" content="website"/>
   <meta name="twitter:card" content="summary"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -40,7 +43,7 @@
     <div class="footer-title">Student Marketplace 🎓</div>
     <div class="footer-sub">The student marketplace for all</div>
     <div class="footer-links">
-      <a class="footer-link" href="mailto:urbanloom09@gmail.com">📧 Report an issue</a>
+      <a class="footer-link" href="mailto:studentmarketplacehelp@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="index.html">Browse listings</a>
       <a class="footer-link" href="faq.html">How It Works</a>
@@ -55,7 +58,7 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
-    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️'};
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
     const CAT_COLOR={Textbooks:{bg:'#fff8e1'},Clothing:{bg:'#fce4ec'},Electronics:{bg:'#e8eaf6'},Food:{bg:'#e8f5e9'},Beauty:{bg:'#fce4ec'},Tutoring:{bg:'#e1f5ee'},Accommodation:{bg:'#fff3e0'},Transport:{bg:'#e0f2f1'},Services:{bg:'#ede7f6'},Stationary:{bg:'#fffde7'},Appliances:{bg:'#eceff1'},Furniture:{bg:'#efebe9'},Utensils:{bg:'#fff3e0'},Jewellery:{bg:'#fdf0e6'},Bags:{bg:'#ede7f6'},Toys:{bg:'#e3f2fd'},Pets:{bg:'#f1f8e9'},Tools:{bg:'#eceff1'},Snacks:{bg:'#fff8e1'},Sports:{bg:'#e8f5e9'},Books:{bg:'#efebe9'},Music:{bg:'#f3e5f5'},Cameras:{bg:'#eceff1'},Events:{bg:'#fce4ec'},Plants:{bg:'#e8f5e9'},Decor:{bg:'#fff3e0'},Baby:{bg:'#e1f5fe'},Data:{bg:'#e8eaf6'},Health:{bg:'#ffebee'},Career:{bg:'#e0f2f1'}};
 
     let myFavorites=new Set();
@@ -175,5 +178,6 @@
     <a class="bottom-nav-item active" href="favorites.html"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
     <a class="bottom-nav-item" href="profile.html"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
   </nav>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>
 </html>

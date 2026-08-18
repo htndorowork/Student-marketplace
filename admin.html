@@ -9,6 +9,9 @@
   <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
   <meta property="og:type" content="website"/>
   <meta name="twitter:card" content="summary"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -115,7 +118,7 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
-    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️'};
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
     let allListings=[];
     let currentAdminId=null;
 
@@ -291,6 +294,9 @@
       return parts.length ? parts.join(', ') : 'No institutions set';
     }
 
+    const PLAN_LABELS={flash:'Flash Sale (1 listing)',quicklister:'Quick Lister (3 listings)',casual:'Casual Seller (5 listings)',standard:'Standard (15 listings)',power:'Power Seller (∞)',quarter:'Quarter Pass (15 listings)',semester:'Semester Pass (∞)'};
+    function planLabel(plan){ return PLAN_LABELS[plan] || 'Legacy plan (∞ — pre-migration)'; }
+
     async function loadPaidSellers(){
       const {data}=await supabase.from('profiles').select('*').eq('role','seller').order('full_name');
       const today=new Date().toISOString().slice(0,10);
@@ -302,7 +308,7 @@
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
         '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
-        '<div class="listing-meta" style="color:#2e7d32;font-weight:700">'+(s.is_admin?'✅ Admin — no expiry':'✅ Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA'))+'</div>'+
+        '<div class="listing-meta" style="color:#2e7d32;font-weight:700">'+(s.is_admin?'✅ Admin — no expiry':'✅ '+planLabel(s.seller_plan)+' · Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA'))+'</div>'+
         '</div>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
         '</div>'
@@ -327,11 +333,13 @@
           '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
-          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',30)">✅ +30d (R159)</button>'+
-          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',7)">✅ +7d (R39)</button>'+
-          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',2)">✅ +48h (R19)</button>'+
-          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',90)">✅ +3mo (R399)</button>'+
-          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',180)">✅ +6mo (R699)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'flash\')">✅ Flash 48h (R19, 1 listing)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'quicklister\')">✅ Quick Lister 7d (R39, 3)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'casual\')">✅ Casual 1mo (R89, 5)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'standard\')">✅ Standard 1mo (R159, 15)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'power\')">✅ Power 1mo (R249, ∞)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'quarter\')">✅ Quarter 3mo (R399, 15)</button>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'semester\')">✅ Semester 6mo (R699, ∞)</button>'+
           '</div>';
       }).join('');
     }
@@ -340,8 +348,8 @@
       try{ await supabase.from('admin_audit_log').insert({admin_id:currentAdminId,action,target_id:targetId,details}); }catch(e){}
     }
 
-    window._markPaid=async(id,days=30)=>{
-      const {error}=await supabase.rpc('admin_extend_subscription',{p_seller_id:id,p_days:days});
+    window._markPaid=async(id,plan)=>{
+      const {error}=await supabase.rpc('admin_extend_subscription',{p_seller_id:id,p_plan:plan});
       if(error){alert('Error: '+error.message);return;}
       loadPaidSellers();loadUnpaidSellers();
     };
@@ -469,5 +477,6 @@
     };
     init();
   </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>
 </html>

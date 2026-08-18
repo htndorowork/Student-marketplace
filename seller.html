@@ -9,6 +9,9 @@
   <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
   <meta property="og:type" content="website"/>
   <meta name="twitter:card" content="summary"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <link rel="stylesheet" href="style.css"/>
   <style>
     .dash-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
@@ -49,7 +52,7 @@
           <div style="font-size:52px;margin-bottom:16px">🔒</div>
           <h2 style="font-size:22px;font-weight:900;margin-bottom:10px;text-align:center">Listings Paused</h2>
           <p style="font-size:14px;color:#888;font-weight:600;line-height:1.7;margin-bottom:20px;text-align:center">New listings are temporarily paused. Contact admin if you need help.</p>
-          <div style="text-align:center"><a href="mailto:urbanloom09@gmail.com" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:50px;font-weight:800;font-size:14px;text-decoration:none">📧 Contact Admin</a></div>
+          <div style="text-align:center"><a href="mailto:studentmarketplacehelp@gmail.com" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:50px;font-weight:800;font-size:14px;text-decoration:none">📧 Contact Admin</a></div>
         </div>
         <div id="paywall-plans">
           <div style="text-align:center;font-size:42px;margin-bottom:8px">💼</div>
@@ -60,7 +63,7 @@
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Flash Sale · 48 hours</div>
-                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Urgent single-item clearance</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">1 active listing — clear a single item fast</div>
                 </div>
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R19</div>
               </div>
@@ -69,7 +72,7 @@
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Quick Lister · 7 days</div>
-                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Low-commitment entry point</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">3 active listings — low-commitment entry point</div>
                 </div>
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R39</div>
               </div>
@@ -78,7 +81,7 @@
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Casual Seller · 1 month</div>
-                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Budget-conscious · up to 2 active listings</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">5 active listings — budget-conscious</div>
                 </div>
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R89</div>
               </div>
@@ -88,7 +91,7 @@
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Standard Monthly · 1 month</div>
-                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Full access to basic features for ongoing side-hustles</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">15 active listings — R10.60/listing, best value on the ladder</div>
                 </div>
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R159</div>
               </div>
@@ -97,7 +100,7 @@
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Power Seller · 1 month</div>
-                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Unlimited capacity + 2 featured badges per cycle</div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Unlimited active listings — for full stores</div>
                 </div>
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R249</div>
               </div>
@@ -106,7 +109,7 @@
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Quarter Pass · 3 months</div>
-                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Aligned with a university term or exam block <span style="color:#2e7d32">· SAVE ~R80</span></div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">15 active listings, term-aligned <span style="color:#2e7d32">· SAVE ~R78</span></div>
                 </div>
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R399</div>
               </div>
@@ -115,7 +118,7 @@
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Semester Pass · 6 months</div>
-                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Best for established brands & tutoring agencies <span style="color:#2e7d32">· SAVE ~R250</span></div>
+                  <div style="font-size:12px;color:#888;font-weight:700;margin-top:4px">Unlimited active listings, best for established brands <span style="color:#2e7d32">· SAVE ~R255</span></div>
                 </div>
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R699</div>
               </div>
@@ -123,7 +126,10 @@
           </div>
           <p id="payfast-error" style="display:none;color:#9333ea;font-size:13px;font-weight:700;text-align:center;margin-bottom:10px"></p>
           <p style="font-size:12px;color:#aaa;font-weight:600;text-align:center;line-height:1.5">Payments are processed by PayFast. After a successful payment your selling access activates automatically.</p>
-          <div style="margin-top:16px;text-align:center"><a href="index.html" style="color:#aaa;font-size:13px;font-weight:700;text-decoration:none">← Back to browsing</a></div>
+          <div style="margin-top:16px;text-align:center">
+            <a href="#" id="paywall-back-dashboard" style="display:none;color:#7c3aed;font-size:13px;font-weight:800;text-decoration:none" onclick="event.preventDefault();closeUpgrade()">← Back to dashboard</a>
+            <a href="index.html" id="paywall-back-browse" style="color:#aaa;font-size:13px;font-weight:700;text-decoration:none">← Back to browsing</a>
+          </div>
         </div>
       </div>
     </div>
@@ -162,6 +168,9 @@
           <button class="profile-menu-row" onclick="showTab('store')">
             <span class="pmr-icon">🏪</span><span class="pmr-label">My Store</span><span class="pmr-chevron">›</span>
           </button>
+          <button class="profile-menu-row" onclick="showUpgradeOptions()">
+            <span class="pmr-icon">💳</span><span class="pmr-label">Change Plan</span><span class="pmr-chevron">›</span>
+          </button>
         </div>
 
         <div class="profile-section-label">Account</div>
@@ -192,7 +201,7 @@
         <div class="profile-menu-card">
           <a class="profile-menu-row" href="faq.html"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
           <a class="profile-menu-row" href="https://wa.me/27694520629" target="_blank" rel="noopener"><span class="pmr-icon">📱</span><span class="pmr-label">WhatsApp Support</span><span class="pmr-chevron">›</span></a>
-          <a class="profile-menu-row" href="mailto:urbanloom09@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="mailto:studentmarketplacehelp@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
         </div>
 
         <button class="profile-logout-btn" id="dashboard-logout-btn">🚪 Sign out</button>
@@ -224,6 +233,10 @@
 
       <!-- ADD LISTING -->
       <div id="tab-add" style="display:none">
+        <div class="form-card" id="plan-usage-card" style="display:none;margin-bottom:14px;padding:14px 16px">
+          <div id="plan-usage-text" style="font-size:13px;font-weight:800;color:#555"></div>
+          <div style="background:#f0f0f0;border-radius:50px;height:6px;margin-top:8px;overflow:hidden"><div id="plan-usage-bar" style="height:100%;background:#7c3aed;border-radius:50px;width:0%"></div></div>
+        </div>
         <div class="form-card">
           <h3 style="font-size:18px;font-weight:800;margin-bottom:16px" id="add-form-heading">Add New Listing</h3>
           <div class="form-row">
@@ -243,7 +256,7 @@
                 <option>Cameras</option><option>Pets</option><option>Baby</option><option>Plants</option>
                 <option>Events</option><option>Health</option><option>Data</option><option>Career</option>
                 <option>Transport</option><option>Accommodation</option><option>Tutoring</option>
-                <option>Services</option>
+                <option>Services</option><option>Others</option>
               </select>
             </div>
           </div>
@@ -416,6 +429,12 @@
 
       <div id="tab-security" style="display:none">
         <div class="form-card">
+          <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔔 Push Notifications</h3>
+          <p id="push-status" style="font-size:13px;color:#888;font-weight:600;margin-bottom:10px">Checking status...</p>
+          <button class="btn-sm btn-toggle" id="btn-push-toggle" onclick="togglePush()" style="display:none"></button>
+        </div>
+
+        <div class="form-card" style="margin-top:16px">
           <h3 style="font-size:15px;font-weight:800;margin-bottom:8px">🔑 Change Password</h3>
           <div class="form-group"><label>New password</label><input type="password" id="pw-new" placeholder="At least 6 characters"/></div>
           <div class="form-group"><label>Confirm new password</label><input type="password" id="pw-confirm" placeholder="Re-enter new password"/></div>
@@ -1407,12 +1426,52 @@
         : await supabase.from('listings').insert(payload);
 
       btn.textContent=origTxt; btn.disabled=false;
-      if (error) { err.textContent='❌ '+error.message; return; }
+      if (error) {
+        if (error.message && error.message.includes('LISTING_CAP_REACHED')) {
+          err.innerHTML = '❌ You\'ve hit your plan\'s active listing limit. <a href="#" onclick="event.preventDefault();showUpgradeOptions()" style="color:#7c3aed;font-weight:800;text-decoration:underline">Upgrade your plan →</a>';
+        } else {
+          err.textContent='❌ '+error.message;
+        }
+        return;
+      }
       const wasEditing = !!editingListingId;
       resetAddForm();
       err.style.color='#2e7d32'; err.textContent=wasEditing?'✅ Listing updated!':(isDraft?'✅ Saved as draft!':'✅ Listing posted!');
       setTimeout(()=>{err.textContent=''; showTab('listings'); loadMyListings();},1500);
+      refreshPlanUsage();
     }
+
+    const PLAN_CAPS={flash:1,quicklister:3,casual:5,standard:15,power:null,quarter:15,semester:null};
+    const PLAN_NAMES={flash:'Flash Sale',quicklister:'Quick Lister',casual:'Casual Seller',standard:'Standard Monthly',power:'Power Seller',quarter:'Quarter Pass',semester:'Semester Pass'};
+    async function refreshPlanUsage(){
+      const card=document.getElementById('plan-usage-card');
+      const {data:p}=await supabase.from('profiles').select('seller_plan,is_admin').eq('id',currentUser.id).single();
+      if (p?.is_admin || !p?.seller_plan) { card.style.display='none'; return; }
+      const cap=PLAN_CAPS[p.seller_plan];
+      if (cap==null) { card.style.display='none'; return; } // unlimited plan
+      const {count}=await supabase.from('listings').select('id',{count:'exact',head:true})
+        .eq('seller_id',currentUser.id).eq('is_draft',false).eq('is_sold',false).eq('is_available',true);
+      const used=count||0;
+      card.style.display='block';
+      document.getElementById('plan-usage-text').textContent = (PLAN_NAMES[p.seller_plan]||'Your plan')+': '+used+' of '+cap+' active listings used';
+      document.getElementById('plan-usage-bar').style.width = Math.min(100,(used/cap)*100)+'%';
+      document.getElementById('plan-usage-bar').style.background = used>=cap ? '#dc2626' : '#7c3aed';
+    }
+    window.showUpgradeOptions=()=>{
+      document.getElementById('seller-content').style.display='none';
+      document.getElementById('paywall-screen').style.display='block';
+      document.getElementById('paywall-emergency').style.display='none';
+      document.getElementById('paywall-plans').style.display='block';
+      document.getElementById('paywall-back-dashboard').style.display='inline';
+      document.getElementById('paywall-back-browse').style.display='none';
+      document.querySelector('#paywall-plans h2').textContent='Change your plan';
+      document.querySelector('#paywall-plans p').textContent='Pick a new plan — your remaining time carries over and the new listing cap applies right away.';
+    };
+    window.closeUpgrade=()=>{
+      document.getElementById('paywall-screen').style.display='none';
+      document.getElementById('seller-content').style.display='block';
+      refreshPlanUsage();
+    };
 
     function resetAddForm(){
       editingListingId = null;
@@ -1489,6 +1548,75 @@
       if(!confirm('This signs you out on every device where you\'re logged in, not just this one. Continue?'))return;
       await supabase.auth.signOut({scope:'global'});
       window.location.href='login.html';
+    };
+
+        const VAPID_PUBLIC_KEY = 'BMCQB-SziCpFZpfJ7VLwT4HmcXmqYs8JJ-t03A7Ra8MXsXeFmhIYGUIml5mZbNM2Ezzas1ZWl_k3qCA9gQR4YfY';
+    function urlBase64ToUint8Array(base64String){
+      const padding='='.repeat((4-base64String.length%4)%4);
+      const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+      const rawData=atob(base64);
+      const outputArray=new Uint8Array(rawData.length);
+      for(let i=0;i<rawData.length;i++) outputArray[i]=rawData.charCodeAt(i);
+      return outputArray;
+    }
+    async function refreshPushStatus(){
+      const statusEl=document.getElementById('push-status');
+      const btn=document.getElementById('btn-push-toggle');
+      if(!statusEl) return;
+      if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+        statusEl.textContent='Push notifications aren\'t supported in this browser.';
+        btn.style.display='none';
+        return;
+      }
+      if(Notification.permission==='denied'){
+        statusEl.textContent='❌ Blocked — you\'ve denied notification permission for this site in your browser settings.';
+        btn.style.display='none';
+        return;
+      }
+      try{
+        const reg=await navigator.serviceWorker.ready;
+        const sub=await reg.pushManager.getSubscription();
+        if(sub){
+          statusEl.textContent='✅ Push notifications are enabled on this device.';
+          btn.textContent='Disable on this device';
+          btn.style.display='inline-block';
+        } else {
+          statusEl.textContent='Get notified instantly for new messages and orders, even when the app is closed.';
+          btn.textContent='🔔 Enable Push Notifications';
+          btn.style.display='inline-block';
+        }
+      }catch(e){
+        statusEl.textContent='Could not check push status: '+e.message;
+      }
+    }
+    window.togglePush=async()=>{
+      const btn=document.getElementById('btn-push-toggle');
+      const statusEl=document.getElementById('push-status');
+      btn.disabled=true;
+      try{
+        const reg=await navigator.serviceWorker.ready;
+        const existing=await reg.pushManager.getSubscription();
+        if(existing){
+          await existing.unsubscribe();
+          await supabase.from('push_subscriptions').delete().eq('endpoint',existing.endpoint);
+        } else {
+          const perm=await Notification.requestPermission();
+          if(perm!=='granted'){ statusEl.textContent='Permission was not granted.'; btn.disabled=false; return; }
+          const sub=await reg.pushManager.subscribe({
+            userVisibleOnly:true,
+            applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+          });
+          const j=sub.toJSON();
+          const {error}=await supabase.from('push_subscriptions').upsert({
+            user_id:currentUser.id, endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth
+          }, {onConflict:'endpoint'});
+          if(error){ statusEl.textContent='Could not save subscription: '+error.message; btn.disabled=false; return; }
+        }
+      }catch(e){
+        statusEl.textContent='Error: '+e.message;
+      }
+      btn.disabled=false;
+      refreshPushStatus();
     };
 
     window.changePassword=async()=>{
@@ -1718,6 +1846,8 @@
       if (tab==='orders') loadOrders();
       if (tab==='orders-completed') loadCompletedOrders();
       if (tab==='store') loadStoreTab();
+      if (tab==='add') refreshPlanUsage();
+      if (tab==='security') refreshPushStatus();
     };
     window.closeTab = () => {
       document.getElementById('dashboard-detail').style.display='none';
@@ -1792,5 +1922,6 @@
 
     init();
   </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>
 </html>

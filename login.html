@@ -9,6 +9,9 @@
   <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
   <meta property="og:type" content="website"/>
   <meta name="twitter:card" content="summary"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -588,7 +591,6 @@
           return;
         }
       }
-      if(!email.toLowerCase().includes('.ac.za') && !confirm('That doesn\'t look like a university (.ac.za) email. You can still sign up, but a student email helps build trust with buyers/sellers. Continue anyway?')){return;}
       const {data,error}=await supabase.auth.signUp({email,password});
       if(error){err.textContent='❌ '+error.message;return;}
       if(data.user){
@@ -610,5 +612,6 @@
       setTimeout(()=>showTab('login'),1500);
     };
   </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>
 </html>
