@@ -714,12 +714,10 @@
         const heart=currentUser?'<button class="fav-heart" onclick="event.stopPropagation();window._toggleFav(\''+l.id+'\')" aria-label="Favorite">'+(isFav?'❤️':'🤍')+'</button>':'';
         const condTag=l.condition?'<span class="condition-tag">'+l.condition+'</span>':'';
         const negTag=l.is_negotiable?'<span class="negotiable-tag">💬 Negotiable</span>':'';
-        const verifiedTag=verifiedSellers.has(l.seller_id)?'<span class="verified-badge">✅ Verified</span>':'';
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
           '<div class="card-img" style="background:'+c.bg+'">'+db+heart+img+photoDots+'</div>'+
           '<div class="card-body">'+
           '<div class="card-title">'+l.title+'</div>'+
-          (verifiedTag?'<div class="card-seller">'+verifiedTag+'</div>':'')+
           (l.profiles?.residence?'<div class="card-residence">📍 '+l.profiles.residence+'</div>':'')+
           (negTag?'<div>'+negTag+'</div>':'')+
           stock+
@@ -870,7 +868,7 @@
       const flatVal2=flatConf2?l[flatConf2.field]:null;
       const deliveryTxt = describeDeliveryScope(l.profiles);
       const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+l.condition+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="listing-reviews.html?listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+(verifiedSellers.has(l.seller_id)?' <span class="verified-badge">✅ Verified</span>':'')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="listing-reviews.html?listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
