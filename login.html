@@ -121,6 +121,11 @@
 
   <script>
     let selectedRole = 'buyer';
+    // Accepts 0XXXXXXXXX (10 digits, starts 06/07/08) or +27XXXXXXXXX / 27XXXXXXXXX
+    function isValidSAPhone(raw){
+      const v=(raw||'').replace(/[\s-]/g,'');
+      return /^0[6-8][0-9]{8}$/.test(v) || /^\+?27[6-8][0-9]{8}$/.test(v);
+    }
     function showTab(t){
       document.getElementById('login-form').style.display=t==='login'?'block':'none';
       document.getElementById('signup-form').style.display=t==='signup'?'block':'none';
@@ -580,6 +585,7 @@
       const role=window.selectedRole||'buyer';
       err.style.color='#9333ea';err.textContent='';
       if(!name||!wa||!email||!password){err.textContent='❌ Please fill in all fields';return;}
+      if(!isValidSAPhone(wa)){err.textContent='❌ Enter a valid South African cell number, e.g. 0812345678';return;}
       if(role==='buyer' && (!buyerInstPicked||!buyerCampusPicked)){err.textContent='❌ Select your institution & campus';return;}
       let allUni=false, allTvet=false, allPrivate=false;
       if(role==='seller'){

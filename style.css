@@ -148,6 +148,8 @@ button { -webkit-appearance: none; appearance: none; font-family: inherit; }
   .hero { padding: 32px 16px 30px; }
   .listing-row { flex-wrap: wrap; }
   .listing-actions { flex-basis: 100%; flex-shrink: 1; }
+  .search-bar input { padding: 12px 10px 12px 16px; font-size: 13.5px; min-width: 0; }
+  .search-bar button { padding: 10px 14px; font-size: 12.5px; flex-shrink: 0; white-space: nowrap; }
 }
 .search-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-radius: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.15); margin-top: 8px; overflow: hidden; z-index: 50; text-align: left; }
 .search-suggestion-item { padding: 12px 18px; font-size: 13.5px; font-weight: 700; color: #333; cursor: pointer; border-bottom: 1px solid #f5f5f5; }

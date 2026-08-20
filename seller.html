@@ -480,6 +480,11 @@
 
     // PayFast credentials live ONLY in Supabase Edge Function secrets (payfast-checkout / payfast-itn).
     // Do not put merchant_key or passphrase in this file.
+
+    function isValidSAPhone(raw){
+      const v=(raw||'').replace(/[\s-]/g,'');
+      return /^0[6-8][0-9]{8}$/.test(v) || /^\+?27[6-8][0-9]{8}$/.test(v);
+    }
     const PAYFAST_FN = 'https://kqsqtasykdtpdrkqyaxp.supabase.co/functions/v1/payfast-checkout';
 
     let currentUser = null;
@@ -1698,6 +1703,7 @@
       const err  = document.getElementById('profile-error');
       err.style.color='#9333ea'; err.textContent='';
       if (!name||!wa) { err.textContent='❌ Name and WhatsApp are required'; return; }
+      if (!isValidSAPhone(wa)) { err.textContent='❌ Enter a valid South African cell number, e.g. 0812345678'; return; }
       if (!allUni && !allTvet && !allPrivate && !sellerInstitutions.length) { err.textContent='❌ Choose at least one institution you sell to (tick an "All X" option or add a specific institution)'; return; }
 
       // No free trial — sellers must pay via PayFast before posting

@@ -193,6 +193,10 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
     let currentUser=null;
+    function isValidSAPhone(raw){
+      const v=(raw||'').replace(/[\s-]/g,'');
+      return /^0[6-8][0-9]{8}$/.test(v) || /^\+?27[6-8][0-9]{8}$/.test(v);
+    }
 
     async function init(){
       const {data:{user}}=await supabase.auth.getUser();
@@ -246,6 +250,7 @@
       const errEl=document.getElementById('profile-err');
       errEl.style.color='#9333ea';errEl.textContent='';
       if(!name||!wa){errEl.textContent='❌ Name and WhatsApp are required';return;}
+      if(!isValidSAPhone(wa)){errEl.textContent='❌ Enter a valid South African cell number, e.g. 0812345678';return;}
       const {error}=await supabase.from('profiles').update({full_name:name,whatsapp:wa,residence:res,role}).eq('id',currentUser.id);
       if(error){errEl.textContent='❌ '+error.message;return;}
       document.getElementById('profile-name').textContent=name;
