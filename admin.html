@@ -30,68 +30,93 @@
     </div>
 
     <div id="admin-content" style="display:none">
-      <div class="section-header" style="margin-bottom:20px">
-        <div class="section-title">Admin Panel 🛡️</div>
-        <span style="font-size:12px;background:#f5f0fe;color:#7c3aed;font-weight:700;padding:4px 12px;border-radius:50px">Admin</span>
-      </div>
-
-      <!-- PAYWALL CONTROL -->
-      <div class="form-card" style="margin-bottom:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <div>
-            <div style="font-size:16px;font-weight:800;margin-bottom:4px">🔒 Listing Paywall</div>
-            <div style="font-size:13px;color:#888;font-weight:600">Emergency pause: when ON, all sellers see a blocked screen. Turn OFF once PayFast is live so sellers can pay from R19 to unlock selling.</div>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="paywall-toggle" onchange="togglePaywall(this.checked)"/>
-            <span class="toggle-slider"></span>
-          </label>
+      <div class="profile-header-card">
+        <div class="profile-avatar" id="admin-avatar">🛡️</div>
+        <div>
+          <div class="profile-header-name">Admin Panel</div>
+          <div class="profile-header-meta" id="admin-header-meta">Loading...</div>
+          <div class="profile-header-meta" id="admin-user-count" style="margin-top:2px"></div>
         </div>
-        <div id="paywall-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
       </div>
 
-      <!-- STATS -->
-      <div class="stats" style="margin-bottom:24px">
-        <div class="stat"><div class="stat-num" id="a-listings">0</div><div class="stat-label">Listings</div></div>
-        <div class="stat"><div class="stat-num" id="a-sellers">0</div><div class="stat-label">Users</div></div>
-        <div class="stat"><div class="stat-num" id="a-orders">0</div><div class="stat-label">Orders</div></div>
+      <!-- MENU -->
+      <div id="admin-menu">
+        <!-- PAYWALL CONTROL -->
+        <div class="form-card" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:16px;font-weight:800;margin-bottom:4px">🔒 Listing Paywall</div>
+              <div style="font-size:13px;color:#888;font-weight:600">Emergency pause: when ON, all sellers see a blocked screen. Turn OFF once PayFast is live so sellers can pay from R19 to unlock selling.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="paywall-toggle" onchange="togglePaywall(this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div id="paywall-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
+        </div>
+
+        <div class="profile-section-label">Marketplace</div>
+        <div class="profile-menu-card">
+          <button class="profile-menu-row" onclick="showTab('listings')">
+            <span class="pmr-icon">📦</span><span class="pmr-label">Listings</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('sellers')">
+            <span class="pmr-icon">👥</span><span class="pmr-label">Users</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('orders')">
+            <span class="pmr-icon">🛒</span><span class="pmr-label">Orders</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('reports')">
+            <span class="pmr-icon">🚩</span><span class="pmr-label">Reports</span>
+            <span class="pmr-badge" id="reports-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('analytics')">
+            <span class="pmr-icon">📊</span><span class="pmr-label">Analytics</span><span class="pmr-chevron">›</span>
+          </button>
+        </div>
+
+        <div class="profile-section-label">Sellers</div>
+        <div class="profile-menu-card">
+          <button class="profile-menu-row" onclick="showTab('paid')">
+            <span class="pmr-icon">✅</span><span class="pmr-label">Paid Sellers</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('unpaid')">
+            <span class="pmr-icon">❌</span><span class="pmr-label">Unpaid Sellers</span><span class="pmr-chevron">›</span>
+          </button>
+        </div>
       </div>
 
-      <div class="admin-tabs">
-        <button class="admin-tab active" onclick="showTab('listings',this)">📦 Listings</button>
-        <button class="admin-tab" onclick="showTab('sellers',this)">👥 Users</button>
-        <button class="admin-tab" onclick="showTab('paid',this)">✅ Paid Sellers</button>
-        <button class="admin-tab" onclick="showTab('unpaid',this)">❌ Unpaid Sellers</button>
-        <button class="admin-tab" onclick="showTab('reports',this)">🚩 Reports</button>
-        <button class="admin-tab" onclick="showTab('analytics',this)">📊 Analytics</button>
-        <button class="admin-tab" onclick="showTab('orders',this)">🛒 Orders</button>
-      </div>
+      <!-- DETAIL PANELS -->
+      <div id="admin-detail" style="display:none">
+        <button class="profile-back-btn" onclick="closeTab()">← Back to Admin Panel</button>
 
-      <div id="tab-listings">
-        <input class="search-admin" type="text" placeholder="Search listings..." oninput="searchListings(this.value)"/>
-        <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportListingsCSV()">⬇️ Export CSV</button>
-        <div id="all-listings-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-sellers" style="display:none"><div id="all-sellers-container"><p class="loading-msg">Loading...</p></div></div>
-      <div id="tab-paid" style="display:none">
-        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Sellers whose monthly subscription is active and not blocked.</p>
-        <div id="paid-sellers-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-unpaid" style="display:none">
-        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">These sellers are automatically blocked from posting and hidden from buyers until marked as paid.</p>
-        <button class="btn-sm btn-delete" style="margin-bottom:12px" onclick="blockAllOverdue()">🚫 Block all overdue sellers now</button>
-        <div id="unpaid-sellers-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-reports" style="display:none">
-        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Listings and sellers flagged by buyers.</p>
-        <div id="reports-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-analytics" style="display:none">
-        <div id="analytics-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-orders" style="display:none">
-        <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportOrdersCSV()">⬇️ Export CSV</button>
-        <div id="all-orders-container"><p class="loading-msg">Loading...</p></div>
+        <div id="tab-listings" style="display:none">
+          <input class="search-admin" type="text" placeholder="Search listings..." oninput="searchListings(this.value)"/>
+          <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportListingsCSV()">⬇️ Export CSV</button>
+          <div id="all-listings-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-sellers" style="display:none"><div id="all-sellers-container"><p class="loading-msg">Loading...</p></div></div>
+        <div id="tab-paid" style="display:none">
+          <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Sellers whose monthly subscription is active and not blocked.</p>
+          <div id="paid-sellers-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-unpaid" style="display:none">
+          <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">These sellers are automatically blocked from posting and hidden from buyers until marked as paid.</p>
+          <button class="btn-sm btn-delete" style="margin-bottom:12px" onclick="blockAllOverdue()">🚫 Block all overdue sellers now</button>
+          <div id="unpaid-sellers-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-reports" style="display:none">
+          <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Listings and sellers flagged by buyers.</p>
+          <div id="reports-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-analytics" style="display:none">
+          <div id="analytics-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-orders" style="display:none">
+          <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportOrdersCSV()">⬇️ Export CSV</button>
+          <div id="all-orders-container"><p class="loading-msg">Loading...</p></div>
+        </div>
       </div>
     </div>
   </main>
@@ -125,12 +150,14 @@
     async function init(){
       const {data:{user}}=await supabase.auth.getUser();
       if(!user){window.location.href='login.html';return;}
-      const {data:p}=await supabase.from('profiles').select('is_admin').eq('id',user.id).single();
+      const {data:p}=await supabase.from('profiles').select('is_admin,full_name').eq('id',user.id).single();
       if(!p?.is_admin){document.getElementById('access-denied').style.display='block';return;}
       currentAdminId=user.id;
       document.getElementById('admin-content').style.display='block';
+      document.getElementById('admin-avatar').textContent=(p.full_name||'?').trim().charAt(0).toUpperCase()||'🛡️';
+      document.getElementById('admin-header-meta').textContent=(p.full_name?p.full_name+' · ':'')+'System administrator';
       document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
-      loadPaywall();loadStats();loadListings();
+      loadPaywall();loadStats();loadListings();loadReports();
     }
 
     async function loadPaywall(){
@@ -148,14 +175,8 @@
     };
 
     async function loadStats(){
-      const [{count:l},{count:s},{count:o}]=await Promise.all([
-        supabase.from('listings').select('*',{count:'exact',head:true}),
-        supabase.from('profiles').select('*',{count:'exact',head:true}),
-        supabase.from('orders').select('*',{count:'exact',head:true})
-      ]);
-      document.getElementById('a-listings').textContent=l||0;
-      document.getElementById('a-sellers').textContent=s||0;
-      document.getElementById('a-orders').textContent=o||0;
+      const {count:s}=await supabase.from('profiles').select('*',{count:'exact',head:true});
+      document.getElementById('admin-user-count').textContent='👥 '+(s||0)+' registered users';
     }
 
     async function loadListings(){
@@ -372,6 +393,9 @@
     async function loadReports(){
       const c=document.getElementById('reports-container');
       const {data}=await supabase.from('reports').select('*,listings(title,is_available),reported:profiles!reports_reported_user_id_fkey(full_name)').order('created_at',{ascending:false});
+      const openCount=(data||[]).filter(r=>r.status==='open').length;
+      const rb=document.getElementById('reports-badge');
+      if(openCount>0){rb.textContent=openCount;rb.style.display='inline-block';} else rb.style.display='none';
       if(!data?.length){c.innerHTML='<div class="empty-msg">No reports filed 🎉</div>';return;}
       c.innerHTML=data.map(r=>{
         const canOpen=!!r.listing_id;
@@ -465,15 +489,20 @@
     };
     window._adone=async(id)=>{await supabase.from('orders').update({status:'completed'}).eq('id',id);loadOrders();};
     window.searchListings=(q)=>renderListings(allListings.filter(l=>l.title.toLowerCase().includes(q.toLowerCase())||(l.profiles?.full_name||'').toLowerCase().includes(q.toLowerCase())));
-    window.showTab=(tab,el)=>{
+    window.showTab=(tab)=>{
+      document.getElementById('admin-menu').style.display='none';
+      document.getElementById('admin-detail').style.display='block';
       ['listings','sellers','paid','unpaid','reports','analytics','orders'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
-      document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
       if(tab==='sellers')loadSellers();
       if(tab==='paid')loadPaidSellers();
       if(tab==='unpaid')loadUnpaidSellers();
       if(tab==='reports')loadReports();
       if(tab==='analytics')loadAnalytics();
       if(tab==='orders')loadOrders();
+    };
+    window.closeTab=()=>{
+      document.getElementById('admin-detail').style.display='none';
+      document.getElementById('admin-menu').style.display='block';
     };
     init();
   </script>
