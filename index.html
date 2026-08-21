@@ -696,6 +696,7 @@
         g.innerHTML='<div class="loading-msg" style="text-align:center">'+
           '<p>No listings match your filters 🤔</p>'+
           '<button class="btn-primary" style="margin-top:10px;padding:10px 24px;border-radius:50px" onclick="resetFilters()">Reset filters</button>'+
+          (currentUser?'<div style="margin-top:10px"><button class="btn-sm btn-toggle" onclick="createSearchAlert()">🔔 Notify me when something matches</button></div>':'')+
           '</div>';
         return;
       }
@@ -750,6 +751,21 @@
       document.getElementById('filter-toolbar').classList.remove('open');
       document.getElementById('filter-toggle-btn').classList.remove('open');
       document.getElementById('listings-grid').scrollIntoView({block:'start'});
+    };
+    window.createSearchAlert=async()=>{
+      if(!currentUser){ showToast('Sign in to set up alerts','error'); return; }
+      const q=(document.getElementById('search-input').value||'').trim();
+      const maxP=document.getElementById('price-max').value;
+      const catVal=(cat && cat!=='All')?cat:null;
+      if(!q && !catVal && !maxP){ showToast('Search for something or set a filter first','error'); return; }
+      const {error}=await supabase.from('search_alerts').insert({
+        user_id:currentUser.id,
+        query:q||null,
+        category:catVal,
+        max_price:maxP?parseFloat(maxP):null
+      });
+      if(error){ showToast('❌ '+error.message,'error'); return; }
+      showToast('🔔 We\'ll notify you when something matches!','success');
     };
     window._toggleFav=async(id)=>{
       if(!currentUser){location.href='login.html';return;}

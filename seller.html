@@ -194,6 +194,12 @@
           <button class="profile-menu-row" onclick="showTab('security')">
             <span class="pmr-icon">🔐</span><span class="pmr-label">Security</span><span class="pmr-chevron">›</span>
           </button>
+          <button class="profile-menu-row" onclick="showTab('alerts')">
+            <span class="pmr-icon">🔔</span><span class="pmr-label">Search Alerts</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('invite')">
+            <span class="pmr-icon">🎁</span><span class="pmr-label">Invite Friends</span><span class="pmr-chevron">›</span>
+          </button>
           <a class="profile-menu-row" href="admin.html" id="admin-link" style="display:none">
             <span class="pmr-icon">🛠️</span><span class="pmr-label">Admin</span><span class="pmr-chevron">›</span>
           </a>
@@ -217,7 +223,8 @@
 
       <!-- ORDERS -->
       <div id="tab-orders" style="display:none">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+          <button class="btn-sm btn-toggle" onclick="exportMyOrdersCSV()">⬇️ Export CSV</button>
           <button class="btn-sm btn-toggle" onclick="showTab('orders-completed')">✅ Completed Orders</button>
         </div>
         <div id="orders-container"><p class="loading-msg">Loading orders... ⏳</p></div>
@@ -230,6 +237,9 @@
 
       <!-- MY LISTINGS -->
       <div id="tab-listings" style="display:none">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn-sm btn-toggle" onclick="exportMyListingsCSV()">⬇️ Export CSV</button>
+        </div>
         <div id="my-listings"><p class="loading-msg">Loading listings...</p></div>
       </div>
 
@@ -458,6 +468,28 @@
           <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f0f0f0">
             <button class="btn-sm btn-toggle" onclick="signOutEverywhere()">🔒 Sign out of all devices</button>
           </div>
+        </div>
+      </div>
+
+      <div id="tab-alerts" style="display:none">
+        <div class="form-card">
+          <h3 style="font-size:15px;font-weight:800;margin-bottom:4px">🔔 Search Alerts</h3>
+          <p style="font-size:12.5px;color:#888;font-weight:600;margin-bottom:14px">Alerts you've saved while browsing as a buyer show up here too.</p>
+          <div id="alerts-list"><p class="loading-msg">Loading alerts... ⏳</p></div>
+        </div>
+      </div>
+
+      <div id="tab-invite" style="display:none">
+        <div class="form-card" style="text-align:center">
+          <div style="font-size:38px;margin-bottom:8px">🎁</div>
+          <h3 style="font-size:17px;font-weight:900;margin-bottom:6px">Invite friends, get free selling days</h3>
+          <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:16px;line-height:1.5">Share your link — when a friend signs up and becomes a seller for the first time, you get <strong>7 bonus days</strong> added to your own plan automatically.</p>
+          <div style="display:flex;gap:8px;background:#f7f5fb;border-radius:12px;padding:10px 12px;margin-bottom:12px">
+            <input type="text" id="invite-link" readonly style="flex:1;border:none;background:none;font-size:12.5px;font-weight:700;color:#555;outline:none"/>
+            <button class="btn-sm btn-toggle" onclick="copyInviteLink()">Copy</button>
+          </div>
+          <button class="btn-primary" style="padding:12px 32px;border-radius:50px" onclick="shareInviteLink()">Share Invite Link 🔗</button>
+          <p id="referral-count-text" style="font-size:12px;color:#aaa;font-weight:700;margin-top:14px"></p>
         </div>
       </div>
       </div>
@@ -1644,6 +1676,65 @@
       setTimeout(()=>err.textContent='',3000);
     };
 
+    async function loadSearchAlerts(){
+      const box=document.getElementById('alerts-list');
+      const {data,error}=await supabase.from('search_alerts').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+      if(error||!data?.length){ box.innerHTML='<p class="loading-msg">No saved alerts yet — set these up from the browse page.</p>'; return; }
+      box.innerHTML=data.map(a=>{
+        const parts=[];
+        if(a.query) parts.push('"'+a.query+'"');
+        if(a.category) parts.push(a.category);
+        if(a.max_price) parts.push('under R'+a.max_price);
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5">'+
+          '<span style="font-size:13px;font-weight:700">🔔 '+(parts.join(' · ')||'Any new listing')+'</span>'+
+          '<button class="btn-sm btn-delete" onclick="deleteSearchAlert(\''+a.id+'\')">Remove</button>'+
+          '</div>';
+      }).join('');
+    }
+    window.deleteSearchAlert=async(id)=>{
+      await supabase.from('search_alerts').delete().eq('id',id);
+      loadSearchAlerts();
+    };
+
+    async function loadInviteTab(){
+      const link=location.origin+location.pathname.replace('seller.html','login.html')+'?ref='+currentUser.id;
+      document.getElementById('invite-link').value=link;
+      const {count}=await supabase.from('profiles').select('id',{count:'exact',head:true}).eq('referred_by',currentUser.id);
+      document.getElementById('referral-count-text').textContent=(count||0)+' friend'+(count===1?'':'s')+' joined using your link so far';
+    }
+    window.copyInviteLink=()=>{
+      const el=document.getElementById('invite-link');
+      el.select(); document.execCommand('copy');
+      alert('Link copied!');
+    };
+    window.shareInviteLink=async()=>{
+      const link=document.getElementById('invite-link').value;
+      const text='Join me on Student Marketplace — buy & sell with fellow students 🎓';
+      if(navigator.share){ try{ await navigator.share({title:'Student Marketplace',text,url:link}); }catch(e){} }
+      else { window.copyInviteLink(); }
+    };
+
+    function toCSV(rows,headers){
+      const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+      return headers.map(esc).join(',')+'\n'+rows.map(r=>headers.map(h=>esc(r[h])).join(',')).join('\n');
+    }
+    function downloadCSV(content,filename){
+      const blob=new Blob([content],{type:'text/csv'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    window.exportMyListingsCSV=async()=>{
+      const {data}=await supabase.from('listings').select('id,title,category,price,quantity,condition,is_available,is_sold,created_at').eq('seller_id',currentUser.id);
+      if(!data?.length){ alert('No listings to export yet.'); return; }
+      downloadCSV(toCSV(data,['id','title','category','price','quantity','condition','is_available','is_sold','created_at']),'my-listings.csv');
+    };
+    window.exportMyOrdersCSV=async()=>{
+      const {data}=await supabase.from('orders').select('id,listing_id,buyer_name,buyer_whatsapp,quantity,status,created_at').eq('seller_id',currentUser.id);
+      if(!data?.length){ alert('No orders to export yet.'); return; }
+      downloadCSV(toCSV(data,['id','listing_id','buyer_name','buyer_whatsapp','quantity','status','created_at']),'my-orders.csv');
+    };
+
     let pendingMfaFactorId=null;
     async function refreshMfaStatus(){
       const {data} = await supabase.auth.mfa.listFactors();
@@ -1853,13 +1944,15 @@
     window.showTab = (tab) => {
       document.getElementById('dashboard-menu').style.display='none';
       document.getElementById('dashboard-detail').style.display='block';
-      ['orders','orders-completed','listings','add','store','profile','security'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
+      ['orders','orders-completed','listings','add','store','profile','security','alerts','invite'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
       if (tab==='listings') loadMyListings();
       if (tab==='orders') loadOrders();
       if (tab==='orders-completed') loadCompletedOrders();
       if (tab==='store') loadStoreTab();
       if (tab==='add') refreshPlanUsage();
       if (tab==='security') refreshPushStatus();
+      if (tab==='alerts') loadSearchAlerts();
+      if (tab==='invite') loadInviteTab();
     };
     window.closeTab = () => {
       document.getElementById('dashboard-detail').style.display='none';

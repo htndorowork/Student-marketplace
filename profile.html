@@ -73,6 +73,12 @@
           <button class="profile-menu-row" onclick="showTab('security')">
             <span class="pmr-icon">🔐</span><span class="pmr-label">Security</span><span class="pmr-chevron">›</span>
           </button>
+          <button class="profile-menu-row" onclick="showTab('alerts')">
+            <span class="pmr-icon">🔔</span><span class="pmr-label">Search Alerts</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('invite')">
+            <span class="pmr-icon">🎁</span><span class="pmr-label">Invite Friends</span><span class="pmr-chevron">›</span>
+          </button>
         </div>
 
         <div class="profile-section-label">Support</div>
@@ -155,6 +161,28 @@
             </div>
           </div>
         </div>
+
+        <div id="tab-alerts" style="display:none">
+          <div class="form-card">
+            <h3 style="font-size:15px;font-weight:800;margin-bottom:4px">🔔 Search Alerts</h3>
+            <p style="font-size:12.5px;color:#888;font-weight:600;margin-bottom:14px">Set these up from the "No listings match" screen while browsing — we'll notify you the moment something matching goes live.</p>
+            <div id="alerts-list"><p class="loading-msg">Loading alerts... ⏳</p></div>
+          </div>
+        </div>
+
+        <div id="tab-invite" style="display:none">
+          <div class="form-card" style="text-align:center">
+            <div style="font-size:38px;margin-bottom:8px">🎁</div>
+            <h3 style="font-size:17px;font-weight:900;margin-bottom:6px">Invite friends, get free selling days</h3>
+            <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:16px;line-height:1.5">Share your link — when a friend signs up and becomes a seller for the first time, you get <strong>7 bonus days</strong> added to your own seller plan automatically.</p>
+            <div style="display:flex;gap:8px;background:#f7f5fb;border-radius:12px;padding:10px 12px;margin-bottom:12px">
+              <input type="text" id="invite-link" readonly style="flex:1;border:none;background:none;font-size:12.5px;font-weight:700;color:#555;outline:none"/>
+              <button class="btn-sm btn-toggle" onclick="copyInviteLink()">Copy</button>
+            </div>
+            <button class="btn-primary" style="padding:12px 32px;border-radius:50px" onclick="shareInviteLink()">Share Invite Link 🔗</button>
+            <p id="referral-count-text" style="font-size:12px;color:#aaa;font-weight:700;margin-top:14px"></p>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -179,9 +207,11 @@
     function showTab(t){
       document.getElementById('profile-menu').style.display='none';
       document.getElementById('profile-detail').style.display='block';
-      ['orders','favorites','edit','security'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'block':'none');
+      ['orders','favorites','edit','security','alerts','invite'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'block':'none');
       if(t==='favorites')window._loadFavorites();
       if(t==='security')refreshPushStatus();
+      if(t==='alerts')loadSearchAlerts();
+      if(t==='invite')loadInviteTab();
     }
     function closeTab(){
       document.getElementById('profile-detail').style.display='none';
@@ -459,6 +489,44 @@
       err.style.color='#2e7d32';err.textContent='✅ Password updated!';
       document.getElementById('pw-new').value='';document.getElementById('pw-confirm').value='';
       setTimeout(()=>err.textContent='',3000);
+    };
+
+    async function loadSearchAlerts(){
+      const box=document.getElementById('alerts-list');
+      const {data,error}=await supabase.from('search_alerts').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+      if(error||!data?.length){ box.innerHTML='<p class="loading-msg">No saved alerts yet.</p>'; return; }
+      box.innerHTML=data.map(a=>{
+        const parts=[];
+        if(a.query) parts.push('"'+a.query+'"');
+        if(a.category) parts.push(a.category);
+        if(a.max_price) parts.push('under R'+a.max_price);
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5">'+
+          '<span style="font-size:13px;font-weight:700">🔔 '+(parts.join(' · ')||'Any new listing')+'</span>'+
+          '<button class="btn-sm btn-delete" onclick="deleteSearchAlert(\''+a.id+'\')">Remove</button>'+
+          '</div>';
+      }).join('');
+    }
+    window.deleteSearchAlert=async(id)=>{
+      await supabase.from('search_alerts').delete().eq('id',id);
+      loadSearchAlerts();
+    };
+
+    async function loadInviteTab(){
+      const link=location.origin+location.pathname.replace('profile.html','login.html')+'?ref='+currentUser.id;
+      document.getElementById('invite-link').value=link;
+      const {count}=await supabase.from('profiles').select('id',{count:'exact',head:true}).eq('referred_by',currentUser.id);
+      document.getElementById('referral-count-text').textContent=(count||0)+' friend'+(count===1?'':'s')+' joined using your link so far';
+    }
+    window.copyInviteLink=()=>{
+      const el=document.getElementById('invite-link');
+      el.select(); document.execCommand('copy');
+      alert('Link copied!');
+    };
+    window.shareInviteLink=async()=>{
+      const link=document.getElementById('invite-link').value;
+      const text='Join me on Student Marketplace — buy & sell with fellow students 🎓';
+      if(navigator.share){ try{ await navigator.share({title:'Student Marketplace',text,url:link}); }catch(e){} }
+      else { window.copyInviteLink(); }
     };
 
     window.requestAccountDeletion=async()=>{

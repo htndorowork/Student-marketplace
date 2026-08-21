@@ -57,6 +57,7 @@
       <div id="signup-form" style="display:none">
         <h2 class="auth-title">Join Student Marketplace! 🎉</h2>
         <p class="auth-sub">Create your free account</p>
+        <p id="invite-banner" style="display:none;background:#f5f0fe;color:#5b21b6;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:12px;margin-bottom:10px">🎁 You were invited by a friend!</p>
         <div class="form-group"><label>I want to</label>
           <div class="role-selector">
             <button class="role-btn active" id="role-buyer" onclick="selectRole('buyer')">🛍️ Buy</button>
@@ -131,6 +132,10 @@
       document.getElementById('signup-form').style.display=t==='signup'?'block':'none';
       document.getElementById('tab-login').classList.toggle('active',t==='login');
       document.getElementById('tab-signup').classList.toggle('active',t==='signup');
+    }
+    if(new URLSearchParams(location.search).get('ref')){
+      showTab('signup');
+      document.getElementById('invite-banner').style.display='block';
     }
     function selectRole(r){
       selectedRole=r;
@@ -597,7 +602,8 @@
           return;
         }
       }
-      const {data,error}=await supabase.auth.signUp({email,password});
+      const refCode=new URLSearchParams(location.search).get('ref');
+      const {data,error}=await supabase.auth.signUp({email,password,options:refCode?{data:{ref:refCode}}:undefined});
       if(error){err.textContent='❌ '+error.message;return;}
       if(data.user){
         const payload={id:data.user.id,full_name:name,whatsapp:wa,residence:res||null,role};

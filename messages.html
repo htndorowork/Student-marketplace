@@ -50,8 +50,9 @@
   <div class="msg-wrap" id="msg-wrap">
     <div class="thread-list" id="thread-list"><p class="loading-msg">Loading conversations... ⏳</p></div>
     <div class="chat-panel" id="chat-panel">
-      <div class="chat-header"><button class="chat-back-btn" onclick="closeThread()" aria-label="Back to conversations">←</button><span id="chat-header-text">Select a conversation</span></div>
+      <div class="chat-header"><button class="chat-back-btn" onclick="closeThread()" aria-label="Back to conversations">←</button><span id="chat-header-text" style="flex:1">Select a conversation</span><button id="block-btn" onclick="toggleBlockThread()" style="display:none;background:none;border:none;cursor:pointer;font-size:12px;font-weight:800;color:#dc2626;font-family:inherit"></button></div>
       <div class="chat-messages" id="chat-messages"><p class="loading-msg" style="margin:auto">Pick a conversation on the left, or message a seller from a listing 💬</p></div>
+      <p id="blocked-notice" style="display:none;text-align:center;font-size:12.5px;color:#aaa;font-weight:700;padding:10px">🚫 You've blocked this user — unblock them to send a message.</p>
       <div class="chat-input-row" id="chat-input-row" style="display:none">
         <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMessage()"/>
         <button onclick="sendMessage()">Send</button>
@@ -63,11 +64,16 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
-    let currentUser=null, activeThread=null, pollTimer=null;
+    let currentUser=null, activeThread=null, pollTimer=null, blockedIds=new Set();
 
     const {data:{user}} = await supabase.auth.getUser();
     if(!user){ window.location.href='login.html'; }
     currentUser=user;
+
+    async function loadBlockedUsers(){
+      const {data} = await supabase.from('blocked_users').select('blocked_id').eq('blocker_id',user.id);
+      blockedIds = new Set((data||[]).map(b=>b.blocked_id));
+    }
 
     async function loadThreads(){
       const {data} = await supabase.from('messages').select('*,listings(title)').or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).order('created_at',{ascending:false});
@@ -111,11 +117,35 @@
       document.querySelector('.thread-item[data-idx="'+idx+'"]')?.classList.add('active');
       const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
       document.getElementById('chat-header-text').textContent = (window._names[counterpartId]||'User')+(t.listingTitle?' · '+t.listingTitle:'');
-      document.getElementById('chat-input-row').style.display='flex';
+      updateBlockUI(counterpartId);
       renderMessages();
       // Mark unread as read
       const unreadIds = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).map(m=>m.id);
       if(unreadIds.length) await supabase.from('messages').update({is_read:true}).in('id',unreadIds);
+    };
+
+    function updateBlockUI(counterpartId){
+      const isBlocked = blockedIds.has(counterpartId);
+      const btn = document.getElementById('block-btn');
+      btn.style.display = 'inline-block';
+      btn.textContent = isBlocked ? '✅ Unblock' : '🚫 Block';
+      document.getElementById('chat-input-row').style.display = isBlocked ? 'none' : 'flex';
+      document.getElementById('blocked-notice').style.display = isBlocked ? 'block' : 'none';
+    }
+
+    window.toggleBlockThread = async () => {
+      if(!activeThread) return;
+      const counterpartId = activeThread.buyer_id===user.id?activeThread.seller_id:activeThread.buyer_id;
+      if(blockedIds.has(counterpartId)){
+        if(!confirm('Unblock this user? They\'ll be able to message you again.')) return;
+        await supabase.from('blocked_users').delete().eq('blocker_id',user.id).eq('blocked_id',counterpartId);
+        blockedIds.delete(counterpartId);
+      } else {
+        if(!confirm('Block this user? They won\'t be able to message you anymore, and you won\'t see new messages from them.')) return;
+        await supabase.from('blocked_users').insert({blocker_id:user.id, blocked_id:counterpartId});
+        blockedIds.add(counterpartId);
+      }
+      updateBlockUI(counterpartId);
     };
 
     window.closeThread = () => {
@@ -156,11 +186,12 @@
       activeThread = { buyer_id:user.id, seller_id:toSeller, listing_id:listingId||null, messages:[] };
       document.getElementById('msg-wrap').classList.add('chat-open');
       document.getElementById('chat-header-text').textContent = sellerProfile?.store_name||sellerProfile?.full_name||'Seller';
-      document.getElementById('chat-input-row').style.display='flex';
       document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
     }
 
+    await loadBlockedUsers();
     await loadThreads();
+    if (toSeller) updateBlockUI(toSeller);
     // If we started a thread via URL params and it already exists, open the matching one instead of a blank one
     if (toSeller) {
       const idx = (window._threads||[]).findIndex(t=>t.seller_id===toSeller && t.buyer_id===user.id && (t.listing_id||null)===(listingId||null));
