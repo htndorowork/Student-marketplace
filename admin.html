@@ -5,13 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin — Student Marketplace</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+    <meta name="description" content="🎓 Your campus. Your marketplace. Buy & sell textbooks, electronics, clothing & more with fellow students — fast, easy & safe 🤝"/>
     <meta property="og:title" content="Admin — Student Marketplace"/>
-  <meta property="og:description" content="Buy and sell with fellow students — textbooks, electronics, clothing, and more."/>
+  <meta property="og:description" content="🎓 Your campus. Your marketplace. Buy & sell textbooks, electronics, clothing & more with fellow students — fast, easy & safe 🤝"/>
   <meta property="og:type" content="website"/>
+  <meta property="og:image" content="https://www.mystudentmarketplace.com/assets/og-image.png"/>
   <meta name="twitter:card" content="summary"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#7c3aed"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -347,13 +352,15 @@
         if(s.is_blocked) reason='<span style="color:#9333ea;font-weight:700">🚫 Blocked by admin</span>';
         else if(!s.subscription_paid_until) reason='<span style="color:#9333ea;font-weight:700">⚠️ No subscription on file</span>';
         else reason='<span style="color:#9333ea;font-weight:700">⏰ Expired '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</span>';
-        return '<div class="seller-row">'+
+        return '<div class="seller-row" style="flex-wrap:wrap">'+
           '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
           '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
           '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
           '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();togglePlanPicker(\''+s.id+'\')">💳 Grant a plan <span id="chevron-'+s.id+'">▾</span></button>'+
+          '<div id="plan-picker-'+s.id+'" style="display:none;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid #f5f5f5;flex-wrap:wrap;gap:8px">'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'flash\')">✅ Flash 48h (R19, 1 listing)</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'quicklister\')">✅ Quick Lister 7d (R39, 3)</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'casual\')">✅ Casual 1mo (R89, 5)</button>'+
@@ -361,9 +368,17 @@
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'power\')">✅ Power 1mo (R249, ∞)</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'quarter\')">✅ Quarter 3mo (R399, 15)</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'semester\')">✅ Semester 6mo (R699, ∞)</button>'+
+          '</div>'+
           '</div>';
       }).join('');
     }
+    window.togglePlanPicker=(id)=>{
+      const box=document.getElementById('plan-picker-'+id);
+      const chevron=document.getElementById('chevron-'+id);
+      const open=box.style.display==='flex';
+      box.style.display=open?'none':'flex';
+      chevron.textContent=open?'▾':'▴';
+    };
 
     async function logAction(action,targetId,details){
       try{ await supabase.from('admin_audit_log').insert({admin_id:currentAdminId,action,target_id:targetId,details}); }catch(e){}
