@@ -84,6 +84,9 @@
           <button class="profile-menu-row" onclick="showTab('invite')">
             <span class="pmr-icon">🎁</span><span class="pmr-label">Invite Friends</span><span class="pmr-chevron">›</span>
           </button>
+          <div class="profile-menu-row" id="install-app-row" style="display:none">
+            <span class="pmr-icon">📲</span><span class="pmr-label" id="install-app-label">Install App</span><span class="pmr-chevron">›</span>
+          </div>
         </div>
 
         <div class="profile-section-label">Support</div>
@@ -481,6 +484,55 @@
       btn.disabled=false;
       refreshPushStatus();
     };
+
+        let deferredInstallPrompt=null;
+    window.addEventListener('beforeinstallprompt',(e)=>{
+      e.preventDefault();
+      deferredInstallPrompt=e;
+      refreshInstallUI();
+    });
+    window.addEventListener('appinstalled',()=>{ deferredInstallPrompt=null; refreshInstallUI(); });
+
+    function isStandalone(){
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+    }
+    function isIOS(){
+      return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    }
+    function refreshInstallUI(){
+      const row=document.getElementById('install-app-row');
+      const label=document.getElementById('install-app-label');
+      if(!row) return;
+      if(isStandalone()){
+        row.style.display='flex';
+        label.textContent='✅ App installed';
+        row.onclick=null;
+        row.style.cursor='default';
+      } else if(deferredInstallPrompt){
+        row.style.display='flex';
+        label.textContent='📲 Install App';
+        row.onclick=installApp;
+        row.style.cursor='pointer';
+      } else if(isIOS()){
+        row.style.display='flex';
+        label.textContent='📲 Install App';
+        row.onclick=showIOSInstallHelp;
+        row.style.cursor='pointer';
+      } else {
+        row.style.display='none';
+      }
+    }
+    window.installApp=async()=>{
+      if(!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt=null;
+      refreshInstallUI();
+    };
+    window.showIOSInstallHelp=()=>{
+      alert('To install: tap the Share icon in Safari (square with an arrow), then "Add to Home Screen".');
+    };
+    refreshInstallUI();
 
     window.changePassword=async()=>{
       const pw=document.getElementById('pw-new').value;

@@ -21,7 +21,6 @@ button { -webkit-appearance: none; appearance: none; font-family: inherit; }
   padding: 48px 24px 44px;
   text-align: center;
   position: relative;
-  overflow: hidden;
 }
 /* To use a real campus photo instead of the gradient above, add this as the FIRST
    layer in the background list (before the two gradients), then set background-size: cover:

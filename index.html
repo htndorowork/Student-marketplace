@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    // Registered as early as possible so we don't miss the browser's install-availability event
+    window._deferredInstallPrompt=null;
+    window.addEventListener('beforeinstallprompt',(e)=>{
+      e.preventDefault();
+      window._deferredInstallPrompt=e;
+      window._onInstallPromptReady && window._onInstallPromptReady();
+    });
+  </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student Marketplace 🎓</title>
@@ -37,6 +46,12 @@
     </div>
     <div class="nav-cart" onclick="openCart()" title="Cart">🛒<span class="cart-badge" id="cart-badge" style="display:none">0</span></div>
   </nav>
+
+  <div id="install-banner" style="display:none;background:#7c3aed;color:#fff;padding:10px 16px;align-items:center;justify-content:center;gap:12px;font-size:13px;font-weight:800;text-align:center">
+    <span>📲 Install Student Marketplace for quick access &amp; notifications</span>
+    <button onclick="installApp()" style="background:#fff;color:#7c3aed;border:none;padding:6px 16px;border-radius:50px;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit">Install</button>
+    <button onclick="document.getElementById('install-banner').style.display='none';localStorage.setItem('sm_install_dismissed','1')" style="background:none;border:none;color:#e8ddfa;font-size:18px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+  </div>
 
   <section class="hero">
     <div class="hero-dots"></div>
@@ -273,6 +288,23 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
+
+    function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true; }
+    function showInstallBanner(){
+      if(isStandalone()) return;
+      if(localStorage.getItem('sm_install_dismissed')==='1') return;
+      if(!window._deferredInstallPrompt) return;
+      document.getElementById('install-banner').style.display='flex';
+    }
+    window._onInstallPromptReady=showInstallBanner;
+    showInstallBanner();
+    window.installApp=async()=>{
+      if(!window._deferredInstallPrompt) return;
+      window._deferredInstallPrompt.prompt();
+      await window._deferredInstallPrompt.userChoice;
+      window._deferredInstallPrompt=null;
+      document.getElementById('install-banner').style.display='none';
+    };
 
     const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Others:'🔀'};
     const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'},Utensils:{bg:'#fff3e0',text:'#e65100'},Jewellery:{bg:'#fdf0e6',text:'#a0522d'},Bags:{bg:'#ede7f6',text:'#5e35b1'},Toys:{bg:'#e3f2fd',text:'#1565c0'},Pets:{bg:'#f1f8e9',text:'#558b2f'},Tools:{bg:'#eceff1',text:'#37474f'},Snacks:{bg:'#fff8e1',text:'#f9a825'},Sports:{bg:'#e8f5e9',text:'#1b5e20'},Books:{bg:'#efebe9',text:'#4e342e'},Music:{bg:'#f3e5f5',text:'#6a1b9a'},Cameras:{bg:'#eceff1',text:'#263238'},Events:{bg:'#fce4ec',text:'#d81b60'},Plants:{bg:'#e8f5e9',text:'#33691e'},Decor:{bg:'#fff3e0',text:'#bf360c'},Baby:{bg:'#e1f5fe',text:'#0277bd'},Data:{bg:'#e8eaf6',text:'#283593'},Health:{bg:'#ffebee',text:'#c62828'},Career:{bg:'#e0f2f1',text:'#00695c'}};
