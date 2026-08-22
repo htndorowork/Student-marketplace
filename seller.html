@@ -205,9 +205,6 @@
           <button class="profile-menu-row" onclick="showTab('invite')">
             <span class="pmr-icon">🎁</span><span class="pmr-label">Invite Friends</span><span class="pmr-chevron">›</span>
           </button>
-          <div class="profile-menu-row" id="install-app-row" style="display:none">
-            <span class="pmr-icon">📲</span><span class="pmr-label" id="install-app-label">Install App</span><span class="pmr-chevron">›</span>
-          </div>
           <a class="profile-menu-row" href="admin.html" id="admin-link" style="display:none">
             <span class="pmr-icon">🛠️</span><span class="pmr-label">Admin</span><span class="pmr-chevron">›</span>
           </a>
@@ -218,6 +215,9 @@
           <a class="profile-menu-row" href="faq.html"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
           <a class="profile-menu-row" href="https://wa.me/27694520629" target="_blank" rel="noopener"><span class="pmr-icon">📱</span><span class="pmr-label">WhatsApp Support</span><span class="pmr-chevron">›</span></a>
           <a class="profile-menu-row" href="mailto:studentmarketplacehelp@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
+          <div class="profile-menu-row" id="install-app-row" style="display:none">
+            <span class="pmr-icon">📲</span><span class="pmr-label" id="install-app-label">Install App</span><span class="pmr-chevron">›</span>
+          </div>
         </div>
 
         <button class="profile-logout-btn" id="dashboard-logout-btn">🚪 Sign out</button>
@@ -1527,6 +1527,7 @@
     function resetAddForm(){
       editingListingId = null;
       document.getElementById('add-form-heading').textContent='Add New Listing';
+      document.getElementById('btn-post').textContent='Post Listing 🚀';
       document.getElementById('btn-post').style.display='inline-block';
       document.getElementById('btn-draft').style.display='inline-block';
       document.getElementById('btn-cancel-edit').style.display='none';
@@ -1549,7 +1550,8 @@
       if(!l) return;
       editingListingId = id;
       document.getElementById('add-form-heading').textContent='Edit Listing ✏️';
-      document.getElementById('btn-post').style.display='none';
+      document.getElementById('btn-post').textContent='Save Changes ✅';
+      document.getElementById('btn-post').style.display='inline-block';
       document.getElementById('btn-draft').style.display='none';
       document.getElementById('btn-cancel-edit').style.display='inline-block';
       document.getElementById('f-title').value = l.title||'';
