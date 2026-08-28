@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    // Registered as early as possible so we don't miss the browser's install-availability event
+    window._deferredInstallPrompt=null;
+    window.addEventListener('beforeinstallprompt',(e)=>{
+      e.preventDefault();
+      window._deferredInstallPrompt=e;
+      window._onInstallPromptReady && window._onInstallPromptReady();
+    });
+  </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Seller Dashboard — Student Marketplace</title>
@@ -39,6 +48,8 @@
     .qty-row-sm{display:flex;align-items:center;gap:8px}
     .qty-btn-sm{background:#f0f0f0;border:none;border-radius:50%;width:28px;height:28px;font-size:15px;cursor:pointer;font-weight:800;display:flex;align-items:center;justify-content:center}
     .qty-num-sm{font-size:15px;font-weight:800;min-width:28px;text-align:center}
+    .plan-card{transition:border-color .15s,box-shadow .15s}
+    .plan-card-pressed{border-color:#7c3aed !important;box-shadow:0 0 0 3px rgba(124,58,237,0.18)}
   </style>
 </head>
 <body>
@@ -520,6 +531,7 @@
 
     // PayFast credentials live ONLY in Supabase Edge Function secrets (payfast-checkout / payfast-itn).
     // Do not put merchant_key or passphrase in this file.
+    // Function source: MSpayfast/supabase/functions/ (own Supabase project — see MSpayfast/README.md).
 
     function isValidSAPhone(raw){
       const v=(raw||'').replace(/[\s-]/g,'');
@@ -1194,6 +1206,10 @@
       const errEl = document.getElementById('payfast-error');
       errEl.style.display='none';
       if (!VALID_PLAN_KEYS.includes(planKey)) return;
+      // Visible pressed state so tapping a plan gives immediate feedback,
+      // instead of the card looking identical whether or not the tap registered.
+      document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('plan-card-pressed'));
+      document.getElementById('plan-'+planKey)?.classList.add('plan-card-pressed');
       if (!currentUser) {
         errEl.style.display='block';
         errEl.textContent='Please sign in first.';
@@ -1328,7 +1344,7 @@
           catch(compressErr) { uploadFile = file; }
           slot.innerHTML = '<div style="font-size:12px;font-weight:700;color:#7c3aed;text-align:center">Uploading...</div>';
           const fname = currentUser.id+'/'+n+'-'+Date.now()+'.jpg';
-          const {error} = await supabase.storage.from('listing-images').upload(fname,uploadFile);
+          const {error} = await supabase.storage.from('listing-images').upload(fname,uploadFile,{cacheControl:'31536000',upsert:false}); // 1yr cache: filenames are timestamp-unique, so content never changes under a given name
           if (error) { err.textContent='❌ '+error.message; err.style.display='block'; slot.innerHTML='<div style="font-size:24px">📸</div><div style="font-size:11px;font-weight:700;color:#aaa">Photo '+n+'</div><button class="slot-remove" id="sr-'+n+'" onclick="window.removeImg(event,'+n+')">✕</button>'; return; }
           const {data:u} = supabase.storage.from('listing-images').getPublicUrl(fname);
           imgs[n] = u.publicUrl;
@@ -1603,7 +1619,7 @@
       window.location.href='login.html';
     };
 
-        const VAPID_PUBLIC_KEY = 'BMCQB-SziCpFZpfJ7VLwT4HmcXmqYs8JJ-t03A7Ra8MXsXeFmhIYGUIml5mZbNM2Ezzas1ZWl_k3qCA9gQR4YfY';
+        const VAPID_PUBLIC_KEY = 'BDvktNvWGYfxpJ4jb1-8ojDvwXInMXh3eCFV2eu_shidcoZPULEslK8qPbF3UMf-R-q3rSUsnFVPs-o_JprEpfU';
     function urlBase64ToUint8Array(base64String){
       const padding='='.repeat((4-base64String.length%4)%4);
       const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
@@ -1672,13 +1688,9 @@
       refreshPushStatus();
     };
 
-        let deferredInstallPrompt=null;
-    window.addEventListener('beforeinstallprompt',(e)=>{
-      e.preventDefault();
-      deferredInstallPrompt=e;
-      refreshInstallUI();
-    });
-    window.addEventListener('appinstalled',()=>{ deferredInstallPrompt=null; refreshInstallUI(); });
+        window._deferredInstallPrompt = window._deferredInstallPrompt || null;
+    window._onInstallPromptReady = refreshInstallUI;
+    window.addEventListener('appinstalled',()=>{ window._deferredInstallPrompt=null; refreshInstallUI(); });
 
     function isStandalone(){
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
@@ -1690,36 +1702,41 @@
       const row=document.getElementById('install-app-row');
       const label=document.getElementById('install-app-label');
       if(!row) return;
+      row.style.display='flex';
+      row.style.cursor='pointer';
       if(isStandalone()){
-        row.style.display='flex';
         label.textContent='✅ App installed';
         row.onclick=null;
         row.style.cursor='default';
-      } else if(deferredInstallPrompt){
-        row.style.display='flex';
+      } else if(window._deferredInstallPrompt){
         label.textContent='📲 Install App';
         row.onclick=installApp;
-        row.style.cursor='pointer';
       } else if(isIOS()){
-        row.style.display='flex';
         label.textContent='📲 Install App';
         row.onclick=showIOSInstallHelp;
-        row.style.cursor='pointer';
       } else {
-        row.style.display='none';
+        // The browser's native install prompt wasn't captured on this specific
+        // page load — still show the row with manual instructions instead of
+        // hiding it, since the app may still be installable.
+        label.textContent='📲 Install App';
+        row.onclick=showManualInstallHelp;
       }
     }
     window.installApp=async()=>{
-      if(!deferredInstallPrompt) return;
-      deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt=null;
+      if(!window._deferredInstallPrompt) return showManualInstallHelp();
+      window._deferredInstallPrompt.prompt();
+      await window._deferredInstallPrompt.userChoice;
+      window._deferredInstallPrompt=null;
       refreshInstallUI();
     };
     window.showIOSInstallHelp=()=>{
       alert('To install: tap the Share icon in Safari (square with an arrow), then "Add to Home Screen".');
     };
+    window.showManualInstallHelp=()=>{
+      alert('To install: open your browser menu (⋮ or ...) and choose "Install app" or "Add to Home Screen". If you don\'t see that option, try reloading this page first.');
+    };
     refreshInstallUI();
+
 
     window.changePassword=async()=>{
       const pw=document.getElementById('pw-new').value;
@@ -2032,7 +2049,7 @@
       catch(compressErr) { uploadFile = file; }
       slot.innerHTML = '<div style="font-size:12px;font-weight:700;color:#7c3aed;text-align:center">Uploading...</div>';
       const fname = currentUser.id+'/store-'+Date.now()+'.jpg';
-      const {error} = await supabase.storage.from('listing-images').upload(fname,uploadFile);
+      const {error} = await supabase.storage.from('listing-images').upload(fname,uploadFile,{cacheControl:'31536000',upsert:false}); // 1yr cache: filenames are timestamp-unique, so content never changes under a given name
       if (error) { err.textContent='❌ '+error.message; renderStoreLogoSlot(); return; }
       const {data:u} = supabase.storage.from('listing-images').getPublicUrl(fname);
       storeLogoUrl = u.publicUrl;

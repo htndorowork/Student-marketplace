@@ -24,14 +24,18 @@ supabase functions deploy send-push --no-verify-jwt --project-ref kqsqtasykdtpdr
 ## 3. Set the function's secrets
 ```bash
 supabase secrets set \
-  VAPID_PUBLIC_KEY=BMCQB-SziCpFZpfJ7VLwT4HmcXmqYs8JJ-t03A7Ra8MXsXeFmhIYGUIml5mZbNM2Ezzas1ZWl_k3qCA9gQR4YfY \
-  VAPID_PRIVATE_KEY=KN55JXLksD0ouQmEG6bhNuJiVgNJk0MWulBA4o79e6E \
+  VAPID_PUBLIC_KEY=BDvktNvWGYfxpJ4jb1-8ojDvwXInMXh3eCFV2eu_shidcoZPULEslK8qPbF3UMf-R-q3rSUsnFVPs-o_JprEpfU \
+  VAPID_PRIVATE_KEY=u8ehMy6IE6P4l6OAIp7F2OVOM8SlXOeujyPJBIfD-Cg \
   VAPID_SUBJECT=mailto:studentmarketplacehelp@gmail.com \
   PUSH_SHARED_SECRET=<the same string you used in the SQL file> \
   --project-ref kqsqtasykdtpdrkqyaxp
 ```
 
-The VAPID key pair above was generated for you and is ready to use as-is.
+This is a brand-new, unique key pair generated specifically for this project
+(the previous key pair was a shared/template value and has been replaced
+everywhere — frontend and these instructions both updated together, so there's
+no mismatch between what the browser sends and what the edge function signs
+with).
 **The private key must never appear in any HTML file** — it only goes in
 this secrets command, never in the frontend. The public key is already
 embedded in the frontend (`index.html`, `seller.html`, `profile.html`)

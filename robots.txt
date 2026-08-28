@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /messages.html
+Disallow: /profile.html
+Disallow: /favorites.html
+Disallow: /receipt.html
+Disallow: /payment-return.html
+Disallow: /payment-cancel.html
+
+Sitemap: https://www.mystudentmarketplace.com/sitemap.xml

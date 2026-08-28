@@ -21,6 +21,14 @@ supabase secrets set \
 Set `PAYFAST_SANDBOX=false` for live.
 
 ## 3. Deploy edge functions
+Source for both functions now lives in its own top-level **`MSpayfast/`** folder,
+structured as its own Supabase project (`MSpayfast/supabase/functions/...`) —
+see `MSpayfast/README.md`. Deploy straight from inside it:
+
+```bash
+cd MSpayfast
+```
+
 ```bash
 supabase functions deploy payfast-checkout --project-ref kqsqtasykdtpdrkqyaxp
 supabase functions deploy payfast-itn --no-verify-jwt --project-ref kqsqtasykdtpdrkqyaxp

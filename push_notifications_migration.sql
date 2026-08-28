@@ -46,19 +46,30 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  PERFORM net.http_post(
-    url := 'https://YOUR_PROJECT.supabase.co/functions/v1/send-push',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'x-push-secret', 'PUSH_SHARED_SECRET'
-    ),
-    body := jsonb_build_object(
-      'user_id', NEW.user_id,
-      'title', 'Student Marketplace',
-      'body', NEW.message,
-      'listing_id', NEW.listing_id
-    )
-  );
+  -- A push notification is a nice-to-have, not something that should ever be
+  -- able to break the action that triggered it. Previously, if the pg_net
+  -- extension wasn't enabled (or any other push-sending error occurred),
+  -- the "schema net does not exist" error propagated all the way up through
+  -- notify_order_status -> this trigger, rolling back the entire order/
+  -- message/etc. insert that caused it. Wrapping in BEGIN/EXCEPTION means a
+  -- push failure is logged and swallowed instead of failing checkout.
+  BEGIN
+    PERFORM net.http_post(
+      url := 'https://YOUR_PROJECT.supabase.co/functions/v1/send-push',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-push-secret', 'PUSH_SHARED_SECRET'
+      ),
+      body := jsonb_build_object(
+        'user_id', NEW.user_id,
+        'title', 'Student Marketplace',
+        'body', NEW.message,
+        'listing_id', NEW.listing_id
+      )
+    );
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'push notification send failed (notification id %): %', NEW.id, SQLERRM;
+  END;
   RETURN NEW;
 END;
 $$;

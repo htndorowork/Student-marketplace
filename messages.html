@@ -201,7 +201,35 @@
       if (idx>-1) window.openThread(idx);
     }
 
-    pollTimer = setInterval(loadThreads, 10000);
+    // Realtime instead of polling: at scale, every open messages.html tab
+    // polling every 10s multiplies DB load across all concurrent users for
+    // no reason — a push-based subscription only does work when a message
+    // actually arrives. Two channels: new messages involving me (insert
+    // events), and my own blocked_users list (so a block/unblock from
+    // another tab/device stays in sync too).
+    supabase
+      .channel('messages-for-'+user.id)
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'buyer_id=eq.'+user.id},handleIncomingMessage)
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'seller_id=eq.'+user.id},handleIncomingMessage)
+      .subscribe();
+
+    function handleIncomingMessage(payload){
+      const m = payload.new;
+      // If it's the currently-open thread, append it live without a full reload.
+      if(activeThread && m.buyer_id===activeThread.buyer_id && m.seller_id===activeThread.seller_id && (m.listing_id||null)===(activeThread.listing_id||null)){
+        activeThread.messages.unshift(m);
+        renderMessages();
+        if(m.sender_id!==user.id) supabase.from('messages').update({is_read:true}).eq('id',m.id);
+      }
+      // Refresh the thread list either way, to update previews/unread counts.
+      loadThreads();
+    }
+
+    // Lightweight fallback: if the Realtime connection ever drops silently
+    // (flaky network, tab backgrounded), this safety-net poll is much
+    // slower than the old one (60s vs 10s) since it's only a backstop, not
+    // the primary delivery mechanism anymore.
+    pollTimer = setInterval(loadThreads, 60000);
   </script>
   <nav class="bottom-nav">
     <a class="bottom-nav-item" href="index.html"><span class="bottom-nav-icon">🔍</span><span class="bottom-nav-label">Browse</span></a>
