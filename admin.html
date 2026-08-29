@@ -61,6 +61,21 @@
           <div id="paywall-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
         </div>
 
+        <!-- FREE MODE CONTROL -->
+        <div class="form-card" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:16px;font-weight:800;margin-bottom:4px">🎁 Free Mode</div>
+              <div style="font-size:13px;color:#888;font-weight:600">Temporary — while PayFast is being sorted out. When ON, ALL sellers can post without paying, regardless of subscription status. Turn OFF once PayFast is working again to go back to requiring a paid plan.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="freemode-toggle" onchange="toggleFreeMode(this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div id="freemode-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
+        </div>
+
         <div class="profile-section-label">Marketplace</div>
         <div class="profile-menu-card">
           <button class="profile-menu-row" onclick="showTab('listings')">
@@ -171,12 +186,24 @@
       document.getElementById('paywall-toggle').checked=active;
       document.getElementById('paywall-status').textContent=active?'🔴 Emergency pause ON — sellers cannot open the dashboard':'🟢 Emergency pause OFF — sellers must still have an active paid plan to post';
       document.getElementById('paywall-status').style.color=active?'#9333ea':'#2e7d32';
+
+      const {data:fm}=await supabase.from('settings').select('value').eq('key','free_mode').single();
+      const freeOn=fm?.value==='true';
+      document.getElementById('freemode-toggle').checked=freeOn;
+      document.getElementById('freemode-status').textContent=freeOn?'🎁 Free Mode ON — all sellers can post without paying':'🔒 Free Mode OFF — sellers need an active paid plan to post';
+      document.getElementById('freemode-status').style.color=freeOn?'#c2410c':'#2e7d32';
     }
 
     window.togglePaywall=async(checked)=>{
       await supabase.from('settings').update({value:checked?'true':'false'}).eq('key','paywall_active');
       document.getElementById('paywall-status').textContent=checked?'🔴 Emergency pause ON — sellers cannot open the dashboard':'🟢 Emergency pause OFF — sellers must still have an active paid plan to post';
       document.getElementById('paywall-status').style.color=checked?'#9333ea':'#2e7d32';
+    };
+
+    window.toggleFreeMode=async(checked)=>{
+      await supabase.from('settings').update({value:checked?'true':'false'}).eq('key','free_mode');
+      document.getElementById('freemode-status').textContent=checked?'🎁 Free Mode ON — all sellers can post without paying':'🔒 Free Mode OFF — sellers need an active paid plan to post';
+      document.getElementById('freemode-status').style.color=checked?'#c2410c':'#2e7d32';
     };
 
     async function loadStats(){

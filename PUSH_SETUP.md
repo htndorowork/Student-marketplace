@@ -24,11 +24,27 @@ supabase functions deploy send-push --no-verify-jwt --project-ref kqsqtasykdtpdr
 ## 3. Set the function's secrets
 ```bash
 supabase secrets set \
-  VAPID_PUBLIC_KEY=BDvktNvWGYfxpJ4jb1-8ojDvwXInMXh3eCFV2eu_shidcoZPULEslK8qPbF3UMf-R-q3rSUsnFVPs-o_JprEpfU \
-  VAPID_PRIVATE_KEY=u8ehMy6IE6P4l6OAIp7F2OVOM8SlXOeujyPJBIfD-Cg \
+  VAPID_PUBLIC_KEY=BDyOj8uuDSlLJDGHXjMZYWWvELnV2jtbQ5YY93jxZ_TNYAcDLgUUaaOntRyt-iOWUvEV-aIZbBIfCrLEQ_fxnD4 \
+  VAPID_PRIVATE_KEY=<your private key — see below, NEVER commit the real value to git> \
   VAPID_SUBJECT=mailto:studentmarketplacehelp@gmail.com \
   PUSH_SHARED_SECRET=<the same string you used in the SQL file> \
   --project-ref kqsqtasykdtpdrkqyaxp
+```
+
+**Where to get the private key:** it's yours alone and only you have it — it
+was shown to you once when this key pair was generated and is intentionally
+NOT written down anywhere in this repo (an earlier version of this file did
+include it in plain text, which is a real secret leak if that file was ever
+pushed to a public or even private GitHub repo — treat that old key as
+compromised; it's why this is now a brand-new key pair). If you've lost your
+copy of the private key, generate a completely new pair (see below) rather
+than trying to recover the old one, and update BOTH this secret and
+`VAPID_PUBLIC_KEY` in `seller.html`/`profile.html` together — a mismatched
+pair breaks push notifications entirely.
+
+To generate a new pair yourself at any time:
+```bash
+npx web-push generate-vapid-keys
 ```
 
 This is a brand-new, unique key pair generated specifically for this project
@@ -36,7 +52,8 @@ This is a brand-new, unique key pair generated specifically for this project
 everywhere — frontend and these instructions both updated together, so there's
 no mismatch between what the browser sends and what the edge function signs
 with).
-**The private key must never appear in any HTML file** — it only goes in
+**The private key must never appear in any HTML file, this file, or any file
+committed to git** — it only goes in
 this secrets command, never in the frontend. The public key is already
 embedded in the frontend (`index.html`, `seller.html`, `profile.html`)
 where users subscribe.

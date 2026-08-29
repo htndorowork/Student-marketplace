@@ -1263,6 +1263,8 @@
 
       const {data:pw} = await supabase.from('settings').select('value').eq('key','paywall_active').single();
       const paywallOn = pw?.value === 'true';
+      const {data:fm} = await supabase.from('settings').select('value').eq('key','free_mode').single();
+      const freeModeOn = fm?.value === 'true';
 
       if (!user) {
         document.getElementById('main-dashboard').style.display = 'block';
@@ -1281,7 +1283,7 @@
 
       const {data:p} = await supabase.from('profiles').select('*').eq('id',user.id).single();
       const today = new Date().toISOString().slice(0,10);
-      const paidActive = p?.subscription_paid_until && p.subscription_paid_until >= today;
+      const paidActive = (p?.subscription_paid_until && p.subscription_paid_until >= today) || freeModeOn;
       const blocked = p?.is_blocked === true;
 
       if (blocked) {
@@ -1619,7 +1621,7 @@
       window.location.href='login.html';
     };
 
-        const VAPID_PUBLIC_KEY = 'BDvktNvWGYfxpJ4jb1-8ojDvwXInMXh3eCFV2eu_shidcoZPULEslK8qPbF3UMf-R-q3rSUsnFVPs-o_JprEpfU';
+        const VAPID_PUBLIC_KEY = 'BDyOj8uuDSlLJDGHXjMZYWWvELnV2jtbQ5YY93jxZ_TNYAcDLgUUaaOntRyt-iOWUvEV-aIZbBIfCrLEQ_fxnD4';
     function urlBase64ToUint8Array(base64String){
       const padding='='.repeat((4-base64String.length%4)%4);
       const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
