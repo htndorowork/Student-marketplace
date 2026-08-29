@@ -3,31 +3,29 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Receipt — Student Marketplace</title>
+  <title>Receipt — Marketrade</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#7c3aed"/>
+  <meta name="theme-color" content="#2563eb"/>
+  <link rel="icon" href="icons/icon-192.png"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
-  <link rel="icon" type="image/x-icon" href="icons/favicon.ico"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
   <link rel="stylesheet" href="style.css"/>
   <style>
     .receipt-wrap{max-width:480px;margin:32px auto;padding:0 20px}
     .receipt{background:#fff;border:2px solid #f0f0f0;border-radius:18px;padding:28px}
     .receipt-header{text-align:center;border-bottom:2px dashed #eee;padding-bottom:16px;margin-bottom:16px}
     .receipt-logo{font-weight:900;font-size:20px}
-    .receipt-logo span{color:#7c3aed}
+    .receipt-logo span{color:#2563eb}
     .receipt-row{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 0;color:#444;font-weight:600}
     .receipt-row strong{color:#111;font-weight:800}
     .receipt-total{border-top:2px dashed #eee;margin-top:10px;padding-top:12px;display:flex;justify-content:space-between;font-size:17px;font-weight:900}
-    .print-btn{display:block;width:100%;margin-top:18px;background:#7c3aed;color:#fff;border:none;padding:12px;border-radius:12px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer}
+    .print-btn{display:block;width:100%;margin-top:18px;background:#2563eb;color:#fff;border:none;padding:12px;border-radius:12px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer}
     @media print { .nav,.footer,.print-btn{display:none!important} .receipt-wrap{margin:0} }
   </style>
 </head>
 <body>
   <nav class="nav">
-    <a href="index.html" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
+    <a href="index.html" class="nav-logo">Market<span>rade</span> 🛍️</a>
     <div class="nav-links"><a href="index.html">Browse</a></div>
   </nav>
 
@@ -38,7 +36,7 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
+    const supabase = createClient('https://spupfdclswjlpwiebwlq.supabase.co','sb_publishable_EyDf6vx8F4-aI09u6lK0_w_F4gdi9PH');
 
     const orderId = new URLSearchParams(location.search).get('order');
     const body = document.getElementById('receipt-body');
@@ -58,7 +56,7 @@
         const subtotal = unitPrice * o.quantity;
         const total = subtotal + deliveryFee;
         body.innerHTML =
-          '<div class="receipt-header"><div class="receipt-logo">student<span>market</span> 🎓</div>'+
+          '<div class="receipt-header"><div class="receipt-logo">market<span>rade</span> 🛍️</div>'+
           '<div style="font-size:12px;color:#aaa;font-weight:700;margin-top:4px">Order Receipt</div></div>'+
           '<div class="receipt-row"><span>Order ID</span><strong>'+o.id.slice(0,8)+'</strong></div>'+
           '<div class="receipt-row"><span>Date</span><strong>'+new Date(o.created_at).toLocaleDateString('en-ZA')+'</strong></div>'+
@@ -69,7 +67,7 @@
           '<div class="receipt-row"><span>Unit price</span><strong>R'+unitPrice+'</strong></div>'+
           (deliveryFee>0?'<div class="receipt-row"><span>Delivery fee</span><strong>R'+deliveryFee+'</strong></div>':'')+
           '<div class="receipt-total"><span>Total</span><span>R'+total+'</span></div>'+
-          '<div style="text-align:center;font-size:11px;color:#aaa;font-weight:600;margin-top:16px">Payment arranged directly between buyer and seller. This receipt confirms the order details recorded on Student Marketplace.</div>';
+          '<div style="text-align:center;font-size:11px;color:#aaa;font-weight:600;margin-top:16px">Payment arranged directly between buyer and seller. This receipt confirms the order details recorded on Marketrade.</div>';
       }
     }
   </script>
