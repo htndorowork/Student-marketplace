@@ -166,6 +166,7 @@ CREATE POLICY "orders_insert" ON orders FOR INSERT WITH CHECK (
 );
 
 DROP POLICY IF EXISTS "orders_update" ON orders;
+DROP POLICY IF EXISTS "orders_update_seller_admin" ON orders;
 CREATE POLICY "orders_update_seller_admin" ON orders FOR UPDATE USING (
   auth.uid() = seller_id OR public.is_admin()
 );

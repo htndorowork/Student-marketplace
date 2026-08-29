@@ -400,15 +400,21 @@ DROP POLICY IF EXISTS "notifications_update" ON notifications;
 DROP POLICY IF EXISTS "reviews_update_dispute" ON reviews;
 
 -- PROFILES policies
+DROP POLICY IF EXISTS "profiles_read" ON profiles;
 CREATE POLICY "profiles_read" ON profiles FOR SELECT USING (true);
+DROP POLICY IF EXISTS "profiles_insert" ON profiles;
 CREATE POLICY "profiles_insert" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+DROP POLICY IF EXISTS "profiles_update" ON profiles;
 CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (auth.uid() = id);
+DROP POLICY IF EXISTS "profiles_delete_admin" ON profiles;
 CREATE POLICY "profiles_delete_admin" ON profiles FOR DELETE USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
 
 -- LISTINGS policies
+DROP POLICY IF EXISTS "listings_read" ON listings;
 CREATE POLICY "listings_read" ON listings FOR SELECT USING (true);
+DROP POLICY IF EXISTS "listings_insert" ON listings;
 CREATE POLICY "listings_insert" ON listings FOR INSERT WITH CHECK (
   auth.uid() = seller_id AND
   EXISTS (
@@ -421,84 +427,110 @@ CREATE POLICY "listings_insert" ON listings FOR INSERT WITH CHECK (
     )
   )
 );
+DROP POLICY IF EXISTS "listings_update_seller" ON listings;
 CREATE POLICY "listings_update_seller" ON listings FOR UPDATE USING (
   auth.uid() = seller_id
 ) WITH CHECK (
   auth.uid() = seller_id
 );
+DROP POLICY IF EXISTS "listings_update_admin" ON listings;
 CREATE POLICY "listings_update_admin" ON listings FOR UPDATE USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
+DROP POLICY IF EXISTS "listings_delete_seller" ON listings;
 CREATE POLICY "listings_delete_seller" ON listings FOR DELETE USING (auth.uid() = seller_id);
+DROP POLICY IF EXISTS "listings_delete_admin" ON listings;
 CREATE POLICY "listings_delete_admin" ON listings FOR DELETE USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
 
 -- ORDERS policies
+DROP POLICY IF EXISTS "orders_insert" ON orders;
 CREATE POLICY "orders_insert" ON orders FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "orders_read" ON orders;
 CREATE POLICY "orders_read" ON orders FOR SELECT USING (
   auth.uid() = buyer_id OR auth.uid() = seller_id OR
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
+DROP POLICY IF EXISTS "orders_update" ON orders;
 CREATE POLICY "orders_update" ON orders FOR UPDATE USING (
   auth.uid() = seller_id OR
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
 
 -- CART policies
+DROP POLICY IF EXISTS "cart_manage" ON cart_items;
 CREATE POLICY "cart_manage" ON cart_items
 FOR ALL USING (auth.uid() = buyer_id) WITH CHECK (auth.uid() = buyer_id);
 
 -- SETTINGS policies
+DROP POLICY IF EXISTS "settings_read" ON settings;
 CREATE POLICY "settings_read" ON settings FOR SELECT USING (true);
+DROP POLICY IF EXISTS "settings_write" ON settings;
 CREATE POLICY "settings_write" ON settings FOR ALL USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
 
 -- REVIEWS policies
+DROP POLICY IF EXISTS "reviews_read" ON reviews;
 CREATE POLICY "reviews_read" ON reviews FOR SELECT USING (true);
+DROP POLICY IF EXISTS "reviews_insert" ON reviews;
 CREATE POLICY "reviews_insert" ON reviews FOR INSERT WITH CHECK (
   auth.uid() = buyer_id AND
   EXISTS (SELECT 1 FROM orders WHERE id = order_id AND buyer_id = auth.uid() AND status = 'completed')
 );
+DROP POLICY IF EXISTS "reviews_update_dispute" ON reviews;
 CREATE POLICY "reviews_update_dispute" ON reviews FOR UPDATE USING (auth.uid() = seller_id) WITH CHECK (auth.uid() = seller_id);
 
 -- BUYER_REVIEWS policies (seller rates the buyer)
+DROP POLICY IF EXISTS "buyer_reviews_read" ON buyer_reviews;
 CREATE POLICY "buyer_reviews_read" ON buyer_reviews FOR SELECT USING (true);
+DROP POLICY IF EXISTS "buyer_reviews_insert" ON buyer_reviews;
 CREATE POLICY "buyer_reviews_insert" ON buyer_reviews FOR INSERT WITH CHECK (
   auth.uid() = seller_id AND
   EXISTS (SELECT 1 FROM orders WHERE id = order_id AND seller_id = auth.uid() AND status = 'completed')
 );
 
 -- FAVORITES policies (fully private to the user)
+DROP POLICY IF EXISTS "favorites_manage" ON favorites;
 CREATE POLICY "favorites_manage" ON favorites FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
 -- REPORTS policies
+DROP POLICY IF EXISTS "reports_insert" ON reports;
 CREATE POLICY "reports_insert" ON reports FOR INSERT WITH CHECK (auth.uid() = reporter_id);
+DROP POLICY IF EXISTS "reports_read_admin" ON reports;
 CREATE POLICY "reports_read_admin" ON reports FOR SELECT USING (
   auth.uid() = reporter_id OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
+DROP POLICY IF EXISTS "reports_update_admin" ON reports;
 CREATE POLICY "reports_update_admin" ON reports FOR UPDATE USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
 
 -- ADMIN AUDIT LOG policies
+DROP POLICY IF EXISTS "audit_log_read_admin" ON admin_audit_log;
 CREATE POLICY "audit_log_read_admin" ON admin_audit_log FOR SELECT USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
+DROP POLICY IF EXISTS "audit_log_insert_admin" ON admin_audit_log;
 CREATE POLICY "audit_log_insert_admin" ON admin_audit_log FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
 );
 
 -- MESSAGES policies
+DROP POLICY IF EXISTS "messages_read" ON messages;
 CREATE POLICY "messages_read" ON messages FOR SELECT USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
+DROP POLICY IF EXISTS "messages_insert" ON messages;
 CREATE POLICY "messages_insert" ON messages FOR INSERT WITH CHECK (
   auth.uid() = sender_id AND (auth.uid() = buyer_id OR auth.uid() = seller_id)
 );
+DROP POLICY IF EXISTS "messages_update" ON messages;
 CREATE POLICY "messages_update" ON messages FOR UPDATE USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
 
 -- NOTIFICATIONS policies (inserted only by the trigger below, which bypasses RLS)
+DROP POLICY IF EXISTS "notifications_read" ON notifications;
 CREATE POLICY "notifications_read" ON notifications FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "notifications_update" ON notifications;
 CREATE POLICY "notifications_update" ON notifications FOR UPDATE USING (auth.uid() = user_id);
 
 -- ===================== AUTO-CREATE PROFILE ON SIGNUP =====================
