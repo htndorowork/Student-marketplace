@@ -3,21 +3,25 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin — Marketrade</title>
+  <title>Admin — Student Marketplace</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
-    <meta property="og:title" content="Admin — Marketrade"/>
-  <meta property="og:description" content="Buy and sell with your community — jobs, furniture, electronics and more."/>
+    <meta name="description" content="🎓 Your campus. Your marketplace. Buy & sell textbooks, electronics, clothing & more with fellow students — fast, easy & safe 🤝"/>
+    <meta property="og:title" content="Admin — Student Marketplace"/>
+  <meta property="og:description" content="🎓 Your campus. Your marketplace. Buy & sell textbooks, electronics, clothing & more with fellow students — fast, easy & safe 🤝"/>
   <meta property="og:type" content="website"/>
+  <meta property="og:image" content="https://www.mystudentmarketplace.com/assets/og-image.png"/>
   <meta name="twitter:card" content="summary"/>
   <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#2563eb"/>
-  <link rel="icon" href="icons/icon-192.png"/>
+  <meta name="theme-color" content="#7c3aed"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <nav class="nav">
-    <a href="index.html" class="nav-logo">Market<span>rade</span> 🛍️</a>
+    <a href="index.html" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
     <div class="nav-links">
       <a href="index.html">Browse</a>
       <a href="profile.html">Profile</a>
@@ -31,87 +35,108 @@
     </div>
 
     <div id="admin-content" style="display:none">
-      <div class="section-header" style="margin-bottom:20px">
-        <div class="section-title">Admin Panel 🛡️</div>
-        <span style="font-size:12px;background:#eff6ff;color:#2563eb;font-weight:700;padding:4px 12px;border-radius:50px">Admin</span>
-      </div>
-
-      <!-- PAYWALL CONTROL -->
-      <div class="form-card" style="margin-bottom:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <div>
-            <div style="font-size:16px;font-weight:800;margin-bottom:4px">🔒 Listing Paywall</div>
-            <div style="font-size:13px;color:#888;font-weight:600">Emergency pause: when ON, all sellers see a blocked screen. Turn OFF once PayFast is live so sellers can pay from R19 to unlock selling.</div>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="paywall-toggle" onchange="togglePaywall(this.checked)"/>
-            <span class="toggle-slider"></span>
-          </label>
+      <div class="profile-header-card">
+        <div class="profile-avatar" id="admin-avatar">🛡️</div>
+        <div>
+          <div class="profile-header-name">Admin Panel</div>
+          <div class="profile-header-meta" id="admin-header-meta">Loading...</div>
+          <div class="profile-header-meta" id="admin-user-count" style="margin-top:2px"></div>
         </div>
-        <div id="paywall-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
       </div>
 
-      <!-- FREE MODE CONTROL -->
-      <div class="form-card" style="margin-bottom:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <div>
-            <div style="font-size:16px;font-weight:800;margin-bottom:4px">🎁 Free Mode</div>
-            <div style="font-size:13px;color:#888;font-weight:600">When ON, ALL sellers can post without paying, regardless of subscription status. Turn OFF to go back to requiring a paid plan.</div>
+      <!-- MENU -->
+      <div id="admin-menu">
+        <!-- PAYWALL CONTROL -->
+        <div class="form-card" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:16px;font-weight:800;margin-bottom:4px">🔒 Listing Paywall</div>
+              <div style="font-size:13px;color:#888;font-weight:600">Emergency pause: when ON, all sellers see a blocked screen. Turn OFF once PayFast is live so sellers can pay from R19 to unlock selling.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="paywall-toggle" onchange="togglePaywall(this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="free-mode-toggle" onchange="toggleFreeMode(this.checked)"/>
-            <span class="toggle-slider"></span>
-          </label>
+          <div id="paywall-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
         </div>
-        <div id="free-mode-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
+
+        <!-- FREE MODE CONTROL -->
+        <div class="form-card" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:16px;font-weight:800;margin-bottom:4px">🎁 Free Mode</div>
+              <div style="font-size:13px;color:#888;font-weight:600">When ON, ALL sellers can post without paying, regardless of subscription status. Turn OFF to go back to requiring a paid plan.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="freemode-toggle" onchange="toggleFreeMode(this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div id="freemode-status" style="font-size:13px;font-weight:700;margin-top:12px;color:#888"></div>
+        </div>
+
+        <div class="profile-section-label">Marketplace</div>
+        <div class="profile-menu-card">
+          <button class="profile-menu-row" onclick="showTab('listings')">
+            <span class="pmr-icon">📦</span><span class="pmr-label">Listings</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('sellers')">
+            <span class="pmr-icon">👥</span><span class="pmr-label">Users</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('orders')">
+            <span class="pmr-icon">🛒</span><span class="pmr-label">Orders</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('reports')">
+            <span class="pmr-icon">🚩</span><span class="pmr-label">Reports</span>
+            <span class="pmr-badge" id="reports-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('analytics')">
+            <span class="pmr-icon">📊</span><span class="pmr-label">Analytics</span><span class="pmr-chevron">›</span>
+          </button>
+        </div>
+
+        <div class="profile-section-label">Sellers</div>
+        <div class="profile-menu-card">
+          <button class="profile-menu-row" onclick="showTab('paid')">
+            <span class="pmr-icon">✅</span><span class="pmr-label">Paid Sellers</span><span class="pmr-chevron">›</span>
+          </button>
+          <button class="profile-menu-row" onclick="showTab('unpaid')">
+            <span class="pmr-icon">❌</span><span class="pmr-label">Unpaid Sellers</span><span class="pmr-chevron">›</span>
+          </button>
+        </div>
       </div>
 
-      <!-- STATS -->
-      <div class="stats" style="margin-bottom:24px">
-        <div class="stat"><div class="stat-num" id="a-listings">0</div><div class="stat-label">Listings</div></div>
-        <div class="stat"><div class="stat-num" id="a-sellers">0</div><div class="stat-label">Users</div></div>
-        <div class="stat"><div class="stat-num" id="a-orders">0</div><div class="stat-label">Orders</div></div>
-      </div>
+      <!-- DETAIL PANELS -->
+      <div id="admin-detail" style="display:none">
+        <button class="profile-back-btn" onclick="closeTab()">← Back to Admin Panel</button>
 
-      <div class="admin-tabs">
-        <button class="admin-tab active" onclick="showTab('listings',this)">📦 Listings</button>
-        <button class="admin-tab" onclick="showTab('sellers',this)">👥 Users</button>
-        <button class="admin-tab" onclick="showTab('paid',this)">✅ Paid Sellers</button>
-        <button class="admin-tab" onclick="showTab('unpaid',this)">❌ Unpaid Sellers</button>
-        <button class="admin-tab" onclick="showTab('reports',this)">🚩 Reports</button>
-        <button class="admin-tab" onclick="showTab('analytics',this)">📊 Analytics</button>
-        <button class="admin-tab" onclick="showTab('orders',this)">🛒 Orders</button>
-      </div>
-
-      <div id="tab-listings">
-        <input class="search-admin" type="text" placeholder="Search listings..." oninput="searchListings(this.value)"/>
-        <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportListingsCSV()">⬇️ Export CSV</button>
-        <div id="all-listings-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-sellers" style="display:none">
-        <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportSellersCSV()">⬇️ Export CSV</button>
-        <div id="all-sellers-container"><p class="loading-msg">Loading...</p></div>
-        <div id="sellers-load-more-wrap" style="display:none;text-align:center;margin-top:14px"><button class="btn-primary" style="padding:10px 26px;border-radius:50px" onclick="loadMoreSellers()">Load more users</button></div>
-      </div>
-      <div id="tab-paid" style="display:none">
-        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Sellers whose monthly subscription is active and not blocked.</p>
-        <div id="paid-sellers-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-unpaid" style="display:none">
-        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">These sellers are automatically blocked from posting and hidden from buyers until marked as paid.</p>
-        <button class="btn-sm btn-delete" style="margin-bottom:12px" onclick="blockAllOverdue()">🚫 Block all overdue sellers now</button>
-        <div id="unpaid-sellers-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-reports" style="display:none">
-        <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Listings and sellers flagged by buyers.</p>
-        <div id="reports-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-analytics" style="display:none">
-        <div id="analytics-container"><p class="loading-msg">Loading...</p></div>
-      </div>
-      <div id="tab-orders" style="display:none">
-        <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportOrdersCSV()">⬇️ Export CSV</button>
-        <div id="all-orders-container"><p class="loading-msg">Loading...</p></div>
+        <div id="tab-listings" style="display:none">
+          <input class="search-admin" type="text" placeholder="Search listings..." oninput="searchListings(this.value)"/>
+          <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportListingsCSV()">⬇️ Export CSV</button>
+          <div id="all-listings-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-sellers" style="display:none"><div id="all-sellers-container"><p class="loading-msg">Loading...</p></div></div>
+        <div id="tab-paid" style="display:none">
+          <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Sellers whose monthly subscription is active and not blocked.</p>
+          <div id="paid-sellers-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-unpaid" style="display:none">
+          <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">These sellers are automatically blocked from posting and hidden from buyers until marked as paid.</p>
+          <button class="btn-sm btn-delete" style="margin-bottom:12px" onclick="blockAllOverdue()">🚫 Block all overdue sellers now</button>
+          <div id="unpaid-sellers-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-reports" style="display:none">
+          <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:12px">Listings and sellers flagged by buyers.</p>
+          <div id="reports-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-analytics" style="display:none">
+          <div id="analytics-container"><p class="loading-msg">Loading...</p></div>
+        </div>
+        <div id="tab-orders" style="display:none">
+          <button class="btn-sm btn-toggle" style="margin:8px 0" onclick="exportOrdersCSV()">⬇️ Export CSV</button>
+          <div id="all-orders-container"><p class="loading-msg">Loading...</p></div>
+        </div>
       </div>
     </div>
   </main>
@@ -137,40 +162,22 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const supabase=createClient('https://spupfdclswjlpwiebwlq.supabase.co','sb_publishable_EyDf6vx8F4-aI09u6lK0_w_F4gdi9PH');
-    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Vehicles:'🚗',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
+    const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
+    const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
     let allListings=[];
-    let allSellers=[];
     let currentAdminId=null;
-
-    // Shared helper: fetch a table in safe chunks instead of one unbounded
-    // request. Used by views that genuinely need the full/filtered result
-    // set (CSV exports, paid/unpaid seller lists) so a growing table can
-    // never trigger one giant multi-thousand-row payload in a single call.
-    // hardCap is a safety valve — stops after ~20k rows even if more exist,
-    // rather than letting the browser choke trying to load everything.
-    async function fetchAllPages(buildQuery, batchSize=1000, hardCap=20000){
-      let offset=0, out=[];
-      while(true){
-        const {data,error} = await buildQuery().range(offset, offset+batchSize-1);
-        if(error){ console.error('fetchAllPages error:', error.message); break; }
-        out = out.concat(data||[]);
-        if(!data || data.length < batchSize) break;
-        offset += batchSize;
-        if(offset >= hardCap) break;
-      }
-      return out;
-    }
 
     async function init(){
       const {data:{user}}=await supabase.auth.getUser();
       if(!user){window.location.href='login.html';return;}
-      const {data:p}=await supabase.from('profiles').select('is_admin').eq('id',user.id).single();
+      const {data:p}=await supabase.from('profiles').select('is_admin,full_name').eq('id',user.id).single();
       if(!p?.is_admin){document.getElementById('access-denied').style.display='block';return;}
       currentAdminId=user.id;
       document.getElementById('admin-content').style.display='block';
+      document.getElementById('admin-avatar').textContent=(p.full_name||'?').trim().charAt(0).toUpperCase()||'🛡️';
+      document.getElementById('admin-header-meta').textContent=(p.full_name?p.full_name+' · ':'')+'System administrator';
       document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
-      loadPaywall();loadFreeMode();loadStats();loadListings();
+      loadPaywall();loadStats();loadListings();loadReports();
     }
 
     async function loadPaywall(){
@@ -178,57 +185,36 @@
       const active=data?.value==='true';
       document.getElementById('paywall-toggle').checked=active;
       document.getElementById('paywall-status').textContent=active?'🔴 Emergency pause ON — sellers cannot open the dashboard':'🟢 Emergency pause OFF — sellers must still have an active paid plan to post';
-      document.getElementById('paywall-status').style.color=active?'#1d4ed8':'#2e7d32';
+      document.getElementById('paywall-status').style.color=active?'#9333ea':'#2e7d32';
+
+      const {data:fm}=await supabase.from('settings').select('value').eq('key','free_mode').single();
+      const freeOn=fm?.value==='true';
+      document.getElementById('freemode-toggle').checked=freeOn;
+      document.getElementById('freemode-status').textContent=freeOn?'🎁 Free Mode ON — all sellers can post without paying':'🔒 Free Mode OFF — sellers need an active paid plan to post';
+      document.getElementById('freemode-status').style.color=freeOn?'#c2410c':'#2e7d32';
     }
 
     window.togglePaywall=async(checked)=>{
       await supabase.from('settings').update({value:checked?'true':'false'}).eq('key','paywall_active');
       document.getElementById('paywall-status').textContent=checked?'🔴 Emergency pause ON — sellers cannot open the dashboard':'🟢 Emergency pause OFF — sellers must still have an active paid plan to post';
-      document.getElementById('paywall-status').style.color=checked?'#1d4ed8':'#2e7d32';
+      document.getElementById('paywall-status').style.color=checked?'#9333ea':'#2e7d32';
     };
 
-    async function loadFreeMode(){
-      const {data}=await supabase.from('settings').select('value').eq('key','free_mode_active').single();
-      const active=data?.value==='true';
-      document.getElementById('free-mode-toggle').checked=active;
-      document.getElementById('free-mode-status').textContent=active?'🎁 Free Mode ON — all sellers can post without paying':'Free Mode OFF — sellers need an active paid plan to post';
-      document.getElementById('free-mode-status').style.color=active?'#c2410c':'#888';
-    }
-
     window.toggleFreeMode=async(checked)=>{
-      await supabase.from('settings').update({value:checked?'true':'false'}).eq('key','free_mode_active');
-      document.getElementById('free-mode-status').textContent=checked?'🎁 Free Mode ON — all sellers can post without paying':'Free Mode OFF — sellers need an active paid plan to post';
-      document.getElementById('free-mode-status').style.color=checked?'#c2410c':'#888';
+      await supabase.from('settings').update({value:checked?'true':'false'}).eq('key','free_mode');
+      document.getElementById('freemode-status').textContent=checked?'🎁 Free Mode ON — all sellers can post without paying':'🔒 Free Mode OFF — sellers need an active paid plan to post';
+      document.getElementById('freemode-status').style.color=checked?'#c2410c':'#2e7d32';
     };
 
     async function loadStats(){
-      const [{count:l},{count:s},{count:o}]=await Promise.all([
-        supabase.from('listings').select('*',{count:'exact',head:true}),
-        supabase.from('profiles').select('*',{count:'exact',head:true}),
-        supabase.from('orders').select('*',{count:'exact',head:true})
-      ]);
-      document.getElementById('a-listings').textContent=l||0;
-      document.getElementById('a-sellers').textContent=s||0;
-      document.getElementById('a-orders').textContent=o||0;
+      const {count:s}=await supabase.from('profiles').select('*',{count:'exact',head:true});
+      document.getElementById('admin-user-count').textContent='👥 '+(s||0)+' registered users';
     }
 
-    let listingsOffset=0, listingsHasMore=true;
-    const ADMIN_PAGE_SIZE=100;
     async function loadListings(){
-      listingsOffset=0; listingsHasMore=true; allListings=[];
-      const {data}=await supabase.from('listings').select('*,profiles(full_name)').order('created_at',{ascending:false}).range(0,ADMIN_PAGE_SIZE-1);
-      allListings=data||[];
-      listingsOffset=allListings.length;
-      listingsHasMore=allListings.length===ADMIN_PAGE_SIZE;
-      renderListings(allListings);
+      const {data}=await supabase.from('listings').select('*,profiles(full_name)').order('created_at',{ascending:false});
+      allListings=data||[];renderListings(allListings);
     }
-    window.loadMoreListingsAdmin=async()=>{
-      const {data}=await supabase.from('listings').select('*,profiles(full_name)').order('created_at',{ascending:false}).range(listingsOffset,listingsOffset+ADMIN_PAGE_SIZE-1);
-      allListings=allListings.concat(data||[]);
-      listingsOffset+=(data||[]).length;
-      listingsHasMore=(data||[]).length===ADMIN_PAGE_SIZE;
-      renderListings(allListings);
-    };
 
     function renderListings(list){
       const c=document.getElementById('all-listings-container');
@@ -251,8 +237,7 @@
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._atoggle(\''+l.id+'\','+l.is_available+')">'+(l.is_available?'Hide':'Show')+'</button>'+
           '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._adelete(\''+l.id+'\')">Delete</button>'+
           '</div></div>';
-      }).join('') +
-      (listingsHasMore?'<div style="text-align:center;margin-top:14px"><button class="btn-primary" style="padding:10px 26px;border-radius:50px" onclick="loadMoreListingsAdmin()">Load more listings</button></div>':'');
+      }).join('');
     }
     let editingAdminListingId=null;
     window._aEditListing=async(id)=>{
@@ -270,7 +255,7 @@
     window.closeEditModal=()=>{document.getElementById('edit-modal-overlay').style.display='none';};
     window.saveAdminEdit=async()=>{
       const err=document.getElementById('ae-error');
-      err.style.color='#1d4ed8';err.textContent='';
+      err.style.color='#9333ea';err.textContent='';
       const title=document.getElementById('ae-title').value.trim();
       const price=parseFloat(document.getElementById('ae-price').value);
       const qty=parseInt(document.getElementById('ae-qty').value);
@@ -305,26 +290,10 @@
       loadListings();loadStats();
     };
 
-    let sellersOffset=0, sellersHasMore=true;
     async function loadSellers(){
-      sellersOffset=0; sellersHasMore=true; allSellers=[];
-      const {data}=await supabase.from('profiles').select('*').order('created_at',{ascending:false}).range(0,ADMIN_PAGE_SIZE-1);
-      allSellers=data||[];
-      sellersOffset=allSellers.length;
-      sellersHasMore=allSellers.length===ADMIN_PAGE_SIZE;
-      renderSellers();
-    }
-    window.loadMoreSellers=async()=>{
-      const {data}=await supabase.from('profiles').select('*').order('created_at',{ascending:false}).range(sellersOffset,sellersOffset+ADMIN_PAGE_SIZE-1);
-      allSellers=allSellers.concat(data||[]);
-      sellersOffset+=(data||[]).length;
-      sellersHasMore=(data||[]).length===ADMIN_PAGE_SIZE;
-      renderSellers();
-    };
-    function renderSellers(){
-      const data=allSellers;
+      const {data}=await supabase.from('profiles').select('*').order('created_at',{ascending:false});
       const c=document.getElementById('all-sellers-container');
-      if(!data?.length){c.innerHTML='<div class="empty-msg">No users yet</div>';document.getElementById('sellers-load-more-wrap').style.display='none';return;}
+      if(!data?.length){c.innerHTML='<div class="empty-msg">No users yet</div>';return;}
       c.innerHTML=data.map(s=>{
         const isSeller = s.role==='seller';
         return '<div class="seller-row">'+
@@ -337,7 +306,6 @@
         '</div>';
       }
       ).join('');
-      document.getElementById('sellers-load-more-wrap').style.display=sellersHasMore?'block':'none';
     }
     window._toggleRole=async(id,curRole)=>{
       const newRole=curRole==='seller'?'buyer':'seller';
@@ -353,24 +321,8 @@
       loadSellers();
     };
 
-    let ordersOffset=0, ordersHasMore=true, allOrdersAdmin=[];
     async function loadOrders(){
-      ordersOffset=0; ordersHasMore=true; allOrdersAdmin=[];
-      const {data}=await supabase.from('orders').select('*,listings(title),profiles!orders_seller_id_fkey(full_name)').order('created_at',{ascending:false}).range(0,ADMIN_PAGE_SIZE-1);
-      allOrdersAdmin=data||[];
-      ordersOffset=allOrdersAdmin.length;
-      ordersHasMore=allOrdersAdmin.length===ADMIN_PAGE_SIZE;
-      renderOrders();
-    }
-    window.loadMoreOrdersAdmin=async()=>{
-      const {data}=await supabase.from('orders').select('*,listings(title),profiles!orders_seller_id_fkey(full_name)').order('created_at',{ascending:false}).range(ordersOffset,ordersOffset+ADMIN_PAGE_SIZE-1);
-      allOrdersAdmin=allOrdersAdmin.concat(data||[]);
-      ordersOffset+=(data||[]).length;
-      ordersHasMore=(data||[]).length===ADMIN_PAGE_SIZE;
-      renderOrders();
-    };
-    function renderOrders(){
-      const data=allOrdersAdmin;
+      const {data}=await supabase.from('orders').select('*,listings(title),profiles!orders_seller_id_fkey(full_name)').order('created_at',{ascending:false});
       const c=document.getElementById('all-orders-container');
       if(!data?.length){c.innerHTML='<div class="empty-msg">No orders yet</div>';return;}
       c.innerHTML=data.map(o=>'<div class="listing-row">'+
@@ -382,33 +334,33 @@
         '</div>'+
         (o.status==='confirmed'?'<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._adone(\''+o.id+'\')">Mark Done</button>':'')+
         '</div>'
-      ).join('') +
-      (ordersHasMore?'<div style="text-align:center;margin-top:14px"><button class="btn-primary" style="padding:10px 26px;border-radius:50px" onclick="loadMoreOrdersAdmin()">Load more orders</button></div>':'');
+      ).join('');
     }
 
     function sellerScopeSummary(s){
       const parts=[];
-      if(s.deliver_all_areas) parts.push('All areas');
-      const list=Array.isArray(s.seller_areas)?s.seller_areas:[];
-      list.forEach(a=>parts.push(a.district+', '+a.city));
-      return parts.length ? parts.join(', ') : 'No areas set';
+      if(s.deliver_all_universities) parts.push('All universities');
+      if(s.deliver_all_tvet) parts.push('All TVET colleges');
+      if(s.deliver_all_private) parts.push('All private institutions');
+      const list=Array.isArray(s.seller_institutions)?s.seller_institutions:[];
+      list.forEach(inst=>parts.push(inst.name));
+      return parts.length ? parts.join(', ') : 'No institutions set';
     }
 
     const PLAN_LABELS={flash:'Flash Sale (1 listing)',quicklister:'Quick Lister (3 listings)',casual:'Casual Seller (5 listings)',standard:'Standard (15 listings)',power:'Power Seller (∞)',quarter:'Quarter Pass (15 listings)',semester:'Semester Pass (∞)'};
     function planLabel(plan){ return PLAN_LABELS[plan] || 'Legacy plan (∞ — pre-migration)'; }
 
     async function loadPaidSellers(){
-      const c=document.getElementById('paid-sellers-container');
-      c.innerHTML='<p class="loading-msg">Loading...</p>';
-      const data=await fetchAllPages(()=>supabase.from('profiles').select('*').eq('role','seller').order('full_name'));
+      const {data}=await supabase.from('profiles').select('*').eq('role','seller').order('full_name');
       const today=new Date().toISOString().slice(0,10);
       const paid=(data||[]).filter(s=>!s.is_blocked && (s.is_admin || (s.subscription_paid_until && s.subscription_paid_until>=today)));
+      const c=document.getElementById('paid-sellers-container');
       if(!paid.length){c.innerHTML='<div class="empty-msg">No sellers with an active paid subscription 📭</div>';return;}
       c.innerHTML=paid.map(s=>'<div class="seller-row">'+
         '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
-        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 📍 '+sellerScopeSummary(s)+'</div>'+
+        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
         '<div class="listing-meta" style="color:#2e7d32;font-weight:700">'+(s.is_admin?'✅ Admin — no expiry':'✅ '+planLabel(s.seller_plan)+' · Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA'))+'</div>'+
         '</div>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
@@ -417,24 +369,25 @@
     }
 
     async function loadUnpaidSellers(){
-      const c=document.getElementById('unpaid-sellers-container');
-      c.innerHTML='<p class="loading-msg">Loading...</p>';
-      const data=await fetchAllPages(()=>supabase.from('profiles').select('*').eq('role','seller').order('full_name'));
+      const {data}=await supabase.from('profiles').select('*').eq('role','seller').order('full_name');
       const today=new Date().toISOString().slice(0,10);
       const unpaid=(data||[]).filter(s=>!s.is_admin && (s.is_blocked || !s.subscription_paid_until || s.subscription_paid_until<today));
+      const c=document.getElementById('unpaid-sellers-container');
       if(!unpaid.length){c.innerHTML='<div class="empty-msg">All sellers are paid up 🎉</div>';return;}
       c.innerHTML=unpaid.map(s=>{
         let reason;
-        if(s.is_blocked) reason='<span style="color:#1d4ed8;font-weight:700">🚫 Blocked by admin</span>';
-        else if(!s.subscription_paid_until) reason='<span style="color:#1d4ed8;font-weight:700">⚠️ No subscription on file</span>';
-        else reason='<span style="color:#1d4ed8;font-weight:700">⏰ Expired '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</span>';
-        return '<div class="seller-row">'+
+        if(s.is_blocked) reason='<span style="color:#9333ea;font-weight:700">🚫 Blocked by admin</span>';
+        else if(!s.subscription_paid_until) reason='<span style="color:#9333ea;font-weight:700">⚠️ No subscription on file</span>';
+        else reason='<span style="color:#9333ea;font-weight:700">⏰ Expired '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA')+'</span>';
+        return '<div class="seller-row" style="flex-wrap:wrap">'+
           '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
           '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
           '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
-          '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 📍 '+sellerScopeSummary(s)+'</div>'+
+          '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();togglePlanPicker(\''+s.id+'\')">💳 Grant a plan <span id="chevron-'+s.id+'">▾</span></button>'+
+          '<div id="plan-picker-'+s.id+'" style="display:none;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid #f5f5f5;flex-wrap:wrap;gap:8px">'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'flash\')">✅ Flash 48h (R19, 1 listing)</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'quicklister\')">✅ Quick Lister 7d (R39, 3)</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'casual\')">✅ Casual 1mo (R89, 5)</button>'+
@@ -442,9 +395,17 @@
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'power\')">✅ Power 1mo (R249, ∞)</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'quarter\')">✅ Quarter 3mo (R399, 15)</button>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._markPaid(\''+s.id+'\',\'semester\')">✅ Semester 6mo (R699, ∞)</button>'+
+          '</div>'+
           '</div>';
       }).join('');
     }
+    window.togglePlanPicker=(id)=>{
+      const box=document.getElementById('plan-picker-'+id);
+      const chevron=document.getElementById('chevron-'+id);
+      const open=box.style.display==='flex';
+      box.style.display=open?'none':'flex';
+      chevron.textContent=open?'▾':'▴';
+    };
 
     async function logAction(action,targetId,details){
       try{ await supabase.from('admin_audit_log').insert({admin_id:currentAdminId,action,target_id:targetId,details}); }catch(e){}
@@ -474,12 +435,15 @@
     async function loadReports(){
       const c=document.getElementById('reports-container');
       const {data}=await supabase.from('reports').select('*,listings(title,is_available),reported:profiles!reports_reported_user_id_fkey(full_name)').order('created_at',{ascending:false});
+      const openCount=(data||[]).filter(r=>r.status==='open').length;
+      const rb=document.getElementById('reports-badge');
+      if(openCount>0){rb.textContent=openCount;rb.style.display='inline-block';} else rb.style.display='none';
       if(!data?.length){c.innerHTML='<div class="empty-msg">No reports filed 🎉</div>';return;}
       c.innerHTML=data.map(r=>{
         const canOpen=!!r.listing_id;
         return '<div class="seller-row">'+
         '<div class="listing-info" style="flex:1'+(canOpen?';cursor:pointer':'')+'"'+(canOpen?' onclick="window.open(\'index.html?open='+r.listing_id+'\',\'_blank\')" title="Open this listing"':'')+'>'+
-        '<div class="listing-title">'+r.reason+(r.status==='open'?' <span style="color:#1d4ed8;font-weight:800">(open)</span>':' <span style="color:#2e7d32;font-weight:800">(resolved)</span>')+'</div>'+
+        '<div class="listing-title">'+r.reason+(r.status==='open'?' <span style="color:#9333ea;font-weight:800">(open)</span>':' <span style="color:#2e7d32;font-weight:800">(resolved)</span>')+'</div>'+
         '<div class="listing-meta">📦 Listing: '+(r.listings?.title||'—')+(canOpen?' 👁️':'')+' · 👤 Reported: '+(r.reported?.full_name||'Unknown')+'</div>'+
         (r.details?'<div class="listing-meta">💬 '+r.details+'</div>':'')+
         '<div class="listing-meta" style="color:#aaa">'+new Date(r.created_at).toLocaleDateString('en-ZA')+'</div>'+
@@ -523,7 +487,7 @@
         '<div class="stat"><div class="stat-num">'+(orders?.length||0)+'</div><div class="stat-label">Total Orders</div></div>'+
         '</div>'+
         '<div class="form-card"><h3 style="font-size:15px;font-weight:800;margin-bottom:12px">Listings by Category</h3>'+
-        topCats.map(([cat,n])=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px;font-weight:700"><span>'+cat+'</span><span style="color:#2563eb">'+n+'</span></div>').join('')+
+        topCats.map(([cat,n])=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px;font-weight:700"><span>'+cat+'</span><span style="color:#7c3aed">'+n+'</span></div>').join('')+
         '</div>';
     }
 
@@ -537,24 +501,12 @@
       a.href=URL.createObjectURL(blob); a.download=filename; a.click();
       URL.revokeObjectURL(a.href);
     }
-    window.exportListingsCSV=async()=>{
-      const rows=await fetchAllPages(()=>supabase.from('listings').select('id,title,category,price,quantity,condition,is_available,created_at').order('created_at',{ascending:false}));
-      downloadCSV(toCSV(rows,['id','title','category','price','quantity','condition','is_available','created_at']),'listings.csv');
+    window.exportListingsCSV=()=>{
+      downloadCSV(toCSV(allListings,['id','title','category','price','quantity','condition','is_available','created_at']),'listings.csv');
     };
     window.exportOrdersCSV=async()=>{
-      const data=await fetchAllPages(()=>supabase.from('orders').select('*').order('created_at',{ascending:false}));
+      const {data}=await supabase.from('orders').select('*');
       downloadCSV(toCSV(data||[],['id','buyer_name','buyer_whatsapp','quantity','status','created_at']),'orders.csv');
-    };
-    window.exportSellersCSV=async()=>{
-      const all=await fetchAllPages(()=>supabase.from('profiles').select('*').order('created_at',{ascending:false}));
-      const rows=all.map(s=>({
-        id:s.id, full_name:s.full_name, store_name:s.store_name, role:s.role,
-        whatsapp:s.whatsapp, residence:s.residence, province:s.province, city:s.city,
-        district:s.district, suburb:s.suburb, seller_plan:s.seller_plan,
-        subscription_paid_until:s.subscription_paid_until, is_blocked:s.is_blocked,
-        is_admin:s.is_admin, referral_code:s.referral_code, created_at:s.created_at
-      }));
-      downloadCSV(toCSV(rows,['id','full_name','store_name','role','whatsapp','residence','province','city','district','suburb','seller_plan','subscription_paid_until','is_blocked','is_admin','referral_code','created_at']),'sellers.csv');
     };
 
     window._atoggle=async(id,cur)=>{
@@ -578,25 +530,21 @@
       loadSellers();loadStats();
     };
     window._adone=async(id)=>{await supabase.from('orders').update({status:'completed'}).eq('id',id);loadOrders();};
-    window.searchListings=async(q)=>{
-      if(!q.trim()){ loadListings(); return; }
-      // Search the whole table server-side, not just whatever page happens
-      // to be loaded locally — otherwise a search only finds matches within
-      // the first ~100 rows loaded so far.
-      const {data}=await supabase.from('listings').select('*,profiles(full_name)')
-        .ilike('title','%'+q+'%').order('created_at',{ascending:false}).range(0,ADMIN_PAGE_SIZE-1);
-      listingsHasMore=false; // search results aren't paginated further, keeps this simple
-      renderListings(data||[]);
-    };
-    window.showTab=(tab,el)=>{
+    window.searchListings=(q)=>renderListings(allListings.filter(l=>l.title.toLowerCase().includes(q.toLowerCase())||(l.profiles?.full_name||'').toLowerCase().includes(q.toLowerCase())));
+    window.showTab=(tab)=>{
+      document.getElementById('admin-menu').style.display='none';
+      document.getElementById('admin-detail').style.display='block';
       ['listings','sellers','paid','unpaid','reports','analytics','orders'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
-      document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
       if(tab==='sellers')loadSellers();
       if(tab==='paid')loadPaidSellers();
       if(tab==='unpaid')loadUnpaidSellers();
       if(tab==='reports')loadReports();
       if(tab==='analytics')loadAnalytics();
       if(tab==='orders')loadOrders();
+    };
+    window.closeTab=()=>{
+      document.getElementById('admin-detail').style.display='none';
+      document.getElementById('admin-menu').style.display='block';
     };
     init();
   </script>
