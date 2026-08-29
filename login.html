@@ -393,6 +393,7 @@
 
     // ---------- Buyer: single institution + campus ----------
     let buyerTypePicked=null, buyerInstPicked=null, buyerCampusPicked=null;
+    window.getSignupState=()=>({buyerTypePicked,buyerInstPicked,buyerCampusPicked,sellerInstitutions});
     window.openBuyerInstModal=()=>{
       buyerTypePicked=null;buyerInstPicked=null;
       renderBuyerTypeStep();
@@ -592,6 +593,7 @@
       const email=document.getElementById('signup-email').value.trim();
       const password=document.getElementById('signup-password').value;
       const err=document.getElementById('signup-error');
+      const {buyerTypePicked,buyerInstPicked,buyerCampusPicked,sellerInstitutions}=window.getSignupState();
       const role=window.selectedRole||'buyer';
       err.style.color='#9333ea';err.textContent='';
       if(!name||!wa||!email||!password){err.textContent='❌ Please fill in all fields';return;}
