@@ -1,8 +1,8 @@
 -- ============================================================
 -- FREE MODE — run in MARKETPLACE Supabase SQL Editor
--- Temporary switch to let ALL sellers post without an active paid
--- subscription, while PayFast merchant approval is being sorted out.
--- Turn OFF (set value back to 'false') once PayFast is working again —
+-- Lets ALL sellers post without an active paid subscription. Currently
+-- ON, since there is no payment provider wired up. Turn OFF (set value
+-- back to 'false') if/when paid seller plans are introduced —
 -- everything else (plans, pricing, subscription_payments, the paywall
 -- screen itself) stays fully intact and resumes normally.
 -- Safe to re-run.

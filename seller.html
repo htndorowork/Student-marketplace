@@ -73,9 +73,9 @@
         <div id="paywall-plans">
           <div style="text-align:center;font-size:42px;margin-bottom:8px">💼</div>
           <h2 style="font-size:22px;font-weight:900;margin-bottom:8px;text-align:center">Start selling</h2>
-          <p style="font-size:14px;color:#888;font-weight:600;line-height:1.6;margin-bottom:20px;text-align:center">No free trial — pay securely with PayFast to unlock your seller dashboard and post listings.</p>
+          <p style="font-size:14px;color:#888;font-weight:600;line-height:1.6;margin-bottom:20px;text-align:center">Selling is currently free — create your seller profile to unlock your dashboard and post listings.</p>
           <div class="plan-grid" style="display:grid;gap:10px;margin-bottom:16px">
-            <button type="button" class="plan-card" id="plan-flash" onclick="startPayfastCheckout('flash')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+            <button type="button" class="plan-card" id="plan-flash" onclick="startSellerCheckout('flash')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Flash Sale · 48 hours</div>
@@ -84,7 +84,7 @@
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R19</div>
               </div>
             </button>
-            <button type="button" class="plan-card" id="plan-quicklister" onclick="startPayfastCheckout('quicklister')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+            <button type="button" class="plan-card" id="plan-quicklister" onclick="startSellerCheckout('quicklister')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Quick Lister · 7 days</div>
@@ -93,7 +93,7 @@
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R39</div>
               </div>
             </button>
-            <button type="button" class="plan-card" id="plan-casual" onclick="startPayfastCheckout('casual')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+            <button type="button" class="plan-card" id="plan-casual" onclick="startSellerCheckout('casual')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Casual Seller · 1 month</div>
@@ -102,7 +102,7 @@
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R89</div>
               </div>
             </button>
-            <button type="button" class="plan-card" id="plan-standard" onclick="startPayfastCheckout('standard')" style="text-align:left;background:#faf7ff;border:2.5px solid #7c3aed;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit;position:relative">
+            <button type="button" class="plan-card" id="plan-standard" onclick="startSellerCheckout('standard')" style="text-align:left;background:#faf7ff;border:2.5px solid #7c3aed;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit;position:relative">
               <div style="position:absolute;top:-10px;left:14px;background:#7c3aed;color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:50px;letter-spacing:0.3px">MOST POPULAR</div>
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
@@ -112,7 +112,7 @@
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R159</div>
               </div>
             </button>
-            <button type="button" class="plan-card" id="plan-power" onclick="startPayfastCheckout('power')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+            <button type="button" class="plan-card" id="plan-power" onclick="startSellerCheckout('power')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Power Seller · 1 month</div>
@@ -121,7 +121,7 @@
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R249</div>
               </div>
             </button>
-            <button type="button" class="plan-card" id="plan-quarter" onclick="startPayfastCheckout('quarter')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+            <button type="button" class="plan-card" id="plan-quarter" onclick="startSellerCheckout('quarter')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Quarter Pass · 3 months</div>
@@ -130,7 +130,7 @@
                 <div style="font-weight:900;font-size:20px;color:#7c3aed;white-space:nowrap">R399</div>
               </div>
             </button>
-            <button type="button" class="plan-card" id="plan-semester" onclick="startPayfastCheckout('semester')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
+            <button type="button" class="plan-card" id="plan-semester" onclick="startSellerCheckout('semester')" style="text-align:left;background:#fff;border:2.5px solid #eee;border-radius:16px;padding:16px;cursor:pointer;font-family:inherit">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                 <div>
                   <div style="font-weight:900;font-size:15px;color:#111">Semester Pass · 6 months</div>
@@ -140,8 +140,8 @@
               </div>
             </button>
           </div>
-          <p id="payfast-error" style="display:none;color:#9333ea;font-size:13px;font-weight:700;text-align:center;margin-bottom:10px"></p>
-          <p style="font-size:12px;color:#aaa;font-weight:600;text-align:center;line-height:1.5">Payments are processed by PayFast. After a successful payment your selling access activates automatically.</p>
+          <p id="checkout-error" style="display:none;color:#9333ea;font-size:13px;font-weight:700;text-align:center;margin-bottom:10px"></p>
+          <p style="font-size:12px;color:#aaa;font-weight:600;text-align:center;line-height:1.5">Selling is currently free — no payment needed to unlock your dashboard.</p>
           <div style="margin-top:16px;text-align:center">
             <a href="#" id="paywall-back-dashboard" style="display:none;color:#7c3aed;font-size:13px;font-weight:800;text-decoration:none" onclick="event.preventDefault();closeUpgrade()">← Back to dashboard</a>
             <a href="index.html" id="paywall-back-browse" style="color:#aaa;font-size:13px;font-weight:700;text-decoration:none">← Back to browsing</a>
@@ -193,6 +193,9 @@
 
         <div class="profile-section-label">Account</div>
         <div class="profile-menu-card">
+          <button class="profile-menu-row" onclick="showTab('my-purchases')">
+            <span class="pmr-icon">🛍️</span><span class="pmr-label">My Purchases</span><span class="pmr-chevron">›</span>
+          </button>
           <a class="profile-menu-row" href="messages.html">
             <span class="pmr-icon">💬</span><span class="pmr-label">Messages</span>
             <span class="pmr-badge" id="msg-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
@@ -211,7 +214,7 @@
             <span class="pmr-icon">🔐</span><span class="pmr-label">Security</span><span class="pmr-chevron">›</span>
           </button>
           <button class="profile-menu-row" onclick="showTab('alerts')">
-            <span class="pmr-icon">🔔</span><span class="pmr-label">Search Alerts</span><span class="pmr-chevron">›</span>
+            <span class="pmr-icon">🔔</span><span class="pmr-label">My Alerts</span><span class="pmr-chevron">›</span>
           </button>
           <button class="profile-menu-row" onclick="showTab('invite')">
             <span class="pmr-icon">🎁</span><span class="pmr-label">Invite Friends</span><span class="pmr-chevron">›</span>
@@ -284,7 +287,7 @@
                 <option>Food</option><option>Snacks</option><option>Utensils</option>
                 <option>Furniture</option><option>Decor</option><option>Appliances</option><option>Tools</option>
                 <option>Sports</option><option>Toys</option><option>Books</option><option>Music</option>
-                <option>Cameras</option><option>Pets</option><option>Baby</option><option>Plants</option>
+                <option>Cameras</option><option>Gaming</option><option>Tickets</option><option>Pets</option><option>Baby</option><option>Plants</option>
                 <option>Events</option><option>Health</option><option>Data</option><option>Career</option>
                 <option>Transport</option><option>Accommodation</option><option>Tutoring</option>
                 <option>Services</option><option>Others</option>
@@ -492,7 +495,7 @@
 
       <div id="tab-alerts" style="display:none">
         <div class="form-card">
-          <h3 style="font-size:15px;font-weight:800;margin-bottom:4px">🔔 Search Alerts</h3>
+          <h3 style="font-size:15px;font-weight:800;margin-bottom:4px">🔔 My Alerts</h3>
           <p style="font-size:12.5px;color:#888;font-weight:600;margin-bottom:14px">Alerts you've saved while browsing as a buyer show up here too.</p>
           <div id="alerts-list"><p class="loading-msg">Loading alerts... ⏳</p></div>
         </div>
@@ -510,6 +513,9 @@
           <button class="btn-primary" style="padding:12px 32px;border-radius:50px" onclick="shareInviteLink()">Share Invite Link 🔗</button>
           <p id="referral-count-text" style="font-size:12px;color:#aaa;font-weight:700;margin-top:14px"></p>
         </div>
+      </div>
+      <div id="tab-my-purchases" style="display:none">
+        <div id="my-purchases-container"><p class="loading-msg">Loading your orders... ⏳</p></div>
       </div>
       </div>
     </div>
@@ -529,15 +535,10 @@
       'sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ'
     );
 
-    // PayFast credentials live ONLY in Supabase Edge Function secrets (payfast-checkout / payfast-itn).
-    // Do not put merchant_key or passphrase in this file.
-    // Function source: MSpayfast/supabase/functions/ (own Supabase project — see MSpayfast/README.md).
-
     function isValidSAPhone(raw){
       const v=(raw||'').replace(/[\s-]/g,'');
       return /^0[6-8][0-9]{8}$/.test(v) || /^\+?27[6-8][0-9]{8}$/.test(v);
     }
-    const PAYFAST_FN = 'https://kqsqtasykdtpdrkqyaxp.supabase.co/functions/v1/payfast-checkout';
 
     let currentUser = null;
     const imgs = {1:null,2:null,3:null,4:null,5:null,6:null};
@@ -631,6 +632,16 @@
       'DSLR cameras','Mirrorless cameras','Point-and-shoot cameras','Instant/Polaroid cameras',
       'Camera lenses','Tripods','Ring lights','Photo backdrops','Camera bags','Memory cards',
       'Drones','GoPros/action cameras','Camera batteries & chargers','Gimbals/stabilizers'
+    ];
+    const GAMING_SUBCATS=[
+      'PS5 consoles & games','PS4 consoles & games','Xbox consoles & games','Nintendo Switch consoles & games',
+      'PC games','Gaming laptops & PCs','Controllers','Gaming headsets','Gaming keyboards & mice',
+      'Gaming chairs','Gaming monitors','VR headsets','Game cards/vouchers','Retro consoles & games',
+      'Gaming accessories'
+    ];
+    const TICKETS_SUBCATS=[
+      'Concert tickets','Sports event tickets','Theatre/show tickets','Festival tickets','Movie tickets',
+      'Comedy show tickets','Club/event tickets','Graduation tickets','Other tickets'
     ];
     const EVENTS_SUBCATS=[
       'Balloons','Party decorations','Banners & bunting','Costumes','Party lighting',
@@ -821,6 +832,8 @@
       Books:{field:'books_subcategory',label:'Book/Media Type *',items:BOOKS_SUBCATS},
       Music:{field:'music_subcategory',label:'Music Item Type *',items:MUSIC_SUBCATS},
       Cameras:{field:'cameras_subcategory',label:'Camera Item Type *',items:CAMERAS_SUBCATS},
+      Gaming:{field:'gaming_subcategory',label:'Gaming Item Type *',items:GAMING_SUBCATS},
+      Tickets:{field:'tickets_subcategory',label:'Ticket Type *',items:TICKETS_SUBCATS},
       Events:{field:'events_subcategory',label:'Event/Party Item *',items:EVENTS_SUBCATS},
       Plants:{field:'plants_subcategory',label:'Plant/Garden Item *',items:PLANTS_SUBCATS},
       Decor:{field:'decor_subcategory',label:'Home Decor Item *',items:DECOR_SUBCATS},
@@ -1202,60 +1215,18 @@
       return window.location.href.replace(/[^/]*$/, '');
     }
     const VALID_PLAN_KEYS=['flash','quicklister','casual','standard','power','quarter','semester'];
-    window.startPayfastCheckout = async (planKey)=>{
-      const errEl = document.getElementById('payfast-error');
-      errEl.style.display='none';
+    // Payments are not currently wired up — selling is free while we set
+    // things up (see Admin → Free Mode). This handler is a safe no-op that
+    // won't call any removed payment integration; it exists so the plan
+    // cards don't silently do nothing if this screen is ever reached.
+    window.startSellerCheckout = async (planKey)=>{
+      const errEl = document.getElementById('checkout-error');
       if (!VALID_PLAN_KEYS.includes(planKey)) return;
-      // Visible pressed state so tapping a plan gives immediate feedback,
-      // instead of the card looking identical whether or not the tap registered.
       document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('plan-card-pressed'));
       document.getElementById('plan-'+planKey)?.classList.add('plan-card-pressed');
-      if (!currentUser) {
-        errEl.style.display='block';
-        errEl.textContent='Please sign in first.';
-        return;
-      }
-      const {data:{session}}=await supabase.auth.getSession();
-      if (!session?.access_token) {
-        errEl.style.display='block';
-        errEl.textContent='Please sign in again.';
-        return;
-      }
       errEl.style.display='block';
       errEl.style.color='#555';
-      errEl.textContent='Redirecting to PayFast…';
-      try {
-        const res = await fetch(PAYFAST_FN, {
-          method:'POST',
-          headers:{
-            'Content-Type':'application/json',
-            'Authorization':'Bearer '+session.access_token,
-            'apikey':'sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ'
-          },
-          body: JSON.stringify({ plan: planKey, return_base: siteBase() })
-        });
-        const payload = await res.json().catch(()=>({}));
-        if (!res.ok) {
-          errEl.style.color='#9333ea';
-          errEl.textContent = payload.error || ('Checkout failed ('+res.status+')');
-          return;
-        }
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = payload.process_url;
-        Object.keys(payload.fields||{}).forEach(k=>{
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = k;
-          input.value = payload.fields[k];
-          form.appendChild(input);
-        });
-        document.body.appendChild(form);
-        form.submit();
-      } catch(e) {
-        errEl.style.color='#9333ea';
-        errEl.textContent = 'Could not start payment. Check that payfast-checkout is deployed.';
-      }
+      errEl.textContent='Selling is currently free — no payment needed. If you\'re seeing this screen, please contact support.';
     };
 
     async function init() {
@@ -1875,7 +1846,6 @@
       if (!isValidSAPhone(wa)) { err.textContent='❌ Enter a valid South African cell number, e.g. 0812345678'; return; }
       if (!allUni && !allTvet && !allPrivate && !sellerInstitutions.length) { err.textContent='❌ Choose at least one institution you sell to (tick an "All X" option or add a specific institution)'; return; }
 
-      // No free trial — sellers must pay via PayFast before posting
       const updatePayload = {
         full_name:name, whatsapp:wa, residence:res,
         deliver_all_universities:allUni, deliver_all_tvet:allTvet, deliver_all_private:allPrivate,
@@ -1913,6 +1883,114 @@
         ratingHtml+
         '</div>';
     }
+
+    let myPurchasesData=[], myPurchasesReviews={}, mpShowCompletedOnly=false;
+
+    async function loadMyPurchases(){
+      const {data}=await supabase.from('orders').select('*,listings(title,price,image_url,category),profiles!orders_seller_id_fkey(full_name,whatsapp,residence)').eq('buyer_id',currentUser.id).order('created_at',{ascending:false});
+      myPurchasesData=data||[];
+      const container=document.getElementById('my-purchases-container');
+      if(!myPurchasesData.length){container.innerHTML='<p class="loading-msg">No orders yet — go browse! 🛍️</p>';return;}
+
+      const completedIds=myPurchasesData.filter(o=>o.status==='completed').map(o=>o.id);
+      myPurchasesReviews={};
+      if(completedIds.length){
+        const {data:revs}=await supabase.from('reviews').select('order_id,rating').eq('buyer_id',currentUser.id).in('order_id',completedIds);
+        (revs||[]).forEach(r=>{myPurchasesReviews[r.order_id]=r.rating;});
+      }
+      renderMyPurchases();
+    }
+
+    window._mpToggleCompletedFilter=(showCompleted)=>{
+      mpShowCompletedOnly=showCompleted;
+      renderMyPurchases();
+    };
+
+    function renderMyPurchases(){
+      const container=document.getElementById('my-purchases-container');
+      const filterBar='<div style="margin-bottom:14px;display:flex;gap:8px">'+
+        '<button class="btn-sm" style="'+(mpShowCompletedOnly?'background:#f0f0f0;color:#444':'background:#7c3aed;color:#fff')+'" onclick="window._mpToggleCompletedFilter(false)">All Orders</button>'+
+        '<button class="btn-sm" style="'+(mpShowCompletedOnly?'background:#7c3aed;color:#fff':'background:#f0f0f0;color:#444')+'" onclick="window._mpToggleCompletedFilter(true)">✅ Completed</button>'+
+        '</div>';
+
+      const list=mpShowCompletedOnly?myPurchasesData.filter(o=>o.status==='completed'):myPurchasesData;
+      if(!list.length){container.innerHTML=filterBar+'<p class="loading-msg">No completed orders yet ✅</p>';return;}
+
+      const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Gaming:'🎮',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
+      container.innerHTML=filterBar+list.map(o=>{
+        const e=CAT_EMOJI[o.listings?.category]||'📦';
+        const img=o.listings?.image_url?'<img loading="lazy" src="'+o.listings.image_url+'" alt="'+(o.listings.title||'').replace(/"/g,'')+'" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0"/>':`<div style="width:52px;height:52px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${e}</div>`;
+        const status=o.status==='confirmed'?'<span class="order-badge badge-new">🆕 Confirmed</span>':o.status==='cancelled'?'<span class="order-badge" style="background:#f0f0f0;color:#888">🚫 Cancelled</span>':'<span class="order-badge badge-done">✅ Completed</span>';
+        let ratingHtml='';
+        if(o.status==='completed'){
+          if(myPurchasesReviews[o.id]){
+            ratingHtml='<div class="order-detail" style="margin-top:6px">⭐ You rated this seller: <strong>'+myPurchasesReviews[o.id]+'/5</strong></div>';
+          } else {
+            ratingHtml='<div class="order-detail" style="margin-top:6px">Rate this seller: '+
+              [1,2,3,4,5].map(n=>'<span style="cursor:pointer;font-size:18px" onclick="window._mpStarClick(this,'+n+')">☆</span>').join('')+
+              '<input type="hidden" class="rate-val" value="0"/>'+
+              '<textarea class="rate-comment" placeholder="Optional comment..." rows="2" style="width:100%;margin-top:6px;font-family:inherit;font-size:12px;padding:6px;border:2px solid #f0f0f0;border-radius:8px"></textarea>'+
+              '<button class="btn-sm btn-toggle" style="margin-top:4px" onclick="window._mpSubmitRating(this,\''+o.id+'\',\''+o.seller_id+'\')">Submit rating</button>'+
+              '</div>';
+          }
+        }
+        const cancelBtn = o.status==='confirmed' ? '<button class="btn-sm btn-delete" style="margin-top:8px" onclick="window._mpCancelOrder(\''+o.id+'\')">Cancel Order</button>' : '';
+        const receiptBtn = o.status==='completed' ? '<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
+        const disputeBtn = o.status==='completed' ? '<button class="btn-sm btn-toggle" style="margin-top:8px;margin-left:6px" onclick="window._mpRequestDispute(\''+o.id+'\',\''+(o.listings?.title||'').replace(/'/g,"\\'")+'\')">🚩 Report a problem</button>' : '';
+        // Only offer to view the listing when it's still there — o.listing_id
+        // can point at a listing that's since been deleted (the column has no
+        // FK cleanup), and o.listings (the join) is null in that case.
+        const viewItem = o.listings ? "window._mpViewOrderedItem('"+o.listing_id+"')" : '';
+        return '<div class="order-card '+(o.status==='confirmed'?'order-new':'')+'">'+
+          '<div style="display:flex;gap:12px;align-items:flex-start">'+
+          (viewItem?'<div onclick="'+viewItem+'" style="cursor:pointer">'+img+'</div>':img)+
+          '<div style="flex:1">'+status+
+          '<div class="order-card-title"'+(viewItem?' onclick="'+viewItem+'" style="cursor:pointer"':'')+'>'+(o.listings?.title||'Listing no longer available')+(viewItem?' 👁️':'')+'</div>'+
+          '<div class="order-detail">Qty: <strong>'+o.quantity+'</strong></div>'+
+          '<div style="font-size:13px;font-weight:800;color:#7c3aed;margin-bottom:8px">Contact seller to arrange:</div>'+
+          '<div class="order-detail">👤 <strong>'+(o.profiles?.full_name||'Seller')+'</strong></div>'+
+          (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+o.profiles.residence+'</strong></div>':'')+
+          '<div class="order-detail">📱 <strong>'+(o.profiles?.whatsapp||'N/A')+'</strong></div>'+
+          '<div class="order-detail" style="color:#aaa;font-size:12px;margin-top:6px">'+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
+          ratingHtml+cancelBtn+receiptBtn+disputeBtn+
+          '</div></div></div>';
+      }).join('');
+    }
+
+    window._mpViewOrderedItem=(listingId)=>{
+      window.location.href='index.html?open='+listingId;
+    };
+    window._mpCancelOrder=async(id)=>{
+      if(!confirm('Cancel this order? The seller will see it as cancelled.'))return;
+      const {error}=await supabase.rpc('buyer_cancel_order',{p_order_id:id});
+      if(error){alert('Error: '+error.message);return;}
+      loadMyPurchases();
+    };
+    window._mpRequestDispute=async(orderId,listingTitle)=>{
+      const details=prompt('Briefly describe the problem with this order ("'+listingTitle+'"):');
+      if(details===null) return;
+      const {data:o}=await supabase.from('orders').select('seller_id,listing_id').eq('id',orderId).single();
+      const {error}=await supabase.from('reports').insert({
+        reporter_id:currentUser.id, order_id:orderId, listing_id:o?.listing_id||null, reported_user_id:o?.seller_id||null,
+        reason:'Dispute or refund request', details:details||null
+      });
+      if(error){alert('Could not submit: '+error.message);return;}
+      alert('Thanks — our team will review this and reach out if needed.');
+    };
+    window._mpStarClick=(el,n)=>{
+      const wrap=el.parentElement;
+      wrap.querySelectorAll('.rate-val')[0].value=n;
+      wrap.querySelectorAll('span').forEach((s,i)=>s.textContent=(i<n)?'⭐':'☆');
+    };
+    window._mpSubmitRating=async(btn,orderId,sellerId)=>{
+      const wrap=btn.parentElement;
+      const rating=parseInt(wrap.querySelector('.rate-val').value)||0;
+      const comment=wrap.querySelector('.rate-comment').value.trim();
+      if(!rating){alert('Tap a star to choose a rating first');return;}
+      const {error}=await supabase.from('reviews').insert({order_id:orderId,seller_id:sellerId,buyer_id:currentUser.id,rating,comment:comment||null});
+      if(error){alert('Could not submit rating: '+error.message);return;}
+      loadMyPurchases();
+    };
 
     async function loadOrders() {
       const c = document.getElementById('orders-container');
@@ -2022,7 +2100,7 @@
     window.showTab = (tab) => {
       document.getElementById('dashboard-menu').style.display='none';
       document.getElementById('dashboard-detail').style.display='block';
-      ['orders','orders-completed','listings','add','store','profile','security','alerts','invite'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
+      ['orders','orders-completed','listings','add','store','profile','security','alerts','invite','my-purchases'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
       if (tab==='listings') loadMyListings();
       if (tab==='orders') loadOrders();
       if (tab==='orders-completed') loadCompletedOrders();
@@ -2031,6 +2109,7 @@
       if (tab==='security') refreshPushStatus();
       if (tab==='alerts') loadSearchAlerts();
       if (tab==='invite') loadInviteTab();
+      if (tab==='my-purchases') loadMyPurchases();
     };
     window.closeTab = () => {
       document.getElementById('dashboard-detail').style.display='none';

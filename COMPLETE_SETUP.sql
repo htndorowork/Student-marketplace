@@ -14,7 +14,6 @@
 
 -- ############################################################
 -- # 1. CORE SETUP (was: setup.sql)
--- # Base tables, RLS policies, and core triggers.
 -- ############################################################
 
 -- ============================================================
@@ -110,6 +109,8 @@ CREATE TABLE IF NOT EXISTS listings (
   books_subcategory text,
   music_subcategory text,
   cameras_subcategory text,
+  gaming_subcategory text,
+  tickets_subcategory text,
   events_subcategory text,
   plants_subcategory text,
   decor_subcategory text,
@@ -148,6 +149,8 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS sports_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS books_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS music_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS cameras_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS gaming_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS tickets_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS events_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS plants_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS decor_subcategory text;
@@ -984,7 +987,6 @@ CREATE POLICY "sub_pay_admin" ON subscription_payments
 
 -- ############################################################
 -- # 3. GROWTH & SAFETY (was: growth_and_safety_migration.sql)
--- # Adds search_alerts, blocked_users.
 -- ############################################################
 
 -- ============================================================
@@ -1344,15 +1346,16 @@ CREATE TRIGGER trg_enforce_listing_cap
   FOR EACH ROW EXECUTE FUNCTION public.enforce_listing_cap();
 
 -- ############################################################
--- # 5. SUBSCRIPTION PAYMENTS / PAYFAST (was: setup_payments.sql)
+-- # 5. SUBSCRIPTION PAYMENTS (was: setup_payments.sql)
 -- ############################################################
 
 -- ============================================================
--- Seller PayFast subscriptions — run in the MARKETPLACE Supabase SQL Editor
+-- Seller subscription payments — run in the MARKETPLACE Supabase SQL Editor
 -- Project: kqsqtasykdtpdrkqyaxp
 -- ============================================================
 
--- Payment records (created when seller clicks Pay, completed by ITN webhook)
+-- Payment records (created when seller clicks Pay, completed by the payment
+-- provider's webhook once wired up)
 CREATE TABLE IF NOT EXISTS subscription_payments (
   id text PRIMARY KEY,
   seller_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
@@ -1440,8 +1443,8 @@ CREATE POLICY "push_subs_own_delete" ON push_subscriptions FOR DELETE USING (aut
 -- AND the new ones added below (new message, order confirmed/completed)
 -- all automatically get pushed too — one trigger, one place.
 --
--- NOTE: replace YOUR_PROJECT below with your actual Supabase project ref
--- (same one used in PAYFAST_FN in seller.html), and PUSH_SHARED_SECRET
+-- NOTE: replace YOUR_PROJECT below with your actual Supabase project ref,
+-- and PUSH_SHARED_SECRET
 -- with a random string of your choosing — the same value must be set as
 -- a secret on the edge function so it can verify the call really came
 -- from your database and not a random request from the internet.
@@ -1626,7 +1629,6 @@ FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE SET NULL;
 
 -- ############################################################
 -- # 9. RESTOCK ALERTS (was: restock_alerts_migration.sql)
--- # Must run BEFORE section 10 (indexes reference this table).
 -- ############################################################
 
 -- ============================================================
@@ -1767,9 +1769,6 @@ CREATE INDEX IF NOT EXISTS idx_reviews_buyer_id ON reviews(buyer_id);
 
 -- ############################################################
 -- # 11. RATE LIMITING (was: rate_limiting_migration.sql)
--- # Note: section 12 (free mode) redefines the listings_insert
--- # policy set here — that's intentional, it's a superset that
--- # includes this same rate limit plus a free-mode bypass.
 -- ############################################################
 
 -- ============================================================
@@ -1831,16 +1830,13 @@ CREATE POLICY "listings_insert" ON listings FOR INSERT WITH CHECK (
 
 -- ############################################################
 -- # 12. FREE MODE (was: free_mode_migration.sql)
--- # Temporary bypass while PayFast is being sorted out. Turn
--- # OFF any time from Admin → Free Mode toggle — no SQL needed
--- # to flip it back.
 -- ############################################################
 
 -- ============================================================
 -- FREE MODE — run in MARKETPLACE Supabase SQL Editor
--- Temporary switch to let ALL sellers post without an active paid
--- subscription, while PayFast merchant approval is being sorted out.
--- Turn OFF (set value back to 'false') once PayFast is working again —
+-- Lets ALL sellers post without an active paid subscription. Currently
+-- ON, since there is no payment provider wired up. Turn OFF (set value
+-- back to 'false') if/when paid seller plans are introduced —
 -- everything else (plans, pricing, subscription_payments, the paywall
 -- screen itself) stays fully intact and resumes normally.
 -- Safe to re-run.

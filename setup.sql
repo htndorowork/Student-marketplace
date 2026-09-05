@@ -91,6 +91,8 @@ CREATE TABLE IF NOT EXISTS listings (
   books_subcategory text,
   music_subcategory text,
   cameras_subcategory text,
+  gaming_subcategory text,
+  tickets_subcategory text,
   events_subcategory text,
   plants_subcategory text,
   decor_subcategory text,
@@ -129,6 +131,8 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS sports_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS books_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS music_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS cameras_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS gaming_subcategory text;
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS tickets_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS events_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS plants_subcategory text;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS decor_subcategory text;

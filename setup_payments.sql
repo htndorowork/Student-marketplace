@@ -1,9 +1,10 @@
 -- ============================================================
--- Seller PayFast subscriptions — run in the MARKETPLACE Supabase SQL Editor
+-- Seller subscription payments — run in the MARKETPLACE Supabase SQL Editor
 -- Project: kqsqtasykdtpdrkqyaxp
 -- ============================================================
 
--- Payment records (created when seller clicks Pay, completed by ITN webhook)
+-- Payment records (created when seller clicks Pay, completed by the payment
+-- provider's webhook once wired up)
 CREATE TABLE IF NOT EXISTS subscription_payments (
   id text PRIMARY KEY,
   seller_id uuid REFERENCES profiles(id) ON DELETE SET NULL,

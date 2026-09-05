@@ -34,8 +34,8 @@ CREATE POLICY "push_subs_own_delete" ON push_subscriptions FOR DELETE USING (aut
 -- AND the new ones added below (new message, order confirmed/completed)
 -- all automatically get pushed too — one trigger, one place.
 --
--- NOTE: replace YOUR_PROJECT below with your actual Supabase project ref
--- (same one used in PAYFAST_FN in seller.html), and PUSH_SHARED_SECRET
+-- NOTE: replace YOUR_PROJECT below with your actual Supabase project ref,
+-- and PUSH_SHARED_SECRET
 -- with a random string of your choosing — the same value must be set as
 -- a secret on the edge function so it can verify the call really came
 -- from your database and not a random request from the internet.
