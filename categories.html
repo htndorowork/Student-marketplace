@@ -4,13 +4,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>All Categories — Student Marketplace 🎓</title>
+  <link rel="canonical" href="https://www.mystudentmarketplace.com/categories.html"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <meta name="description" content="Browse every category on Student Marketplace."/>
     <meta property="og:title" content="All Categories — Student Marketplace 🎓"/>
+  <meta property="og:url" content="https://www.mystudentmarketplace.com/categories.html"/>
   <meta property="og:description" content="Browse every category on Student Marketplace."/>
   <meta property="og:type" content="website"/>
   <meta property="og:image" content="https://www.mystudentmarketplace.com/assets/og-image.png"/>
   <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="All Categories — Student Marketplace 🎓"/>
+  <meta name="twitter:description" content="Browse every category on Student Marketplace."/>
+  <meta name="twitter:image" content="https://www.mystudentmarketplace.com/assets/og-image.png"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#7c3aed"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -33,6 +38,26 @@
     .cat-row-chevron { color: #ccc; font-size: 16px; font-weight: 900; }
     .cat-empty { text-align: center; color: #aaa; font-weight: 700; padding: 30px 10px; }
   </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://www.mystudentmarketplace.com/index.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "All Categories",
+      "item": "https://www.mystudentmarketplace.com/categories.html"
+    }
+  ]
+}
+</script>
 </head>
 <body>
   <nav class="nav">
@@ -46,9 +71,10 @@
     </div>
     <a href="index.html" class="nav-cart" title="Cart">🛒<span class="cart-badge" id="cart-badge" style="display:none">0</span></a>
   </nav>
+  <nav class="breadcrumb" aria-label="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span aria-current="page">All Categories</span></nav>
 
   <div class="cat-page-wrap">
-    <div class="cat-page-title">🗂️ All Categories</div>
+    <h1 class="cat-page-title">🗂️ All Categories</h1>
     <div class="cat-search-bar">
       <input type="text" id="cat-search" placeholder="Search categories…" autocomplete="off" oninput="filterCats(this.value)"/>
       <span>🔍</span>

@@ -3,6 +3,7 @@ Allow: /
 Disallow: /admin.html
 Disallow: /messages.html
 Disallow: /profile.html
+Disallow: /seller.html
 Disallow: /favorites.html
 Disallow: /receipt.html
 Disallow: /payment-return.html

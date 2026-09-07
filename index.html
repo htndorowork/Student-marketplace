@@ -13,13 +13,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student Marketplace 🎓</title>
+  <link rel="canonical" href="https://www.mystudentmarketplace.com/index.html"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
     <meta name="description" content="🎓 Your campus. Your marketplace. Buy & sell textbooks, electronics, clothing & more with fellow students — fast, easy & safe 🤝"/>
     <meta property="og:title" content="Student Marketplace 🎓"/>
+  <meta property="og:url" content="https://www.mystudentmarketplace.com/index.html"/>
   <meta property="og:description" content="🎓 Your campus. Your marketplace. Buy & sell textbooks, electronics, clothing & more with fellow students — fast, easy & safe 🤝"/>
   <meta property="og:type" content="website"/>
   <meta property="og:image" content="https://www.mystudentmarketplace.com/assets/og-image.png"/>
   <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="Student Marketplace 🎓"/>
+  <meta name="twitter:description" content="🎓 Your campus. Your marketplace. Buy & sell textbooks, electronics, clothing & more with fellow students — fast, easy & safe 🤝"/>
+  <meta name="twitter:image" content="https://www.mystudentmarketplace.com/assets/og-image.png"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#7c3aed"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -27,6 +32,29 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
   <link rel="stylesheet" href="style.css"/>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Student Marketplace",
+    "url": "https://www.mystudentmarketplace.com/",
+    "logo": "https://www.mystudentmarketplace.com/icons/icon-192.png",
+    "email": "studentmarketplacehelp@gmail.com",
+    "sameAs": [
+      "https://instagram.com/mystudentmarketplacee",
+      "https://www.facebook.com/share/1ExUfH1RSm/",
+      "https://tiktok.com/@student_marketplace"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Student Marketplace",
+    "url": "https://www.mystudentmarketplace.com/"
+  }
+  </script>
 </head>
 <body>
   <div id="toast-stack" aria-live="polite"></div>
@@ -242,7 +270,7 @@
     <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:800;z-index:10">✕</button>
     <button onclick="event.stopPropagation();lightboxSlide(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;font-weight:800" id="lb-prev">‹</button>
     <button onclick="event.stopPropagation();lightboxSlide(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;font-weight:800" id="lb-next">›</button>
-    <img id="lightbox-img" src="" onclick="event.stopPropagation()" style="max-width:92vw;max-height:78vh;object-fit:contain;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.5)"/>>
+    <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" style="max-width:92vw;max-height:78vh;object-fit:contain;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.5)"/>>
     <div style="display:flex;gap:8px;margin-top:16px" id="lb-dots"></div>
     <div style="color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;margin-top:8px" id="lb-counter"></div>
   </div>
@@ -977,7 +1005,7 @@
       document.getElementById('recently-viewed-grid').innerHTML=items.map(l=>{
         const c=CAT_COLOR[l.category]||{bg:'#f5f5f5'};
         const e=CAT_EMOJI[l.category]||'🛍️';
-        const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
+        const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
           '<div class="card-img" style="background:'+c.bg+'">'+img+'</div>'+
           '<div class="card-body"><div class="card-title">'+l.title+'</div>'+
@@ -1100,7 +1128,7 @@
         document.getElementById('modal-similar-grid').innerHTML=similar.map(s=>{
           const sc=CAT_COLOR[s.category]||{bg:'#f5f5f5'};
           const se=CAT_EMOJI[s.category]||'🛍️';
-          const simg=s.image_url?'<img loading="lazy" src="'+s.image_url+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:28px">${se}</span>`;
+          const simg=s.image_url?'<img loading="lazy" src="'+s.image_url+'" alt="'+s.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:28px">${se}</span>`;
           return '<div class="card" onclick="window._open(\''+s.id+'\')" style="cursor:pointer">'+
             '<div class="card-img" style="background:'+sc.bg+';height:90px">'+simg+'</div>'+
             '<div class="card-body" style="padding:8px"><div class="card-title" style="font-size:12px">'+s.title+'</div>'+
@@ -1250,7 +1278,7 @@
       body.innerHTML=cart.map((c,i)=>{
         const fp=c.listing.discount_percent>0?Math.round(c.listing.price*(1-c.listing.discount_percent/100)):c.listing.price;
         totalPrice+=fp*c.qty;
-        const img=c.listing.image_url?'<img loading="lazy" src="'+c.listing.image_url+'">':(CAT_EMOJI[c.listing.category]||'📦');
+        const img=c.listing.image_url?'<img loading="lazy" src="'+c.listing.image_url+'" alt="'+c.listing.title.replace(/"/g,'')+'">':(CAT_EMOJI[c.listing.category]||'📦');
         return '<div class="cart-item">'+
           '<div class="cart-item-img">'+img+'</div>'+
           '<div class="cart-item-info">'+
@@ -1581,6 +1609,7 @@
     };
     function renderLightbox(){
       document.getElementById('lightbox-img').src=lbImgs[lbIdx];
+      document.getElementById('lightbox-img').alt=(currentListing?.title||'Listing photo')+' — photo '+(lbIdx+1)+' of '+lbImgs.length;
       document.getElementById('lb-counter').textContent=(lbIdx+1)+' / '+lbImgs.length;
       document.getElementById('lb-prev').style.display=lbImgs.length>1?'block':'none';
       document.getElementById('lb-next').style.display=lbImgs.length>1?'block':'none';
