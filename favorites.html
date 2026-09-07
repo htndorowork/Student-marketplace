@@ -131,8 +131,12 @@
     loadNotifications();
 
     async function loadFavorites(){
-      const {data:favs,error:favErr}=await supabase.from('favorites').select('listing_id').eq('user_id',user.id);
+      const [{data:favs,error:favErr}, {data:fm}] = await Promise.all([
+        supabase.from('favorites').select('listing_id').eq('user_id',user.id),
+        supabase.from('settings').select('value').eq('key','free_mode').single()
+      ]);
       if(favErr){ document.getElementById('fav-grid').innerHTML='<p class="loading-msg">Could not load favorites: '+favErr.message+'</p>'; return; }
+      const freeModeOn = fm?.value === 'true';
       myFavorites=new Set((favs||[]).map(f=>f.listing_id));
       const ids=[...myFavorites];
       if(!ids.length){
@@ -142,8 +146,6 @@
       const {data:listings,error:listErr}=await supabase.from('listings').select('*,profiles(full_name,residence,university,is_blocked,subscription_paid_until,is_admin)').in('id',ids);
       if(listErr){ document.getElementById('fav-grid').innerHTML='<p class="loading-msg">Could not load favorites: '+listErr.message+'</p>'; return; }
       const today=new Date().toISOString().slice(0,10);
-      const {data:fm}=await supabase.from('settings').select('value').eq('key','free_mode').single();
-      const freeModeOn = fm?.value === 'true';
       favListings=(listings||[]).filter(l=>{
         const p=l.profiles;
         if(!p) return false;

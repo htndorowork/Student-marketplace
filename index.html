@@ -652,10 +652,6 @@
 
     let all=[], cat='All', currentListing=null, galleryIdx=0, modalQty=1, currentUser=null, cart=[], renderLimit=24, lastFilteredList=[];
     let freeModeOn=false;
-    {
-      const {data:fm}=await supabase.from('settings').select('value').eq('key','free_mode').single();
-      freeModeOn = fm?.value === 'true';
-    }
     let dbOffset=0, dbPageSize=300, dbHasMore=true, dbLoading=false;
 
     // Lightweight typo tolerance: exact substring match first, then falls back to
@@ -705,8 +701,17 @@
     let tbYear=null, tbSubject=null;
     let tbSubjectsExpanded=false; // whether the faculty/subject grid is currently revealed (only after "View all X textbooks" is pressed)
 
-    // Init
-    const {data:{user}}=await supabase.auth.getUser();
+    // Init — run every independent fetch in parallel instead of one after
+    // another. free_mode, auth, and the listings query don't depend on each
+    // other's *results* to be kicked off (only free_mode's value needs to
+    // resolve before fetchListingsPage's filter step runs, which Promise.all
+    // guarantees). This alone cuts several sequential network round-trips
+    // down to roughly the time of the single slowest one.
+    const [{data:fm}, {data:{user}}] = await Promise.all([
+      supabase.from('settings').select('value').eq('key','free_mode').single(),
+      supabase.auth.getUser()
+    ]);
+    freeModeOn = fm?.value === 'true';
     currentUser=user;
     let myFavorites=new Set();
     if(user){
@@ -730,12 +735,11 @@
         });
       }
       loadNotifications();
-      const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
-      if(p?.role==='seller') document.getElementById('nav-profile').href='seller.html';
-      const {data:favs,error:favErr}=await supabase.from('favorites').select('listing_id').eq('user_id',user.id);
-      if(favErr) console.error('Could not load favorites:',favErr.message);
-      myFavorites=new Set((favs||[]).map(f=>f.listing_id));
       loadCart();
+      // role only affects a nav link's href (cosmetic) — never block render on it
+      supabase.from('profiles').select('role').eq('id',user.id).single().then(({data:p})=>{
+        if(p?.role==='seller') document.getElementById('nav-profile').href='seller.html';
+      });
     }
 
     // Bounded, SERVER-SIDE-FILTERED pagination: pulling the entire listings
@@ -828,16 +832,29 @@
       return filtered;
     }
 
-    all=await fetchListingsPage();
+    // Favorites (needed by render(), for heart icons) and the listings page
+    // itself don't depend on each other — fetch both at once instead of
+    // one after the other.
+    const [favResult, listingsResult] = await Promise.all([
+      user ? supabase.from('favorites').select('listing_id').eq('user_id',user.id) : Promise.resolve({data:[]}),
+      fetchListingsPage()
+    ]);
+    if(favResult.error) console.error('Could not load favorites:',favResult.error.message);
+    myFavorites=new Set((favResult.data||[]).map(f=>f.listing_id));
+    all=listingsResult;
 
-    // Verified-seller badge: sellers with 5+ completed sales
+    // Verified-seller badge (5+ completed sales) is only ever shown inside
+    // the listing detail modal, never in the initial grid — no reason to
+    // make the whole page wait on it. Render immediately; this fills in
+    // whenever it resolves, ready by the time anyone opens a listing.
     let verifiedSellers=new Set();
     const sellerIds=[...new Set(all.map(l=>l.seller_id))];
     if(sellerIds.length){
-      const {data:completedOrders}=await supabase.from('orders').select('seller_id').eq('status','completed').in('seller_id',sellerIds);
-      const counts={};
-      (completedOrders||[]).forEach(o=>{counts[o.seller_id]=(counts[o.seller_id]||0)+1;});
-      verifiedSellers=new Set(Object.keys(counts).filter(id=>counts[id]>=5));
+      supabase.from('orders').select('seller_id').eq('status','completed').in('seller_id',sellerIds).then(({data:completedOrders})=>{
+        const counts={};
+        (completedOrders||[]).forEach(o=>{counts[o.seller_id]=(counts[o.seller_id]||0)+1;});
+        verifiedSellers=new Set(Object.keys(counts).filter(id=>counts[id]>=5));
+      });
     }
 
     render(all);

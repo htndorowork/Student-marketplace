@@ -1230,11 +1230,16 @@
     };
 
     async function init() {
-      const {data:{user}} = await supabase.auth.getUser();
-
-      const {data:pw} = await supabase.from('settings').select('value').eq('key','paywall_active').single();
+      // These three don't depend on each other's results to be kicked off —
+      // auth doesn't need the settings, and the two settings don't need auth.
+      // Fetching all three in parallel instead of one-after-another cuts two
+      // full network round-trips off the dashboard's load time.
+      const [{data:{user}}, {data:pw}, {data:fm}] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.from('settings').select('value').eq('key','paywall_active').single(),
+        supabase.from('settings').select('value').eq('key','free_mode').single()
+      ]);
       const paywallOn = pw?.value === 'true';
-      const {data:fm} = await supabase.from('settings').select('value').eq('key','free_mode').single();
       const freeModeOn = fm?.value === 'true';
 
       if (!user) {
@@ -1727,9 +1732,11 @@
 
     async function loadSearchAlerts(){
       const box=document.getElementById('alerts-list');
-      const {data,error}=await supabase.from('search_alerts').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
-      if(error||!data?.length){ box.innerHTML='<p class="loading-msg">No saved alerts yet — set these up from the browse page.</p>'; return; }
-      box.innerHTML=data.map(a=>{
+      const [{data,error}, {data:restocks}] = await Promise.all([
+        supabase.from('search_alerts').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}),
+        supabase.from('restock_alerts').select('id,listing_id,listings(title,image_url)').eq('user_id',currentUser.id).order('created_at',{ascending:false})
+      ]);
+      const searchRows = (error||!data?.length) ? [] : data.map(a=>{
         const parts=[];
         if(a.query) parts.push('"'+a.query+'"');
         if(a.category) parts.push(a.category);
@@ -1738,10 +1745,24 @@
           '<span style="font-size:13px;font-weight:700">🔔 '+(parts.join(' · ')||'Any new listing')+'</span>'+
           '<button class="btn-sm btn-delete" onclick="deleteSearchAlert(\''+a.id+'\')">Remove</button>'+
           '</div>';
-      }).join('');
+      });
+      const restockRows = (restocks||[]).map(r=>{
+        const title = r.listings?.title || 'Listing no longer available';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5">'+
+          (r.listings?.image_url?'<img loading="lazy" src="'+r.listings.image_url+'" style="width:36px;height:36px;object-fit:cover;border-radius:8px;flex-shrink:0"/>':'<span style="font-size:18px;flex-shrink:0">📦</span>')+
+          '<span style="font-size:13px;font-weight:700;flex:1">📬 Notify me: '+title+'</span>'+
+          '<button class="btn-sm btn-delete" onclick="deleteRestockAlert(\''+r.id+'\')">Remove</button>'+
+          '</div>';
+      });
+      const allRows = restockRows.concat(searchRows);
+      box.innerHTML = allRows.length ? allRows.join('') : '<p class="loading-msg">No saved alerts yet — set these up from the browse page.</p>';
     }
     window.deleteSearchAlert=async(id)=>{
       await supabase.from('search_alerts').delete().eq('id',id);
+      loadSearchAlerts();
+    };
+    window.deleteRestockAlert=async(id)=>{
+      await supabase.from('restock_alerts').delete().eq('id',id);
       loadSearchAlerts();
     };
 
