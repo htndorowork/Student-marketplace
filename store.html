@@ -183,7 +183,7 @@
           (profile.store_bio?'<div class="store-bio">'+profile.store_bio+'</div>':'')+
           (profile.residence?'<div class="store-meta">📍 '+profile.residence+'</div>':'')+
           (deliveryParts.length?'<div class="store-meta">🚚 Delivers to: '+deliveryParts.join(' · ')+'</div>':'')+
-          (profile.store_link?'<div class="store-meta">🔗 <a href="'+profile.store_link+'" target="_blank" rel="noopener noreferrer">'+profile.store_link.replace(/^https?:\/\//i,'')+'</a></div>':'')+
+          (/^https?:\/\//i.test(profile.store_link||'')?'<div class="store-meta">🔗 <a href="'+profile.store_link.replace(/"/g,'&quot;')+'" target="_blank" rel="noopener nofollow" style="color:#7c3aed;font-weight:800">Visit store link</a></div>':'')+
           '<div class="store-stats-row">'+
           '<div class="store-stat-pill">📦 '+(listings?.length||0)+' listings</div>'+
           '<div class="store-stat-pill">'+ratingTxt+'</div>'+

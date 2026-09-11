@@ -397,10 +397,8 @@
             <div style="font-size:12px;color:#aaa;font-weight:600;margin-top:4px">JPG, PNG or WEBP · Max 2MB each</div>
             <div id="upload-err" style="display:none;font-size:13px;font-weight:700;color:#9333ea;margin-top:6px"></div>
           </div>
+          <div class="form-warning">⚠️ One product, one listing — listing multiple products under a single listing is not allowed.</div>
           <div class="form-error" id="form-error"></div>
-          <div style="background:#fff8e1;border:2px solid #ffe082;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:13px;font-weight:700;color:#8a6d00;line-height:1.5">
-            ⚠️ One product, one listing — listing multiple products under a single listing is not allowed.
-          </div>
           <button class="btn-primary" id="btn-post">Post Listing 🚀</button>
           <button class="btn-primary" id="btn-draft" style="background:#888;margin-top:8px">Save as Draft 📝</button>
           <button class="btn-primary" id="btn-cancel-edit" style="background:#f0f0f0;color:#555;margin-top:8px;display:none">Cancel Edit</button>
@@ -431,7 +429,7 @@
           </div>
           <div class="form-group"><label>Store Name</label><input type="text" id="s-store-name" placeholder="e.g. Thabo's Textbook Corner"/></div>
           <div class="form-group"><label>Store Bio</label><textarea id="s-store-bio" placeholder="Tell buyers a bit about what you sell..." rows="3"></textarea></div>
-          <div class="form-group"><label>Store Link (optional)</label><input type="text" id="s-store-link" placeholder="e.g. your Instagram, WhatsApp catalog or website"/></div>
+          <div class="form-group"><label>Store Link (optional)</label><input type="url" id="s-store-link" placeholder="e.g. https://instagram.com/yourstore or a WhatsApp catalog link"/></div>
           <div class="form-error" id="store-error"></div>
           <button class="btn-primary" id="btn-save-store">Save Store ✅</button>
           <a id="store-public-link" href="#" target="_blank" style="display:block;text-align:center;margin-top:14px;font-weight:800;font-size:13px;color:#7c3aed;text-decoration:none">🔗 View my public store page</a>
@@ -2019,24 +2017,24 @@
       loadMyPurchases();
     };
 
-    function badgeSeenKey(name){ return 'sm_seller_badge_seen_'+name+'_'+(currentUser?.id||'anon'); }
-    function updateBadgeEl(elId,name,count,dismiss){
-      const el=document.getElementById(elId);
-      if(dismiss){
-        localStorage.setItem(badgeSeenKey(name),String(count));
-        el.style.display='none';
-        return;
-      }
-      const seen=parseInt(localStorage.getItem(badgeSeenKey(name))||'0',10);
-      if(count>0 && count!==seen){el.textContent=count;el.style.display='inline-block';}
-      else el.style.display='none';
+    // Menu badges stay dismissed (per user, persisted in localStorage) once their
+    // tab has been opened, and only reappear once the underlying count changes again.
+    function badgeSeenKey(name){ return 'sm_badge_seen_'+name+'_'+(currentUser?currentUser.id:'anon'); }
+    function renderBadge(name, el, count){
+      const seen = localStorage.getItem(badgeSeenKey(name));
+      if (count>0 && seen!==String(count)){ el.textContent=count; el.style.display='inline-block'; }
+      else { el.style.display='none'; }
     }
+    function dismissBadge(name, count){ localStorage.setItem(badgeSeenKey(name), String(count)); }
+    window._dismissBadge = dismissBadge;
 
     async function loadOrders(dismiss) {
       const c = document.getElementById('orders-container');
       const {data,error} = await supabase.from('orders').select('*,listings(title)').eq('seller_id',currentUser.id).order('created_at',{ascending:false});
       const newCount = (data||[]).filter(o=>o.status==='confirmed').length;
-      updateBadgeEl('orders-badge','orders',newCount,dismiss);
+      const ob = document.getElementById('orders-badge');
+      if (dismiss) { dismissBadge('orders', newCount); ob.style.display='none'; }
+      else renderBadge('orders', ob, newCount);
       if (error||!data?.length) { c.innerHTML='<p class="loading-msg">No orders yet 📬</p>'; return; }
 
       const newOrders = data.filter(o=>o.status==='confirmed');
@@ -2068,7 +2066,9 @@
       const c = document.getElementById('my-listings');
       const {data,error} = await supabase.from('listings').select('*').eq('seller_id',currentUser.id).order('created_at',{ascending:false});
       const activeCount = (data||[]).filter(l=>l.is_available && !l.is_draft && !l.is_sold).length;
-      updateBadgeEl('listings-badge','listings',activeCount,dismiss);
+      const lb = document.getElementById('listings-badge');
+      if (dismiss) { dismissBadge('listings', activeCount); lb.style.display='none'; }
+      else renderBadge('listings', lb, activeCount);
       if (error||!data?.length) { c.innerHTML='<p class="loading-msg">No listings yet.</p>'; return; }
       c.innerHTML = data.map(l => {
         const fp = l.discount_percent>0 ? Math.round(l.price*(1-l.discount_percent/100)) : l.price;
@@ -2199,6 +2199,9 @@
       const err = document.getElementById('store-error'); err.style.color='#9333ea'; err.textContent='';
       let storeLink = document.getElementById('s-store-link').value.trim();
       if (storeLink && !/^https?:\/\//i.test(storeLink)) storeLink = 'https://'+storeLink;
+      if (storeLink) {
+        try { new URL(storeLink); } catch(_) { err.textContent='❌ Store link doesn\'t look like a valid URL'; return; }
+      }
       const btn = document.getElementById('btn-save-store');
       btn.textContent='Saving...'; btn.disabled=true;
       const {error} = await supabase.from('profiles').update({
