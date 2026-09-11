@@ -149,7 +149,7 @@
       gridEl.innerHTML = '';
     } else {
       const [{data:profile},{data:listings},{data:reviews},{count:salesCountForBadge},{data:soldItems},{data:fm}] = await Promise.all([
-        supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url,deliver_all_universities,deliver_all_tvet,deliver_all_private,seller_institutions,is_blocked,subscription_paid_until,is_admin').eq('id',sellerId).single(),
+        supabase.from('profiles').select('full_name,residence,store_name,store_bio,store_logo_url,store_link,deliver_all_universities,deliver_all_tvet,deliver_all_private,seller_institutions,is_blocked,subscription_paid_until,is_admin').eq('id',sellerId).single(),
         supabase.from('listings').select('*').eq('seller_id',sellerId).eq('is_available',true).eq('is_draft',false).order('created_at',{ascending:false}),
         supabase.from('reviews').select('rating,comment,created_at').eq('seller_id',sellerId).order('created_at',{ascending:false}),
         supabase.from('orders').select('id',{count:'exact',head:true}).eq('seller_id',sellerId).eq('status','completed'),
@@ -183,6 +183,7 @@
           (profile.store_bio?'<div class="store-bio">'+profile.store_bio+'</div>':'')+
           (profile.residence?'<div class="store-meta">📍 '+profile.residence+'</div>':'')+
           (deliveryParts.length?'<div class="store-meta">🚚 Delivers to: '+deliveryParts.join(' · ')+'</div>':'')+
+          (profile.store_link?'<div class="store-meta">🔗 <a href="'+profile.store_link+'" target="_blank" rel="noopener noreferrer">'+profile.store_link.replace(/^https?:\/\//i,'')+'</a></div>':'')+
           '<div class="store-stats-row">'+
           '<div class="store-stat-pill">📦 '+(listings?.length||0)+' listings</div>'+
           '<div class="store-stat-pill">'+ratingTxt+'</div>'+
