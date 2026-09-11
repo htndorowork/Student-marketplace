@@ -10,10 +10,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#7c3aed"/>
-  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
-  <link rel="icon" type="image/x-icon" href="icons/favicon.ico"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png?v=2"/>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=2"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"/>
   <link rel="stylesheet" href="style.css"/>
   <style>
     .msg-wrap { max-width: 1400px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 320px 1fr; gap: 16px; height: calc(100vh - 90px); height: calc(100dvh - 90px); }
@@ -63,7 +63,7 @@
   <div class="msg-wrap" id="msg-wrap">
     <div class="thread-list" id="thread-list">
       <div class="thread-search-box">
-        <input type="text" id="user-search" placeholder="🔍 Search people to message..." autocomplete="off"/>
+        <input type="text" id="user-search" placeholder="🔍 Search your conversations..." autocomplete="off"/>
       </div>
       <div class="thread-search-results" id="user-search-results" style="display:none"></div>
       <div class="thread-scroll" id="thread-scroll"><p class="loading-msg">Loading conversations... ⏳</p></div>
@@ -128,47 +128,31 @@
       window._names = names;
     }
 
-    window.startThreadWithUser = async (targetId, displayName) => {
+    window.openThreadFromSearch = (idx) => {
       document.getElementById('user-search-results').style.display='none';
       document.getElementById('user-search').value='';
-      if (targetId === user.id) return;
-      // If a conversation with this person already exists, just open it instead of starting a blank one.
-      const existingIdx = (window._threads||[]).findIndex(t=>(t.buyer_id===user.id?t.seller_id:t.buyer_id)===targetId);
-      if (existingIdx > -1) { window.openThread(existingIdx); return; }
-      activeThread = { buyer_id:user.id, seller_id:targetId, listing_id:null, messages:[] };
-      document.getElementById('msg-wrap').classList.add('chat-open');
-      document.querySelectorAll('.thread-item').forEach(el=>el.classList.remove('active'));
-      document.getElementById('chat-header-text').textContent = displayName || 'User';
-      document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
-      updateBlockUI(targetId);
+      window.openThread(idx);
     };
 
-    let userSearchDebounce = null;
     document.getElementById('user-search').addEventListener('input', (e) => {
-      clearTimeout(userSearchDebounce);
-      const q = e.target.value.trim();
+      const q = e.target.value.trim().toLowerCase();
       const results = document.getElementById('user-search-results');
       if (!q) { results.style.display='none'; results.innerHTML=''; return; }
-      userSearchDebounce = setTimeout(async () => {
-        const term = q.replace(/[,()%]/g,'').trim();
-        if (!term) { results.style.display='none'; return; }
-        const {data} = await supabase.from('profiles').select('id,full_name,store_name')
-          .neq('id', user.id)
-          .or('full_name.ilike.%'+term+'%,store_name.ilike.%'+term+'%')
-          .limit(8);
-        const people = data||[];
-        if (!people.length) {
-          results.innerHTML = '<div class="thread-search-result" style="cursor:default;color:#aaa">No people found</div>';
-          results.style.display='block';
-          return;
-        }
-        results.innerHTML = people.map(p=>{
-          const name = (p.store_name || p.full_name || 'User').replace(/</g,'&lt;');
-          const sub = (p.store_name && p.full_name) ? p.full_name.replace(/</g,'&lt;') : '';
-          return '<div class="thread-search-result" onclick="startThreadWithUser(\''+p.id+'\',\''+name.replace(/'/g,"\\'")+'\')">'+name+(sub?'<small>'+sub+'</small>':'')+'</div>';
-        }).join('');
+      const threads = window._threads||[];
+      const names = window._names||{};
+      const matches = threads
+        .map((t,i)=>({idx:i, counterpartId: t.buyer_id===user.id?t.seller_id:t.buyer_id}))
+        .filter(x=>(names[x.counterpartId]||'User').toLowerCase().includes(q));
+      if (!matches.length) {
+        results.innerHTML = '<div class="thread-search-result" style="cursor:default;color:#aaa">No conversations match</div>';
         results.style.display='block';
-      }, 300);
+        return;
+      }
+      results.innerHTML = matches.map(x=>{
+        const name = (names[x.counterpartId]||'User').replace(/</g,'&lt;');
+        return '<div class="thread-search-result" onclick="openThreadFromSearch('+x.idx+')">'+name+'</div>';
+      }).join('');
+      results.style.display='block';
     });
     document.addEventListener('click',(e)=>{
       const box = document.querySelector('.thread-search-box');
