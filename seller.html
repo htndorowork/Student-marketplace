@@ -198,7 +198,7 @@
           <button class="profile-menu-row" onclick="showTab('my-purchases')">
             <span class="pmr-icon">🛍️</span><span class="pmr-label">My Purchases</span><span class="pmr-chevron">›</span>
           </button>
-          <a class="profile-menu-row" href="messages.html">
+          <a class="profile-menu-row" href="messages.html" onclick="window._dismissBadge('messages', parseInt(document.getElementById('msg-badge').textContent)||0)">
             <span class="pmr-icon">💬</span><span class="pmr-label">Messages</span>
             <span class="pmr-badge" id="msg-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
           </a>
@@ -397,7 +397,7 @@
             <div style="font-size:12px;color:#aaa;font-weight:600;margin-top:4px">JPG, PNG or WEBP · Max 2MB each</div>
             <div id="upload-err" style="display:none;font-size:13px;font-weight:700;color:#9333ea;margin-top:6px"></div>
           </div>
-          <div class="form-warning">⚠️ One product, one listing — listing multiple products under a single listing is not allowed.</div>
+          <div class="form-warning">⚠️ One product/service, one listing — listing multiple products/services under a single listing is not allowed.</div>
           <div class="form-error" id="form-error"></div>
           <button class="btn-primary" id="btn-post">Post Listing 🚀</button>
           <button class="btn-primary" id="btn-draft" style="background:#888;margin-top:8px">Save as Draft 📝</button>
@@ -1299,7 +1299,7 @@
         renderInstList();
         if (p.is_admin) document.getElementById('admin-link').style.display = 'flex';
         supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+currentUser.id+',seller_id.eq.'+currentUser.id).neq('sender_id',currentUser.id).eq('is_read',false).then(({count})=>{
-          if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
+          renderBadge('messages', document.getElementById('msg-badge'), count||0);
         });
         loadNotifications();
         loadOrders();
@@ -1396,6 +1396,15 @@
         ? notifs.map(n=>'<div class="notif-item'+(n.is_read?'':' unread')+'" onclick="window._openNotif(\''+n.id+'\',\''+(n.listing_id||'')+'\')">'+n.message+'<div style="font-size:10px;color:#aaa;margin-top:3px">'+new Date(n.created_at).toLocaleDateString('en-ZA')+'</div></div>').join('')
         : '<div class="notif-empty">No notifications yet 🔔</div>';
       dd.style.display='block';
+      // Opening the bell counts as "seen" — clear the badge right away and persist
+      // that server-side, so it stays cleared after a refresh (only new notifications
+      // that arrive after this point will bring the badge back).
+      const unreadIds=notifs.filter(n=>!n.is_read).map(n=>n.id);
+      if(unreadIds.length){
+        await supabase.from('notifications').update({is_read:true}).in('id',unreadIds);
+        unreadIds.forEach(id=>{const n=window._notifs.find(x=>x.id===id); if(n) n.is_read=true;});
+      }
+      document.getElementById('notif-badge').style.display='none';
     };
     window._openNotif=async(id,listingId)=>{
       await supabase.from('notifications').update({is_read:true}).eq('id',id);

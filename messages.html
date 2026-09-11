@@ -25,7 +25,14 @@
     }
     .chat-back-btn { display: none; background: none; border: none; cursor: pointer; font-size: 18px; font-weight: 900; color: #7c3aed; padding: 0 12px 0 0; font-family: inherit; }
     @media (max-width: 700px) { .chat-back-btn { display: inline-block; } }
-    .thread-list { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; overflow: hidden; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .thread-list { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; overflow: hidden; height: 100%; display: flex; flex-direction: column; }
+    .thread-search-box { padding: 10px; border-bottom: 1px solid #f5f5f5; flex-shrink: 0; }
+    .thread-search-box input { width: 100%; box-sizing: border-box; border: 2px solid #f0f0f0; border-radius: 50px; padding: 9px 14px; font-family: inherit; font-size: 13.5px; -webkit-appearance: none; }
+    .thread-search-results { flex-shrink: 0; max-height: 240px; overflow-y: auto; border-bottom: 1px solid #f5f5f5; }
+    .thread-search-result { padding: 10px 16px; border-bottom: 1px solid #f8f8f8; cursor: pointer; font-size: 13px; font-weight: 700; color: #333; }
+    .thread-search-result:hover { background: #f5f0fe; }
+    .thread-search-result small { display: block; font-size: 11px; font-weight: 600; color: #aaa; margin-top: 1px; }
+    .thread-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .thread-item { padding: 14px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
     .thread-item:hover, .thread-item.active { background: #f5f0fe; }
     .thread-name { font-weight: 800; font-size: 13.5px; color: #111; }
@@ -54,7 +61,13 @@
   </nav>
 
   <div class="msg-wrap" id="msg-wrap">
-    <div class="thread-list" id="thread-list"><p class="loading-msg">Loading conversations... ⏳</p></div>
+    <div class="thread-list" id="thread-list">
+      <div class="thread-search-box">
+        <input type="text" id="user-search" placeholder="🔍 Search people to message..." autocomplete="off"/>
+      </div>
+      <div class="thread-search-results" id="user-search-results" style="display:none"></div>
+      <div class="thread-scroll" id="thread-scroll"><p class="loading-msg">Loading conversations... ⏳</p></div>
+    </div>
     <div class="chat-panel" id="chat-panel">
       <div class="chat-header"><button class="chat-back-btn" onclick="closeThread()" aria-label="Back to conversations">←</button><span id="chat-header-text" style="flex:1">Select a conversation</span><button id="block-btn" onclick="toggleBlockThread()" style="display:none;background:none;border:none;cursor:pointer;font-size:12px;font-weight:800;color:#dc2626;font-family:inherit"></button></div>
       <div class="chat-messages" id="chat-messages"><p class="loading-msg" style="margin:auto">Pick a conversation on the left, or message a seller from a listing 💬</p></div>
@@ -101,7 +114,7 @@
         (profs||[]).forEach(p=>{names[p.id]=p.store_name||p.full_name||'User';});
       }
 
-      const list = document.getElementById('thread-list');
+      const list = document.getElementById('thread-scroll');
       if(!threads.length){ list.innerHTML='<p class="loading-msg">No conversations yet</p>'; return; }
       threads.sort((a,b)=>new Date(b.messages[0].created_at)-new Date(a.messages[0].created_at));
       list.innerHTML = threads.map((t,i)=>{
@@ -114,6 +127,56 @@
       window._threads = threads;
       window._names = names;
     }
+
+    window.startThreadWithUser = async (targetId, displayName) => {
+      document.getElementById('user-search-results').style.display='none';
+      document.getElementById('user-search').value='';
+      if (targetId === user.id) return;
+      // If a conversation with this person already exists, just open it instead of starting a blank one.
+      const existingIdx = (window._threads||[]).findIndex(t=>(t.buyer_id===user.id?t.seller_id:t.buyer_id)===targetId);
+      if (existingIdx > -1) { window.openThread(existingIdx); return; }
+      activeThread = { buyer_id:user.id, seller_id:targetId, listing_id:null, messages:[] };
+      document.getElementById('msg-wrap').classList.add('chat-open');
+      document.querySelectorAll('.thread-item').forEach(el=>el.classList.remove('active'));
+      document.getElementById('chat-header-text').textContent = displayName || 'User';
+      document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
+      updateBlockUI(targetId);
+    };
+
+    let userSearchDebounce = null;
+    document.getElementById('user-search').addEventListener('input', (e) => {
+      clearTimeout(userSearchDebounce);
+      const q = e.target.value.trim();
+      const results = document.getElementById('user-search-results');
+      if (!q) { results.style.display='none'; results.innerHTML=''; return; }
+      userSearchDebounce = setTimeout(async () => {
+        const term = q.replace(/[,()%]/g,'').trim();
+        if (!term) { results.style.display='none'; return; }
+        const {data} = await supabase.from('profiles').select('id,full_name,store_name')
+          .neq('id', user.id)
+          .or('full_name.ilike.%'+term+'%,store_name.ilike.%'+term+'%')
+          .limit(8);
+        const people = data||[];
+        if (!people.length) {
+          results.innerHTML = '<div class="thread-search-result" style="cursor:default;color:#aaa">No people found</div>';
+          results.style.display='block';
+          return;
+        }
+        results.innerHTML = people.map(p=>{
+          const name = (p.store_name || p.full_name || 'User').replace(/</g,'&lt;');
+          const sub = (p.store_name && p.full_name) ? p.full_name.replace(/</g,'&lt;') : '';
+          return '<div class="thread-search-result" onclick="startThreadWithUser(\''+p.id+'\',\''+name.replace(/'/g,"\\'")+'\')">'+name+(sub?'<small>'+sub+'</small>':'')+'</div>';
+        }).join('');
+        results.style.display='block';
+      }, 300);
+    });
+    document.addEventListener('click',(e)=>{
+      const box = document.querySelector('.thread-search-box');
+      const results = document.getElementById('user-search-results');
+      if (results.style.display==='block' && box && !box.contains(e.target) && !results.contains(e.target)) {
+        results.style.display='none';
+      }
+    });
 
     window.openThread = async (idx) => {
       const t = window._threads[idx];
@@ -168,20 +231,41 @@
       box.scrollTop = box.scrollHeight;
     }
 
+    let isSending = false;
     window.sendMessage = async () => {
+      if (isSending) return; // guards against double-tap / double-Enter firing this twice
       const input = document.getElementById('chat-input');
       const content = input.value.trim();
       if(!content || !activeThread) return;
+      isSending = true;
+      const sendBtn = document.querySelector('#chat-input-row button');
+      if (sendBtn) sendBtn.disabled = true;
+      input.value=''; // clear immediately so a repeated Enter/click can't resend the same text
       const payload = {
         buyer_id: activeThread.buyer_id, seller_id: activeThread.seller_id,
         listing_id: activeThread.listing_id, sender_id: user.id, content
       };
-      const {data,error} = await supabase.from('messages').insert(payload).select().single();
-      if(error){ alert('Could not send: '+error.message); return; }
-      input.value='';
-      activeThread.messages.unshift(data);
-      renderMessages();
+      try {
+        const {data,error} = await supabase.from('messages').insert(payload).select().single();
+        if(error){ alert('Could not send: '+error.message); input.value = content; return; }
+        // Own realtime subscription will also receive this INSERT — addMessageOnce()
+        // keeps that from rendering it a second time.
+        addMessageOnce(activeThread, data);
+        renderMessages();
+      } finally {
+        isSending = false;
+        if (sendBtn) sendBtn.disabled = false;
+      }
     };
+
+    // Adds a message to a thread's list only if it isn't already there (by id),
+    // since the sender's own INSERT is echoed back through their own realtime
+    // subscription — without this, every message you send would render twice.
+    function addMessageOnce(thread, m){
+      if (thread.messages.some(x=>x.id===m.id)) return false;
+      thread.messages.unshift(m);
+      return true;
+    }
 
     // Start a new thread from ?seller=&listing= params
     const params = new URLSearchParams(location.search);
@@ -220,8 +304,7 @@
       const m = payload.new;
       // If it's the currently-open thread, append it live without a full reload.
       if(activeThread && m.buyer_id===activeThread.buyer_id && m.seller_id===activeThread.seller_id && (m.listing_id||null)===(activeThread.listing_id||null)){
-        activeThread.messages.unshift(m);
-        renderMessages();
+        if (addMessageOnce(activeThread, m)) renderMessages();
         if(m.sender_id!==user.id) supabase.from('messages').update({is_read:true}).eq('id',m.id);
       }
       // Refresh the thread list either way, to update previews/unread counts.
