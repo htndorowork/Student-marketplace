@@ -371,7 +371,7 @@
           '<div style="flex:1">'+status+
           '<div class="order-card-title"'+(viewItem?' onclick="'+viewItem+'" style="cursor:pointer"':'')+'>'+(o.listings?.title||'Unknown')+(viewItem?' 👁️':'')+'</div>'+
           '<div class="order-detail">Qty: <strong>'+o.quantity+'</strong></div>'+
-          '<div style="font-size:13px;font-weight:800;color:#7c3aed;margin-bottom:8px">Contact seller to arrange:</div>'+
+          '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-bottom:8px" href="messages.html?seller='+o.seller_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Seller</a>'+
           '<div class="order-detail">👤 <strong>'+(o.profiles?.full_name||'Seller')+'</strong></div>'+
           (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+o.profiles.residence+'</strong></div>':'')+
           '<div class="order-detail">📱 <strong>'+(o.profiles?.whatsapp||'N/A')+'</strong></div>'+

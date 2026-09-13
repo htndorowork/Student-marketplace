@@ -373,9 +373,13 @@
       return true;
     }
 
-    // Start a new thread from ?seller=&listing= params
+    // Start a new thread from ?seller=&listing= (buyer messaging a seller) or
+    // ?buyer=&listing= (seller messaging a buyer) — these need separate params
+    // because a thread's buyer_id/seller_id roles are fixed, and the current
+    // user could be initiating contact from either side.
     const params = new URLSearchParams(location.search);
     const toSeller = params.get('seller');
+    const toBuyer = params.get('buyer');
     const listingId = params.get('listing');
     if (toSeller && toSeller!==user.id) {
       const {data:sellerProfile} = await supabase.from('profiles').select('full_name,store_name').eq('id',toSeller).single();
@@ -383,14 +387,24 @@
       document.getElementById('msg-wrap').classList.add('chat-open');
       setChatHeader(sellerProfile?.store_name||sellerProfile?.full_name||'Seller', null);
       document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
+    } else if (toBuyer && toBuyer!==user.id) {
+      const {data:buyerProfile} = await supabase.from('profiles').select('full_name').eq('id',toBuyer).single();
+      activeThread = { buyer_id:toBuyer, seller_id:user.id, listing_id:listingId||null, messages:[] };
+      document.getElementById('msg-wrap').classList.add('chat-open');
+      setChatHeader(buyerProfile?.full_name||'Buyer', null);
+      document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
     }
 
     await loadBlockedUsers();
     await loadThreads();
     if (toSeller) updateBlockUI(toSeller);
+    else if (toBuyer) updateBlockUI(toBuyer);
     // If we started a thread via URL params and it already exists, open the matching one instead of a blank one
     if (toSeller) {
       const idx = (window._threads||[]).findIndex(t=>t.seller_id===toSeller && t.buyer_id===user.id && (t.listing_id||null)===(listingId||null));
+      if (idx>-1) window.openThread(idx);
+    } else if (toBuyer) {
+      const idx = (window._threads||[]).findIndex(t=>t.buyer_id===toBuyer && t.seller_id===user.id && (t.listing_id||null)===(listingId||null));
       if (idx>-1) window.openThread(idx);
     }
 

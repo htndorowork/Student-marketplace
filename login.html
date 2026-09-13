@@ -115,8 +115,11 @@
           <div class="pw-strength-label" id="pw-strength-label"></div>
         </div>
         <div class="auth-error" id="signup-error"></div>
+        <label style="display:flex;align-items:flex-start;gap:9px;font-size:12px;color:#888;font-weight:600;line-height:1.5;margin-bottom:14px;cursor:pointer">
+          <input type="checkbox" id="signup-agree" style="width:17px;height:17px;flex-shrink:0;margin-top:1px"/>
+          By clicking "Create Account", you agree to our <a href="terms.html" style="color:#7c3aed;font-weight:800" onclick="event.stopPropagation()">Terms and Conditions</a> and <a href="privacy.html" style="color:#7c3aed;font-weight:800" onclick="event.stopPropagation()">Privacy Policy</a>, and confirm that you are over 18 years of age.
+        </label>
         <button class="btn-primary" id="btn-signup">Create Account 🎓</button>
-        <p style="text-align:center;margin-top:10px;font-size:11px;color:#aaa;font-weight:600">By signing up you agree to our <a href="terms.html" style="color:#7c3aed">Terms</a> and <a href="privacy.html" style="color:#7c3aed">Privacy Policy</a></p>
       </div>
     </div>
   </main>
@@ -626,6 +629,7 @@
       const role=window.selectedRole||'buyer';
       err.style.color='#9333ea';err.textContent='';
       if(!name||!wa||!email||!password){err.textContent='❌ Please fill in all fields';return;}
+      if(!document.getElementById('signup-agree').checked){err.textContent='❌ Please agree to the Terms and confirm you are over 18';return;}
       if(!isValidSAPhone(wa)){err.textContent='❌ Enter a valid South African cell number, e.g. 0812345678';return;}
       if(role==='buyer' && (!buyerInstPicked||!buyerCampusPicked)){err.textContent='❌ Select your institution & campus';return;}
       let allUni=false, allTvet=false, allPrivate=false;
