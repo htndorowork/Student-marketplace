@@ -33,22 +33,38 @@
     .thread-search-result:hover { background: #f5f0fe; }
     .thread-search-result small { display: block; font-size: 11px; font-weight: 600; color: #aaa; margin-top: 1px; }
     .thread-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    .thread-item { padding: 14px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+    .thread-item { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; display: flex; align-items: center; gap: 10px; }
     .thread-item:hover, .thread-item.active { background: #f5f0fe; }
+    .thread-avatar { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 14px; background: #7c3aed; }
+    .thread-info { min-width: 0; flex: 1; }
     .thread-name { font-weight: 800; font-size: 13.5px; color: #111; }
     .thread-preview { font-size: 12px; color: #888; font-weight: 600; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .thread-unread { display: inline-block; background: #7c3aed; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 50px; margin-left: 6px; }
     .chat-panel { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; display: flex; flex-direction: column; height: 100%; min-height: 0; }
-    .chat-header { padding: 14px 18px; border-bottom: 2px solid #f5f5f5; font-weight: 800; font-size: 14px; display: flex; align-items: center; }
+    .chat-header { padding: 12px 16px; border-bottom: 2px solid #f5f5f5; display: flex; align-items: center; gap: 10px; position: relative; }
+    .chat-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 15px; background: #7c3aed; }
+    .chat-header-info { flex: 1; min-width: 0; }
+    .chat-header-name { font-weight: 800; font-size: 14px; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-header-sub { font-size: 11.5px; color: #aaa; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-menu-btn { background: none; border: none; cursor: pointer; font-size: 20px; font-weight: 900; color: #888; padding: 4px 8px; font-family: inherit; line-height: 1; }
+    .chat-options-dropdown { display: none; position: absolute; top: 54px; right: 10px; background: #fff; border: 2px solid #f0f0f0; border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.12); min-width: 210px; z-index: 20; overflow: hidden; }
+    .chat-options-dropdown.open { display: block; }
+    .chat-option-item { display: block; width: 100%; text-align: left; background: none; border: none; padding: 12px 16px; font-family: inherit; font-size: 13px; font-weight: 700; color: #333; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
+    .chat-option-item:last-child { border-bottom: none; }
+    .chat-option-item:hover { background: #f8f8f8; }
+    .chat-option-item.danger { color: #dc2626; }
     .chat-messages { flex: 1; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 8px; }
     .bubble { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 13.5px; font-weight: 600; line-height: 1.4; }
     .bubble.me { align-self: flex-end; background: #7c3aed; color: #fff; border-bottom-right-radius: 4px; }
     .bubble.them { align-self: flex-start; background: #f5f5f5; color: #333; border-bottom-left-radius: 4px; }
-    .bubble-time { font-size: 10px; opacity: 0.7; margin-top: 4px; }
-    .chat-input-row { display: flex; gap: 8px; padding: 12px; border-top: 2px solid #f5f5f5; }
+    .bubble-time { font-size: 10px; opacity: 0.7; margin-top: 4px; display: flex; align-items: center; gap: 3px; justify-content: flex-end; }
+    .bubble.them .bubble-time { justify-content: flex-start; }
+    .bubble-tick { font-size: 11px; }
+    .chat-input-row { display: flex; gap: 8px; padding: 12px; border-top: 2px solid #f5f5f5; align-items: center; }
     .chat-input-row input { flex: 1; border: 2px solid #f0f0f0; border-radius: 50px; padding: 10px 16px; font-family: inherit; font-size: 16px; -webkit-appearance: none; }
     .msg-wrap { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
-    .chat-input-row button { background: #7c3aed; color: #fff; border: none; padding: 10px 20px; border-radius: 50px; font-family: inherit; font-weight: 800; cursor: pointer; }
+    .chat-send-btn { background: #7c3aed; color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; font-family: inherit; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+    .chat-send-btn:disabled { opacity: 0.5; }
   </style>
 </head>
 <body>
@@ -69,12 +85,50 @@
       <div class="thread-scroll" id="thread-scroll"><p class="loading-msg">Loading conversations... ⏳</p></div>
     </div>
     <div class="chat-panel" id="chat-panel">
-      <div class="chat-header"><button class="chat-back-btn" onclick="closeThread()" aria-label="Back to conversations">←</button><span id="chat-header-text" style="flex:1">Select a conversation</span><button id="block-btn" onclick="toggleBlockThread()" style="display:none;background:none;border:none;cursor:pointer;font-size:12px;font-weight:800;color:#dc2626;font-family:inherit"></button></div>
+      <div class="chat-header">
+        <button class="chat-back-btn" onclick="closeThread()" aria-label="Back to conversations">←</button>
+        <div class="chat-avatar" id="chat-avatar" style="display:none"></div>
+        <div class="chat-header-info">
+          <div class="chat-header-name" id="chat-header-text">Select a conversation</div>
+          <div class="chat-header-sub" id="chat-header-sub" style="display:none"></div>
+        </div>
+        <button class="chat-menu-btn" id="chat-menu-btn" style="display:none" onclick="toggleChatOptions()">⋮</button>
+        <div class="chat-options-dropdown" id="chat-options-dropdown">
+          <button class="chat-option-item" onclick="viewSellerProfile()">👤 View Seller Profile</button>
+          <button class="chat-option-item danger" id="chat-option-block" onclick="toggleBlockThread()">🚫 Block User</button>
+          <button class="chat-option-item danger" onclick="openReportUserModal()">🚩 Report User</button>
+        </div>
+      </div>
       <div class="chat-messages" id="chat-messages"><p class="loading-msg" style="margin:auto">Pick a conversation on the left, or message a seller from a listing 💬</p></div>
       <p id="blocked-notice" style="display:none;text-align:center;font-size:12.5px;color:#aaa;font-weight:700;padding:10px">🚫 You've blocked this user — unblock them to send a message.</p>
       <div class="chat-input-row" id="chat-input-row" style="display:none">
         <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMessage()"/>
-        <button onclick="sendMessage()">Send</button>
+        <button class="chat-send-btn" onclick="sendMessage()" aria-label="Send">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="report-user-modal-overlay" onclick="closeReportUserModal()" style="display:none">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:420px">
+      <button class="modal-close" onclick="closeReportUserModal()">✕</button>
+      <div style="padding:22px 20px">
+        <div class="tb-heading">🚩 Report this user</div>
+        <div class="form-group">
+          <label>Reason</label>
+          <select id="report-user-reason">
+            <option>Scam or fraud</option>
+            <option>Harassment or abuse</option>
+            <option>Spam</option>
+            <option>Inappropriate content</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Details (optional)</label>
+          <textarea id="report-user-details" rows="3" placeholder="Tell us more..."></textarea>
+        </div>
+        <div class="form-error" id="report-user-error"></div>
+        <button class="btn-primary" onclick="submitReportUser()">Submit Report</button>
       </div>
     </div>
   </div>
@@ -84,6 +138,15 @@
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
     let currentUser=null, activeThread=null, pollTimer=null, blockedIds=new Set();
+
+    const AVATAR_COLORS = ['#7c3aed','#2563eb','#059669','#d97706','#dc2626','#db2777','#0891b2','#65a30d'];
+    function avatarInitial(name){ return ((name||'?').trim().charAt(0)||'?').toUpperCase(); }
+    function avatarColor(name){
+      let hash=0;
+      const s=name||'U';
+      for(let i=0;i<s.length;i++) hash = s.charCodeAt(i) + ((hash<<5)-hash);
+      return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
 
     const {data:{user}} = await supabase.auth.getUser();
     if(!user){ window.location.href='login.html'; }
@@ -121,7 +184,8 @@
         const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
         const unread = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).length;
         return '<div class="thread-item" data-idx="'+i+'" onclick="openThread('+i+')">'+
-          '<div class="thread-name">'+(names[counterpartId]||'User')+(unread?'<span class="thread-unread">'+unread+'</span>':'')+'</div>'+
+          '<div class="thread-avatar" style="background:'+avatarColor(names[counterpartId])+'">'+avatarInitial(names[counterpartId])+'</div>'+
+          '<div class="thread-info"><div class="thread-name">'+(names[counterpartId]||'User')+(unread?'<span class="thread-unread">'+unread+'</span>':'')+'</div></div>'+
           '</div>';
       }).join('');
       window._threads = threads;
@@ -169,7 +233,8 @@
       document.querySelectorAll('.thread-item').forEach(el=>el.classList.remove('active'));
       document.querySelector('.thread-item[data-idx="'+idx+'"]')?.classList.add('active');
       const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
-      document.getElementById('chat-header-text').textContent = (window._names[counterpartId]||'User')+(t.listingTitle?' · '+t.listingTitle:'');
+      const name = window._names[counterpartId]||'User';
+      setChatHeader(name, t.listingTitle);
       updateBlockUI(counterpartId);
       renderMessages();
       // Mark unread as read
@@ -177,17 +242,44 @@
       if(unreadIds.length) await supabase.from('messages').update({is_read:true}).in('id',unreadIds);
     };
 
+    function setChatHeader(name, sub){
+      document.getElementById('chat-header-text').textContent = name;
+      const subEl = document.getElementById('chat-header-sub');
+      if(sub){ subEl.textContent = sub; subEl.style.display='block'; } else { subEl.style.display='none'; }
+      const avatar = document.getElementById('chat-avatar');
+      avatar.textContent = avatarInitial(name);
+      avatar.style.background = avatarColor(name);
+      avatar.style.display = 'flex';
+      document.getElementById('chat-menu-btn').style.display = 'inline-block';
+      document.getElementById('chat-options-dropdown').classList.remove('open');
+    }
+    window.toggleChatOptions = () => {
+      document.getElementById('chat-options-dropdown').classList.toggle('open');
+    };
+    document.addEventListener('click',(e)=>{
+      const dd = document.getElementById('chat-options-dropdown');
+      const btn = document.getElementById('chat-menu-btn');
+      if(dd.classList.contains('open') && !dd.contains(e.target) && e.target!==btn){
+        dd.classList.remove('open');
+      }
+    });
+    window.viewSellerProfile = () => {
+      if(!activeThread) return;
+      const counterpartId = activeThread.buyer_id===user.id?activeThread.seller_id:activeThread.buyer_id;
+      window.location.href = 'store.html?seller='+counterpartId;
+    };
+
     function updateBlockUI(counterpartId){
       const isBlocked = blockedIds.has(counterpartId);
-      const btn = document.getElementById('block-btn');
-      btn.style.display = 'inline-block';
-      btn.textContent = isBlocked ? '✅ Unblock' : '🚫 Block';
+      const btn = document.getElementById('chat-option-block');
+      btn.textContent = isBlocked ? '✅ Unblock User' : '🚫 Block User';
       document.getElementById('chat-input-row').style.display = isBlocked ? 'none' : 'flex';
       document.getElementById('blocked-notice').style.display = isBlocked ? 'block' : 'none';
     }
 
     window.toggleBlockThread = async () => {
       if(!activeThread) return;
+      document.getElementById('chat-options-dropdown').classList.remove('open');
       const counterpartId = activeThread.buyer_id===user.id?activeThread.seller_id:activeThread.buyer_id;
       if(blockedIds.has(counterpartId)){
         if(!confirm('Unblock this user? They\'ll be able to message you again.')) return;
@@ -201,6 +293,33 @@
       updateBlockUI(counterpartId);
     };
 
+    window.openReportUserModal = () => {
+      document.getElementById('chat-options-dropdown').classList.remove('open');
+      if(!activeThread) return;
+      document.getElementById('report-user-error').textContent='';
+      document.getElementById('report-user-details').value='';
+      document.getElementById('report-user-modal-overlay').style.display='flex';
+    };
+    window.closeReportUserModal = () => {
+      document.getElementById('report-user-modal-overlay').style.display='none';
+    };
+    window.submitReportUser = async () => {
+      const err = document.getElementById('report-user-error');
+      err.style.color='#9333ea'; err.textContent='';
+      if(!activeThread){ err.textContent='❌ No conversation selected'; return; }
+      const counterpartId = activeThread.buyer_id===user.id?activeThread.seller_id:activeThread.buyer_id;
+      const {error} = await supabase.from('reports').insert({
+        reporter_id: user.id,
+        reported_user_id: counterpartId,
+        listing_id: activeThread.listing_id||null,
+        reason: document.getElementById('report-user-reason').value,
+        details: document.getElementById('report-user-details').value.trim()||null
+      });
+      if(error){ err.textContent='❌ '+error.message; return; }
+      err.style.color='#2e7d32'; err.textContent='✅ Report submitted. Thanks for helping keep the marketplace safe!';
+      setTimeout(closeReportUserModal, 1800);
+    };
+
     window.closeThread = () => {
       document.getElementById('msg-wrap').classList.remove('chat-open');
     };
@@ -208,10 +327,13 @@
     function renderMessages(){
       const box = document.getElementById('chat-messages');
       const sorted = [...activeThread.messages].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-      box.innerHTML = sorted.map(m=>
-        '<div class="bubble '+(m.sender_id===user.id?'me':'them')+'">'+m.content+
-        '<div class="bubble-time">'+new Date(m.created_at).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'})+'</div></div>'
-      ).join('');
+      box.innerHTML = sorted.map(m=>{
+        const isMe = m.sender_id===user.id;
+        const time = new Date(m.created_at).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+        const ticks = isMe ? '<span class="bubble-tick">'+(m.is_read?'✓✓':'✓')+'</span>' : '';
+        return '<div class="bubble '+(isMe?'me':'them')+'">'+m.content+
+          '<div class="bubble-time">'+time+ticks+'</div></div>';
+      }).join('');
       box.scrollTop = box.scrollHeight;
     }
 
@@ -259,7 +381,7 @@
       const {data:sellerProfile} = await supabase.from('profiles').select('full_name,store_name').eq('id',toSeller).single();
       activeThread = { buyer_id:user.id, seller_id:toSeller, listing_id:listingId||null, messages:[] };
       document.getElementById('msg-wrap').classList.add('chat-open');
-      document.getElementById('chat-header-text').textContent = sellerProfile?.store_name||sellerProfile?.full_name||'Seller';
+      setChatHeader(sellerProfile?.store_name||sellerProfile?.full_name||'Seller', null);
       document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
     }
 

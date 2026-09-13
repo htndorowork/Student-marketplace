@@ -32,6 +32,8 @@
   <main class="auth-main">
     <div class="auth-card">
       <h1 class="sr-only">Sign In or Create a Student Marketplace Account</h1>
+      <div class="auth-icon">🎓</div>
+      <p class="auth-tagline">Your campus marketplace</p>
       <div class="auth-tabs">
         <button class="auth-tab active" id="tab-login" onclick="showTab('login')">Sign In</button>
         <button class="auth-tab" id="tab-signup" onclick="showTab('signup')">Sign Up</button>
@@ -106,9 +108,11 @@
         <div class="form-group">
           <label>Password *</label>
           <div class="pw-wrap">
-            <input type="password" id="signup-password" placeholder="••••••••"/>
+            <input type="password" id="signup-password" placeholder="••••••••" oninput="updatePwStrength(this.value)"/>
             <button class="pw-toggle" onclick="togglePw('signup-password',this)" type="button">👁</button>
           </div>
+          <div class="pw-strength-track" id="pw-strength-track"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+          <div class="pw-strength-label" id="pw-strength-label"></div>
         </div>
         <div class="auth-error" id="signup-error"></div>
         <button class="btn-primary" id="btn-signup">Create Account 🎓</button>
@@ -556,8 +560,27 @@
       closeSellerInstAddModal();
     };
 
+    function updatePwStrength(pw){
+      const track=document.getElementById('pw-strength-track');
+      const fill=document.getElementById('pw-strength-fill');
+      const label=document.getElementById('pw-strength-label');
+      if(!pw){ track.style.display='none'; label.style.display='none'; return; }
+      track.style.display='block'; label.style.display='block';
+      let score=0;
+      if(pw.length>=6) score++;
+      if(pw.length>=10) score++;
+      if(/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+      if(/\d/.test(pw)) score++;
+      if(/[^A-Za-z0-9]/.test(pw)) score++;
+      let pct,text,color;
+      if(score<=1){ pct=25; text='Weak'; color='#dc2626'; }
+      else if(score<=3){ pct=60; text='Medium'; color='#f59e0b'; }
+      else { pct=100; text='Strong'; color='#16a34a'; }
+      fill.style.width=pct+'%'; fill.style.background=color;
+      label.textContent=text; label.style.color=color;
+    }
     window.showTab=showTab;window.selectRole=selectRole;window.togglePw=togglePw;
-    window.openForgotPw=openForgotPw;window.closeForgotPw=closeForgotPw;
+    window.openForgotPw=openForgotPw;window.closeForgotPw=closeForgotPw;window.updatePwStrength=updatePwStrength;
   </script>
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';

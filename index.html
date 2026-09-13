@@ -1258,8 +1258,8 @@
       if(!currentUser){window.location.href='login.html';return;}
       if(!currentListing)return;
       addToCart(currentListing,modalQty);
-      closeModal();
-      openCart();
+      // Stay on the listing — addToCart() already shows a confirmation toast,
+      // no need to jump the user into the cart view.
     };
 
     document.getElementById('btn-order-now').onclick=async()=>{
@@ -1305,11 +1305,21 @@
     async function loadCart(){
       const saved=localStorage.getItem('cv_cart');
       if(!saved)return;
-      const items=JSON.parse(saved);
+      let items;
+      try { items = JSON.parse(saved); } catch(_) { return; }
+      if(!Array.isArray(items) || !items.length) return;
+      // Fetch these listings directly by id instead of relying on `all` (the
+      // currently-loaded/filtered browse page) — `all` may not contain a cart
+      // item yet (or ever, if it's outside the current filter/page), which was
+      // silently dropping saved cart items on every refresh.
+      const {data:rows} = await supabase.from('listings').select('*').in('id', items.map(i=>i.id));
+      const byId = new Map((rows||[]).map(r=>[r.id,r]));
+      cart.length = 0;
       for(const item of items){
-        const l=all.find(x=>x.id===item.id);
-        if(l)cart.push({listing:l,qty:item.qty});
+        const l = byId.get(item.id);
+        if(l) cart.push({listing:l, qty:item.qty});
       }
+      saveCart(); // drops any items that no longer exist, so the badge count stays accurate
       updateCartUI();
     }
 
