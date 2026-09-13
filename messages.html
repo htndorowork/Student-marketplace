@@ -185,7 +185,7 @@
         const unread = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).length;
         return '<div class="thread-item" data-idx="'+i+'" onclick="openThread('+i+')">'+
           '<div class="thread-avatar" style="background:'+avatarColor(names[counterpartId])+'">'+avatarInitial(names[counterpartId])+'</div>'+
-          '<div class="thread-info"><div class="thread-name">'+(names[counterpartId]||'User')+(unread?'<span class="thread-unread">'+unread+'</span>':'')+'</div></div>'+
+          '<div class="thread-info"><div class="thread-name">'+escapeHtml(names[counterpartId]||'User')+(unread?'<span class="thread-unread">'+unread+'</span>':'')+'</div></div>'+
           '</div>';
       }).join('');
       window._threads = threads;
@@ -324,6 +324,11 @@
       document.getElementById('msg-wrap').classList.remove('chat-open');
     };
 
+    function escapeHtml(s){
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
     function renderMessages(){
       const box = document.getElementById('chat-messages');
       const sorted = [...activeThread.messages].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
@@ -331,7 +336,7 @@
         const isMe = m.sender_id===user.id;
         const time = new Date(m.created_at).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
         const ticks = isMe ? '<span class="bubble-tick">'+(m.is_read?'✓✓':'✓')+'</span>' : '';
-        return '<div class="bubble '+(isMe?'me':'them')+'">'+m.content+
+        return '<div class="bubble '+(isMe?'me':'them')+'">'+escapeHtml(m.content)+
           '<div class="bubble-time">'+time+ticks+'</div></div>';
       }).join('');
       box.scrollTop = box.scrollHeight;

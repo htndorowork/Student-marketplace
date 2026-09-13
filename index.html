@@ -916,12 +916,12 @@
         const outOfStock=l.quantity<=0;
         const isFav=myFavorites.has(l.id);
         const heart=currentUser?'<button class="fav-heart" onclick="event.stopPropagation();window._toggleFav(\''+l.id+'\')" aria-label="Favorite">'+(isFav?'❤️':'🤍')+'</button>':'';
-        const condTag=l.condition?'<span class="condition-tag">'+l.condition+'</span>':'';
+        const condTag=l.condition?'<span class="condition-tag">'+escapeHtml(l.condition)+'</span>':'';
         const negTag=l.is_negotiable?'<span class="negotiable-tag">💬 Negotiable</span>':'';
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
           '<div class="card-img" style="background:'+c.bg+'">'+db+heart+img+photoDots+'</div>'+
           '<div class="card-body">'+
-          '<div class="card-title">'+l.title+'</div>'+
+          '<div class="card-title">'+escapeHtml(l.title)+'</div>'+
           (negTag?'<div>'+negTag+'</div>':'')+
           stock+
           '<div class="card-footer"><span class="price">R'+fp+'</span>'+
@@ -1010,7 +1010,7 @@
         const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
           '<div class="card-img" style="background:'+c.bg+'">'+img+'</div>'+
-          '<div class="card-body"><div class="card-title">'+l.title+'</div>'+
+          '<div class="card-body"><div class="card-title">'+escapeHtml(l.title)+'</div>'+
           '<div class="card-footer"><span class="price">R'+(l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price)+'</span></div></div></div>';
       }).join('');
     }
@@ -1030,7 +1030,7 @@
       await loadNotifications();
       const notifs=window._notifs||[];
       dd.innerHTML=notifs.length
-        ? notifs.map(n=>'<div class="notif-item'+(n.is_read?'':' unread')+'" onclick="window._openNotif(\''+n.id+'\',\''+(n.listing_id||'')+'\')">'+n.message+'<div style="font-size:10px;color:#aaa;margin-top:3px">'+new Date(n.created_at).toLocaleDateString('en-ZA')+'</div></div>').join('')
+        ? notifs.map(n=>'<div class="notif-item'+(n.is_read?'':' unread')+'" onclick="window._openNotif(\''+n.id+'\',\''+(n.listing_id||'')+'\')">'+escapeHtml(n.message)+'<div style="font-size:10px;color:#aaa;margin-top:3px">'+new Date(n.created_at).toLocaleDateString('en-ZA')+'</div></div>').join('')
         : '<div class="notif-empty">No notifications yet 🔔</div>';
       dd.style.display='block';
     };
@@ -1098,8 +1098,8 @@
       const flatConf2=FLAT_SUBCATS[l.category];
       const flatVal2=flatConf2?l[flatConf2.field]:null;
       const deliveryTxt = describeDeliveryScope(l.profiles);
-      const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+l.condition+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+(l.profiles?.full_name||'Unknown')+(verifiedSellers.has(l.seller_id)?' <span class="verified-badge">✅ Verified</span>':'')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+l.profiles.residence+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+l.textbook_year+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+l.textbook_subject+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+flatVal2+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+deliveryTxt+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="listing-reviews.html?listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
+      const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+escapeHtml(l.condition)+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
+      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+escapeHtml(l.profiles?.full_name||'Unknown')+(verifiedSellers.has(l.seller_id)?' <span class="verified-badge">✅ Verified</span>':'')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+escapeHtml(l.profiles.residence)+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+escapeHtml(l.textbook_year)+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+escapeHtml(l.textbook_subject)+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+escapeHtml(flatVal2)+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+escapeHtml(deliveryTxt)+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="listing-reviews.html?listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -1134,7 +1134,7 @@
           const simg=s.image_url?'<img loading="lazy" src="'+s.image_url+'" alt="'+s.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:28px">${se}</span>`;
           return '<div class="card" onclick="window._open(\''+s.id+'\')" style="cursor:pointer">'+
             '<div class="card-img" style="background:'+sc.bg+'">'+simg+'</div>'+
-            '<div class="card-body" style="padding:8px"><div class="card-title" style="font-size:12px">'+s.title+'</div>'+
+            '<div class="card-body" style="padding:8px"><div class="card-title" style="font-size:12px">'+escapeHtml(s.title)+'</div>'+
             '<div class="card-footer"><span class="price" style="font-size:13px">R'+(s.discount_percent>0?Math.round(s.price*(1-s.discount_percent/100)):s.price)+'</span></div></div></div>';
         }).join('');
       } else {

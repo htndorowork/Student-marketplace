@@ -165,6 +165,9 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
+    function escapeHtml(s){
+      return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
     const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Gaming:'🎮',Tickets:'🎟️',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
     let allListings=[];
     let currentAdminId=null;
@@ -232,7 +235,7 @@
         return '<div class="listing-row">'+
           '<input type="checkbox" class="listing-select" value="'+l.id+'" style="width:16px;height:16px;flex-shrink:0"/>'+
           thumb+
-          '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+l.seller_id+'\')" title="View seller\'s store"><div class="listing-title">'+l.title+'</div>'+
+          '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+l.seller_id+'\')" title="View seller\'s store"><div class="listing-title">'+escapeHtml(l.title)+'</div>'+
           '<div class="listing-meta">'+l.category+' · R'+fp+' · Stock: '+l.quantity+' · by '+(l.profiles?.full_name||'Unknown')+' · '+status+'</div></div>'+
           '<div class="listing-actions">'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._aEditListing(\''+l.id+'\')">Edit</button>'+
@@ -301,8 +304,8 @@
         return '<div class="seller-row">'+
         '<div class="seller-avatar">👤</div>'+
         '<div class="listing-info" style="flex:1'+(isSeller?';cursor:pointer':'')+'"'+(isSeller?' onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store"':'')+'>'+
-        '<div class="listing-title">'+(s.full_name||'No name')+(s.is_admin?' <span class="badge-admin">Admin</span>':'')+' <span style="background:#f0f0f0;color:#555;font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px">'+(s.role||'buyer')+'</span></div>'+
-        '<div class="listing-meta"><span>📱 '+(s.whatsapp||'N/A')+'</span><span>📍 '+(s.residence||'No res')+'</span><span>'+new Date(s.created_at).toLocaleDateString('en-ZA')+'</span></div>'+
+        '<div class="listing-title">'+escapeHtml(s.full_name||'No name')+(s.is_admin?' <span class="badge-admin">Admin</span>':'')+' <span style="background:#f0f0f0;color:#555;font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px">'+escapeHtml(s.role||'buyer')+'</span></div>'+
+        '<div class="listing-meta"><span>📱 '+escapeHtml(s.whatsapp||'N/A')+'</span><span>📍 '+escapeHtml(s.residence||'No res')+'</span><span>'+new Date(s.created_at).toLocaleDateString('en-ZA')+'</span></div>'+
         '</div>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._deluser(\''+s.id+'\')">Remove</button>'+
         '</div>';
@@ -331,7 +334,7 @@
         '<div style="font-size:24px;flex-shrink:0">🛒</div>'+
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+o.seller_id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(o.listings?.title||'Unknown')+'</div>'+
-        '<div class="listing-meta">👤 '+o.buyer_name+' · 📱 '+o.buyer_whatsapp+' · Qty: '+o.quantity+' · Seller: '+(o.profiles?.full_name||'?')+' · <span style="color:'+(o.status==='confirmed'?'#e65c00':'#2e7d32')+';font-weight:700">'+o.status.toUpperCase()+'</span></div>'+
+        '<div class="listing-meta">👤 '+escapeHtml(o.buyer_name)+' · 📱 '+escapeHtml(o.buyer_whatsapp)+' · Qty: '+o.quantity+' · Seller: '+escapeHtml(o.profiles?.full_name||'?')+' · <span style="color:'+(o.status==='confirmed'?'#e65c00':'#2e7d32')+';font-weight:700">'+o.status.toUpperCase()+'</span></div>'+
         '<div class="listing-meta">🕐 '+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
         (o.status==='confirmed'?'<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._adone(\''+o.id+'\')">Mark Done</button>':'')+
@@ -361,8 +364,8 @@
       c.innerHTML=paid.map(s=>'<div class="seller-row">'+
         '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" alt="'+(s.store_name||s.full_name||'Seller').replace(/"/g,'')+' logo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
-        '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
-        '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
+        '<div class="listing-title">'+escapeHtml(s.store_name||s.full_name||'No name')+'</div>'+
+        '<div class="listing-meta">📱 '+escapeHtml(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
         '<div class="listing-meta" style="color:#2e7d32;font-weight:700">'+(s.is_admin?'✅ Admin — no expiry':'✅ '+planLabel(s.seller_plan)+' · Paid until '+new Date(s.subscription_paid_until).toLocaleDateString('en-ZA'))+'</div>'+
         '</div>'+
         '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._blockSeller(\''+s.id+'\')">🚫 Block</button>'+
@@ -384,8 +387,8 @@
         return '<div class="seller-row" style="flex-wrap:wrap">'+
           '<div class="seller-avatar">'+(s.store_logo_url?'<img loading="lazy" src="'+s.store_logo_url+'" alt="'+(s.store_name||s.full_name||'Seller').replace(/"/g,'')+' logo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':'👤')+'</div>'+
           '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+s.id+'\')" title="View seller\'s store">'+
-          '<div class="listing-title">'+(s.store_name||s.full_name||'No name')+'</div>'+
-          '<div class="listing-meta">📱 '+(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
+          '<div class="listing-title">'+escapeHtml(s.store_name||s.full_name||'No name')+'</div>'+
+          '<div class="listing-meta">📱 '+escapeHtml(s.whatsapp||'N/A')+'&nbsp;· 🎓 '+sellerScopeSummary(s)+'</div>'+
           '<div class="listing-meta">'+reason+'</div>'+
           '</div>'+
           '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();togglePlanPicker(\''+s.id+'\')">💳 Grant a plan <span id="chevron-'+s.id+'">▾</span></button>'+
@@ -445,9 +448,9 @@
         const canOpen=!!r.listing_id;
         return '<div class="seller-row">'+
         '<div class="listing-info" style="flex:1'+(canOpen?';cursor:pointer':'')+'"'+(canOpen?' onclick="window.open(\'index.html?open='+r.listing_id+'\',\'_blank\')" title="Open this listing"':'')+'>'+
-        '<div class="listing-title">'+r.reason+(r.status==='open'?' <span style="color:#9333ea;font-weight:800">(open)</span>':' <span style="color:#2e7d32;font-weight:800">(resolved)</span>')+'</div>'+
-        '<div class="listing-meta">📦 Listing: '+(r.listings?.title||'—')+(canOpen?' 👁️':'')+' · 👤 Reported: '+(r.reported?.full_name||'Unknown')+'</div>'+
-        (r.details?'<div class="listing-meta">💬 '+r.details+'</div>':'')+
+        '<div class="listing-title">'+escapeHtml(r.reason)+(r.status==='open'?' <span style="color:#9333ea;font-weight:800">(open)</span>':' <span style="color:#2e7d32;font-weight:800">(resolved)</span>')+'</div>'+
+        '<div class="listing-meta">📦 Listing: '+escapeHtml(r.listings?.title||'—')+(canOpen?' 👁️':'')+' · 👤 Reported: '+escapeHtml(r.reported?.full_name||'Unknown')+'</div>'+
+        (r.details?'<div class="listing-meta">💬 '+escapeHtml(r.details)+'</div>':'')+
         '<div class="listing-meta" style="color:#aaa">'+new Date(r.created_at).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
         (canOpen?'<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._atoggle(\''+r.listing_id+'\','+!!r.listings?.is_available+')">'+(r.listings?.is_available?'Hide':'Show')+'</button>':'')+

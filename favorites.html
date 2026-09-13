@@ -80,6 +80,10 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
+    function escapeHtml(s){
+      return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Gaming:'🎮',Tickets:'🎟️',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
     const CAT_COLOR={Textbooks:{bg:'#fff8e1'},Clothing:{bg:'#fce4ec'},Electronics:{bg:'#e8eaf6'},Food:{bg:'#e8f5e9'},Beauty:{bg:'#fce4ec'},Tutoring:{bg:'#e1f5ee'},Accommodation:{bg:'#fff3e0'},Transport:{bg:'#e0f2f1'},Services:{bg:'#ede7f6'},Stationary:{bg:'#fffde7'},Appliances:{bg:'#eceff1'},Furniture:{bg:'#efebe9'},Utensils:{bg:'#fff3e0'},Jewellery:{bg:'#fdf0e6'},Bags:{bg:'#ede7f6'},Toys:{bg:'#e3f2fd'},Pets:{bg:'#f1f8e9'},Tools:{bg:'#eceff1'},Snacks:{bg:'#fff8e1'},Sports:{bg:'#e8f5e9'},Books:{bg:'#efebe9'},Music:{bg:'#f3e5f5'},Cameras:{bg:'#eceff1'},Events:{bg:'#fce4ec'},Plants:{bg:'#e8f5e9'},Decor:{bg:'#fff3e0'},Baby:{bg:'#e1f5fe'},Data:{bg:'#e8eaf6'},Health:{bg:'#ffebee'},Career:{bg:'#e0f2f1'}};
 
@@ -116,7 +120,7 @@
       await loadNotifications();
       const notifs=window._notifs||[];
       dd.innerHTML=notifs.length
-        ? notifs.map(n=>'<div class="notif-item'+(n.is_read?'':' unread')+'" onclick="window._openNotif(\''+n.id+'\',\''+(n.listing_id||'')+'\')">'+n.message+'<div style="font-size:10px;color:#aaa;margin-top:3px">'+new Date(n.created_at).toLocaleDateString('en-ZA')+'</div></div>').join('')
+        ? notifs.map(n=>'<div class="notif-item'+(n.is_read?'':' unread')+'" onclick="window._openNotif(\''+n.id+'\',\''+(n.listing_id||'')+'\')">'+escapeHtml(n.message)+'<div style="font-size:10px;color:#aaa;margin-top:3px">'+new Date(n.created_at).toLocaleDateString('en-ZA')+'</div></div>').join('')
         : '<div class="notif-empty">No notifications yet 🔔</div>';
       dd.style.display='block';
     };
@@ -172,14 +176,14 @@
         const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:44px">${e}</span>`;
         const stock=l.quantity>5?'<div class="card-stock">'+l.quantity+' in stock</div>':l.quantity>0?'<div class="card-stock low">Only '+l.quantity+' left!</div>':'<div class="card-stock out">Out of stock</div>';
         const heart='<button class="fav-heart" onclick="event.stopPropagation();window._toggleFav(\''+l.id+'\')" aria-label="Remove favorite">❤️</button>';
-        const condTag=l.condition?'<span class="condition-tag">'+l.condition+'</span>':'';
+        const condTag=l.condition?'<span class="condition-tag">'+escapeHtml(l.condition)+'</span>':'';
         const negTag=l.is_negotiable?'<span class="negotiable-tag">💬 Negotiable</span>':'';
         return '<div class="card" onclick="window.location.href=\'index.html?open='+l.id+'\'">'+
           '<div class="card-img" style="background:'+c.bg+'">'+db+heart+img+'</div>'+
           '<div class="card-body">'+
-          '<div class="card-title">'+l.title+'</div>'+
-          '<div class="card-seller">👤 '+(l.profiles?.full_name||'Seller')+'</div>'+
-          (l.profiles?.residence?'<div class="card-residence">📍 '+l.profiles.residence+'</div>':'')+
+          '<div class="card-title">'+escapeHtml(l.title)+'</div>'+
+          '<div class="card-seller">👤 '+escapeHtml(l.profiles?.full_name||'Seller')+'</div>'+
+          (l.profiles?.residence?'<div class="card-residence">📍 '+escapeHtml(l.profiles.residence)+'</div>':'')+
           stock+
           '<div>'+condTag+negTag+'</div>'+
           '<div class="card-footer"><span class="price">R'+fp+'</span></div>'+

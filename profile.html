@@ -257,6 +257,9 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
     let currentUser=null;
+    function escapeHtml(s){
+      return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
     function isValidSAPhone(raw){
       const v=(raw||'').replace(/[\s-]/g,'');
       return /^0[6-8][0-9]{8}$/.test(v) || /^\+?27[6-8][0-9]{8}$/.test(v);
@@ -363,18 +366,18 @@
         }
         const cancelBtn = o.status==='confirmed' ? '<button class="btn-sm btn-delete" style="margin-top:8px" onclick="window._cancelOrder(\''+o.id+'\')">Cancel Order</button>' : '';
         const receiptBtn = o.status==='completed' ? '<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
-        const disputeBtn = o.status==='completed' ? '<button class="btn-sm btn-toggle" style="margin-top:8px;margin-left:6px" onclick="window._requestDispute(\''+o.id+'\',\''+(o.listings?.title||'').replace(/'/g,"\\'")+'\')">🚩 Report a problem</button>' : '';
+        const disputeBtn = o.status==='completed' ? '<button class="btn-sm btn-toggle" style="margin-top:8px;margin-left:6px" onclick="window._requestDispute(\''+o.id+'\',\''+escapeHtml(o.listings?.title||'').replace(/'/g,"\\'")+'\')">🚩 Report a problem</button>' : '';
         const viewItem = o.listing_id ? "window._viewOrderedItem('"+o.listing_id+"')" : '';
         return '<div class="order-card '+(o.status==='confirmed'?'order-new':'')+'">'+
           '<div style="display:flex;gap:12px;align-items:flex-start">'+
           (viewItem?'<div onclick="'+viewItem+'" style="cursor:pointer">'+img+'</div>':img)+
           '<div style="flex:1">'+status+
-          '<div class="order-card-title"'+(viewItem?' onclick="'+viewItem+'" style="cursor:pointer"':'')+'>'+(o.listings?.title||'Unknown')+(viewItem?' 👁️':'')+'</div>'+
+          '<div class="order-card-title"'+(viewItem?' onclick="'+viewItem+'" style="cursor:pointer"':'')+'>'+escapeHtml(o.listings?.title||'Unknown')+(viewItem?' 👁️':'')+'</div>'+
           '<div class="order-detail">Qty: <strong>'+o.quantity+'</strong></div>'+
           '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-bottom:8px" href="messages.html?seller='+o.seller_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Seller</a>'+
-          '<div class="order-detail">👤 <strong>'+(o.profiles?.full_name||'Seller')+'</strong></div>'+
-          (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+o.profiles.residence+'</strong></div>':'')+
-          '<div class="order-detail">📱 <strong>'+(o.profiles?.whatsapp||'N/A')+'</strong></div>'+
+          '<div class="order-detail">👤 <strong>'+escapeHtml(o.profiles?.full_name||'Seller')+'</strong></div>'+
+          (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+escapeHtml(o.profiles.residence)+'</strong></div>':'')+
+          '<div class="order-detail">📱 <strong>'+escapeHtml(o.profiles?.whatsapp||'N/A')+'</strong></div>'+
           '<div class="order-detail" style="color:#aaa;font-size:12px;margin-top:6px">'+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
           ratingHtml+cancelBtn+receiptBtn+disputeBtn+
           '</div></div></div>';
@@ -431,7 +434,7 @@
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
         return '<div class="card" onclick="location.href=\'index.html?open='+l.id+'\'">'+
           '<div class="card-img" style="background:#f5f5f5">'+img+'</div>'+
-          '<div class="card-body"><div class="card-title">'+l.title+'</div>'+
+          '<div class="card-body"><div class="card-title">'+escapeHtml(l.title)+'</div>'+
           '<div class="card-footer"><span class="price">R'+fp+'</span></div></div></div>';
       }).join('');
     };

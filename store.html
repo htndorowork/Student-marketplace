@@ -125,6 +125,9 @@
       'https://kqsqtasykdtpdrkqyaxp.supabase.co',
       'sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ'
     );
+    function escapeHtml(s){
+      return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 
     const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Gaming:'🎮',Tickets:'🎟️',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
     const CAT_COLOR={Textbooks:{bg:'#fff8e1'},Clothing:{bg:'#fce4ec'},Electronics:{bg:'#e8eaf6'},Food:{bg:'#e8f5e9'},Beauty:{bg:'#fce4ec'},Tutoring:{bg:'#e1f5ee'},Accommodation:{bg:'#fff3e0'},Transport:{bg:'#e0f2f1'},Services:{bg:'#ede7f6'},Stationary:{bg:'#fffde7'},Appliances:{bg:'#eceff1'},Furniture:{bg:'#efebe9'},Utensils:{bg:'#fff3e0'},Jewellery:{bg:'#fdf0e6'},Bags:{bg:'#ede7f6'},Toys:{bg:'#e3f2fd'},Pets:{bg:'#f1f8e9'},Tools:{bg:'#eceff1'},Snacks:{bg:'#fff8e1'},Sports:{bg:'#e8f5e9'},Books:{bg:'#efebe9'},Music:{bg:'#f3e5f5'},Cameras:{bg:'#eceff1'},Events:{bg:'#fce4ec'},Plants:{bg:'#e8f5e9'},Decor:{bg:'#fff3e0'},Baby:{bg:'#e1f5fe'},Data:{bg:'#e8eaf6'},Health:{bg:'#ffebee'},Career:{bg:'#e0f2f1'}};
@@ -179,9 +182,9 @@
         headerEl.innerHTML =
           '<div class="store-logo">'+(profile.store_logo_url?'<img loading="lazy" src="'+profile.store_logo_url+'" alt="Store logo"/>':'🏪')+'</div>'+
           '<div>'+
-          '<h1 class="store-name">'+displayName+verifiedTag+'</h1>'+
-          (profile.store_bio?'<div class="store-bio">'+profile.store_bio+'</div>':'')+
-          (profile.residence?'<div class="store-meta">📍 '+profile.residence+'</div>':'')+
+          '<h1 class="store-name">'+escapeHtml(displayName)+verifiedTag+'</h1>'+
+          (profile.store_bio?'<div class="store-bio">'+escapeHtml(profile.store_bio)+'</div>':'')+
+          (profile.residence?'<div class="store-meta">📍 '+escapeHtml(profile.residence)+'</div>':'')+
           (deliveryParts.length?'<div class="store-meta">🚚 Delivers to: '+deliveryParts.join(' · ')+'</div>':'')+
           (/^https?:\/\//i.test(profile.store_link||'')?'<div class="store-meta">🔗 <a href="'+profile.store_link.replace(/"/g,'&quot;')+'" target="_blank" rel="noopener nofollow" style="color:#7c3aed;font-weight:800">'+profile.store_link.replace(/</g,'&lt;')+'</a></div>':'')+
           '<div class="store-stats-row">'+
@@ -201,12 +204,12 @@
             const db=l.discount_percent>0?'<div class="discount-tag">-'+l.discount_percent+'% OFF</div>':'';
             const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:44px">${e}</span>`;
             const stock=l.quantity>5?'<div class="card-stock">'+l.quantity+' in stock</div>':l.quantity>0?'<div class="card-stock low">Only '+l.quantity+' left!</div>':'<div class="card-stock out">Out of stock</div>';
-            const condTag=l.condition?'<span class="condition-tag">'+l.condition+'</span>':'';
+            const condTag=l.condition?'<span class="condition-tag">'+escapeHtml(l.condition)+'</span>':'';
             const negTag=l.is_negotiable?'<span class="negotiable-tag">💬 Negotiable</span>':'';
             return '<div class="card" onclick="location.href=\'index.html?open='+l.id+'\'">'+
               '<div class="card-img" style="background:'+c.bg+'">'+db+img+'</div>'+
               '<div class="card-body">'+
-              '<div class="card-title">'+l.title+'</div>'+
+              '<div class="card-title">'+escapeHtml(l.title)+'</div>'+
               '<div>'+condTag+negTag+'</div>'+
               stock+
               '<div class="card-footer"><span class="price">R'+fp+'</span></div>'+
@@ -223,7 +226,7 @@
             const simg=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover;opacity:0.6"/>':`<span style="font-size:36px;opacity:0.6">${se}</span>`;
             return '<div class="card" style="cursor:default">'+
               '<div class="card-img" style="background:'+sc.bg+'">'+simg+'<div style="position:absolute;top:8px;left:8px;background:#111;color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:50px">SOLD</div></div>'+
-              '<div class="card-body"><div class="card-title">'+l.title+'</div>'+
+              '<div class="card-body"><div class="card-title">'+escapeHtml(l.title)+'</div>'+
               '<div class="card-footer"><span class="price" style="opacity:0.6">R'+sfp+'</span></div></div></div>';
           }).join('');
         }
@@ -233,7 +236,7 @@
           document.getElementById('store-reviews-list').innerHTML = reviews.map(r=>
             '<div style="background:#fff;border:2px solid #f0f0f0;border-radius:14px;padding:14px 16px;margin-bottom:10px">'+
             '<div style="font-weight:800;color:#e65c00">'+'⭐'.repeat(r.rating)+'</div>'+
-            (r.comment && r.comment.trim() ? '<div style="font-size:13px;color:#555;font-weight:600;margin-top:4px">'+r.comment+'</div>' : '<div style="font-size:12px;color:#bbb;font-weight:600;margin-top:4px;font-style:italic">No written comment left</div>')+
+            (r.comment && r.comment.trim() ? '<div style="font-size:13px;color:#555;font-weight:600;margin-top:4px">'+escapeHtml(r.comment)+'</div>' : '<div style="font-size:12px;color:#bbb;font-weight:600;margin-top:4px;font-style:italic">No written comment left</div>')+
             '<div style="font-size:11px;color:#aaa;font-weight:700;margin-top:4px">'+new Date(r.created_at).toLocaleDateString('en-ZA')+'</div>'+
             '</div>'
           ).join('');

@@ -74,6 +74,9 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
+    function escapeHtml(s){
+      return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 
     const listingId = new URLSearchParams(location.search).get('listing');
     const listEl = document.getElementById('lr-list');
@@ -114,12 +117,12 @@
       document.getElementById('lr-count').textContent = reviews.length + (reviews.length===1?' review':' reviews');
 
       listEl.innerHTML = reviews.map(r => {
-        const name = r.buyer?.full_name || 'A buyer';
+        const name = escapeHtml(r.buyer?.full_name || 'A buyer');
         return '<div class="lr-review-card">' +
           '<div class="lr-review-stars">' + '⭐'.repeat(r.rating) + '</div>' +
           '<div style="font-size:12px;font-weight:800;color:#888;margin-top:2px">' + name + '</div>' +
           (r.comment && r.comment.trim()
-            ? '<div class="lr-review-comment">' + r.comment + '</div>'
+            ? '<div class="lr-review-comment">' + escapeHtml(r.comment) + '</div>'
             : '<div class="lr-review-comment empty">No written comment left</div>') +
           '<div class="lr-review-date">' + new Date(r.created_at).toLocaleDateString('en-ZA') + '</div>' +
           '</div>';
