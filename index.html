@@ -912,7 +912,7 @@
         const e=CAT_EMOJI[l.category]||'🛍️';
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
         const db=l.discount_percent>0?'<div class="discount-tag">-'+l.discount_percent+'% OFF</div>':'';
-        const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:44px">${e}</span>`;
+        const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box"/>':`<span style="font-size:44px">${e}</span>`;
         const photoCount=[l.image_url,l.image_url_2,l.image_url_3,l.image_url_4,l.image_url_5,l.image_url_6].filter(Boolean).length;
         const photoDots=photoCount>1?'<div class="photo-dots">'+Array(photoCount).fill('•').join('')+'</div>':'';
         const stock=l.quantity>5?'<div class="card-stock">'+l.quantity+' in stock</div>':l.quantity>0?'<div class="card-stock low">Only '+l.quantity+' left!</div>':'<div class="card-stock out">Out of stock</div>';
@@ -1028,7 +1028,7 @@
       document.getElementById('recently-viewed-grid').innerHTML=items.map(l=>{
         const c=CAT_COLOR[l.category]||{bg:'#f5f5f5'};
         const e=CAT_EMOJI[l.category]||'🛍️';
-        const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
+        const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:contain;padding:6px;box-sizing:border-box"/>':`<span style="font-size:36px">${e}</span>`;
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
           '<div class="card-img" style="background:'+c.bg+'">'+img+'</div>'+
           '<div class="card-body"><div class="card-title">'+escapeHtml(l.title)+'</div>'+
@@ -1152,7 +1152,7 @@
         document.getElementById('modal-similar-grid').innerHTML=similar.map(s=>{
           const sc=CAT_COLOR[s.category]||{bg:'#f5f5f5'};
           const se=CAT_EMOJI[s.category]||'🛍️';
-          const simg=s.image_url?'<img loading="lazy" src="'+s.image_url+'" alt="'+s.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:28px">${se}</span>`;
+          const simg=s.image_url?'<img loading="lazy" src="'+s.image_url+'" alt="'+s.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:contain;padding:5px;box-sizing:border-box"/>':`<span style="font-size:28px">${se}</span>`;
           return '<div class="card" onclick="window._open(\''+s.id+'\')" style="cursor:pointer">'+
             '<div class="card-img" style="background:'+sc.bg+'">'+simg+'</div>'+
             '<div class="card-body" style="padding:8px"><div class="card-title" style="font-size:12px">'+escapeHtml(s.title)+'</div>'+
