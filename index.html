@@ -181,6 +181,8 @@
       <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
       <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
     </div>
+    <div id="infinite-scroll-sentinel" style="height:1px"></div>
+    <div id="infinite-scroll-spinner" style="display:none;text-align:center;padding:18px 0"><div class="spinner"></div></div>
 
     <div id="recently-viewed-section" style="display:none;margin-top:28px">
       <div class="section-header"><div class="section-title" id="recently-viewed-title" style="font-size:15px">🕐 Recently viewed</div></div>
@@ -609,6 +611,7 @@
       'Comedy show tickets','Club/event tickets','Graduation tickets','Other tickets'
     ];
     const EVENTS_SUBCATS=[
+      'Events, Gigs & Nightlife','Flea Market & Jumble Sale',
       'Balloons','Party decorations','Banners & bunting','Costumes','Party lighting',
       'Speakers for events','Disposable cups & plates','Photo booth props','Candles',
       'Gift wrapping supplies','Fairy lights','Table linens','Party favors','Cake toppers'
@@ -928,13 +931,20 @@
           '<button class="btn-add-cart" '+(outOfStock?'disabled':'')+' onclick="event.stopPropagation();window._quickAdd(\''+l.id+'\')">'+(outOfStock?'Out of stock':'+ Cart')+'</button>'+
           '</div></div></div>';
       }).join('');
-      if(list.length>renderLimit){
-        g.insertAdjacentHTML('afterend','<div id="load-more-wrap" style="text-align:center;margin-top:16px"><button class="btn-primary" style="padding:11px 30px;border-radius:50px" onclick="loadMoreListings()">Load more ('+(list.length-renderLimit)+' more)</button></div>');
-      }
+      // Endless scroll: the sentinel below the grid stays put; the
+      // IntersectionObserver set up further down watches it and calls
+      // loadMoreListings() itself once it scrolls into view, so there's
+      // nothing to render here when there's more to show.
     }
+    let scrollLoading=false;
     window.loadMoreListings=async()=>{
+      if(scrollLoading)return;
+      const hasMoreToShow=lastFilteredList.length>renderLimit || (dbHasMore && !dbLoading);
+      if(!hasMoreToShow)return;
+      scrollLoading=true;
+      const spinner=document.getElementById('infinite-scroll-spinner');
+      if(spinner)spinner.style.display='block';
       renderLimit+=24;
-      document.getElementById('load-more-wrap')?.remove();
       // If we're about to run out of already-fetched rows but the DB has more
       // (beyond this page's 300), pull the next page in before re-rendering.
       // `all` is already DB-filtered/sorted to match currentFilters, so no
@@ -945,10 +955,21 @@
         all=all.concat(nextPage);
         dbLoading=false;
         render(all);
-        return;
+      } else {
+        render(lastFilteredList);
       }
-      render(lastFilteredList);
+      if(spinner)spinner.style.display='none';
+      scrollLoading=false;
     };
+    // Endless scroll: watch a 1px sentinel just below the grid and load the
+    // next batch as soon as it's about to enter the viewport, instead of
+    // making the person tap a "Load more" button.
+    const scrollSentinel=document.getElementById('infinite-scroll-sentinel');
+    if(scrollSentinel && 'IntersectionObserver' in window){
+      new IntersectionObserver((entries)=>{
+        if(entries.some(e=>e.isIntersecting)) window.loadMoreListings();
+      },{rootMargin:'600px 0px'}).observe(scrollSentinel);
+    }
     window.resetFilters=()=>{
       document.getElementById('search-input').value='';
       document.getElementById('price-min').value='';
@@ -1180,28 +1201,37 @@
       const gallery=document.getElementById('modal-gallery');
       const slides=document.getElementById('gallery-slides');
       if(!gallery||!slides)return;
-      let startX=0, startY=0, dragging=false, dragDelta=0, horizontal=false;
+      let startX=0, startY=0, dragging=false, dragDelta=0, horizontal=false, directionLocked=false;
       const imgCount=()=>[currentListing?.image_url,currentListing?.image_url_2,currentListing?.image_url_3,currentListing?.image_url_4,currentListing?.image_url_5,currentListing?.image_url_6].filter(Boolean).length;
       gallery.addEventListener('touchstart',(e)=>{
         if(imgCount()<=1)return;
         const t=e.touches[0];
-        startX=t.clientX; startY=t.clientY; dragging=true; horizontal=false; dragDelta=0;
+        startX=t.clientX; startY=t.clientY; dragging=true; horizontal=false; directionLocked=false; dragDelta=0;
         slides.style.transition='none';
       },{passive:true});
       gallery.addEventListener('touchmove',(e)=>{
         if(!dragging)return;
         const t=e.touches[0];
         const dx=t.clientX-startX, dy=t.clientY-startY;
-        if(!horizontal && Math.abs(dx)<6 && Math.abs(dy)<6) return;
-        horizontal = Math.abs(dx)>Math.abs(dy);
-        if(!horizontal)return;
+        // Decide once, on the first move past the threshold, whether this is
+        // a horizontal swipe or a vertical scroll — and stick with it. Re-
+        // checking on every move (the old behaviour) let a bit of vertical
+        // wobble mid-swipe flip `horizontal` back to false, which froze the
+        // drag in place while the finger kept moving. That's the "janky"
+        // swipe: lock the direction instead so the photo tracks the finger
+        // smoothly for the whole gesture.
+        if(!directionLocked){
+          if(Math.abs(dx)<6 && Math.abs(dy)<6) return;
+          horizontal = Math.abs(dx)>Math.abs(dy);
+          directionLocked=true;
+          if(!horizontal){ dragging=false; return; }
+        }
         e.preventDefault();
         dragDelta=dx;
-        const pct=(dragDelta/gallery.clientWidth)*100;
         slides.style.transform='translateX(calc(-'+(galleryIdx*100)+'% + '+dragDelta+'px))';
       },{passive:false});
       gallery.addEventListener('touchend',()=>{
-        if(!dragging)return;
+        if(!dragging){ horizontal=false; directionLocked=false; return; }
         dragging=false;
         slides.style.transition='transform 0.3s ease';
         const threshold=gallery.clientWidth*0.18;
@@ -1210,11 +1240,10 @@
         } else {
           slides.style.transform='translateX(-'+(galleryIdx*100)+'%)';
         }
-        horizontal=false; dragDelta=0;
+        horizontal=false; directionLocked=false; dragDelta=0;
       });
       gallery.addEventListener('touchcancel',()=>{
-        if(!dragging)return;
-        dragging=false; horizontal=false; dragDelta=0;
+        dragging=false; horizontal=false; directionLocked=false; dragDelta=0;
         slides.style.transition='transform 0.3s ease';
         slides.style.transform='translateX(-'+(galleryIdx*100)+'%)';
       });
@@ -1685,26 +1714,31 @@
       const lb=document.getElementById('lightbox');
       const img=document.getElementById('lightbox-img');
       if(!lb||!img)return;
-      let startX=0, startY=0, dragging=false, dragDelta=0, horizontal=false;
+      let startX=0, startY=0, dragging=false, dragDelta=0, horizontal=false, directionLocked=false;
       lb.addEventListener('touchstart',(e)=>{
         if(lbImgs.length<=1)return;
         const t=e.touches[0];
-        startX=t.clientX; startY=t.clientY; dragging=true; horizontal=false; dragDelta=0;
+        startX=t.clientX; startY=t.clientY; dragging=true; horizontal=false; directionLocked=false; dragDelta=0;
         img.style.transition='none';
       },{passive:true});
       lb.addEventListener('touchmove',(e)=>{
         if(!dragging)return;
         const t=e.touches[0];
         const dx=t.clientX-startX, dy=t.clientY-startY;
-        if(!horizontal && Math.abs(dx)<6 && Math.abs(dy)<6) return;
-        horizontal = Math.abs(dx)>Math.abs(dy);
-        if(!horizontal)return;
+        // Lock the swipe direction on first move past the threshold instead
+        // of re-deciding every event — see the note in initGallerySwipe.
+        if(!directionLocked){
+          if(Math.abs(dx)<6 && Math.abs(dy)<6) return;
+          horizontal = Math.abs(dx)>Math.abs(dy);
+          directionLocked=true;
+          if(!horizontal){ dragging=false; return; }
+        }
         e.preventDefault();
         dragDelta=dx;
         img.style.transform='translateX('+dragDelta+'px)';
       },{passive:false});
       lb.addEventListener('touchend',()=>{
-        if(!dragging)return;
+        if(!dragging){ horizontal=false; directionLocked=false; return; }
         dragging=false;
         const width=lb.clientWidth;
         const threshold=width*0.15;
@@ -1725,11 +1759,10 @@
           img.style.transition='transform 0.2s ease';
           img.style.transform='translateX(0)';
         }
-        horizontal=false; dragDelta=0;
+        horizontal=false; directionLocked=false; dragDelta=0;
       });
       lb.addEventListener('touchcancel',()=>{
-        if(!dragging)return;
-        dragging=false; horizontal=false; dragDelta=0;
+        dragging=false; horizontal=false; directionLocked=false; dragDelta=0;
         img.style.transition='transform 0.2s ease';
         img.style.transform='translateX(0)';
       });
