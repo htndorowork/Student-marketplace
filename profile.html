@@ -301,6 +301,8 @@
       loadBuyerOrders();
       loadFavoritesBadge();
       refreshMfaStatus();
+      const wantTab=new URLSearchParams(location.search).get('tab');
+      if(wantTab==='orders') showTab('orders');
     }
 
     async function loadFavoritesBadge(){
@@ -351,6 +353,33 @@
         const e=CAT_EMOJI[o.listings?.category]||'📦';
         const img=o.listings?.image_url?'<img loading="lazy" src="'+o.listings.image_url+'" alt="'+(o.listings.title||'').replace(/"/g,'')+'" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0"/>':`<div style="width:52px;height:52px;background:#f5f5f5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${e}</div>`;
         const status=o.status==='confirmed'?'<span class="order-badge badge-new">🆕 Confirmed</span>':o.status==='cancelled'?'<span class="order-badge" style="background:#f0f0f0;color:#888">🚫 Cancelled</span>':'<span class="order-badge badge-done">✅ Completed</span>';
+
+        // Escrow/payment status — this is the part the buyer actually needs
+        // to act on, so it gets its own block above the usual seller details.
+        let escrowHtml='';
+        if(o.status==='confirmed'){
+          if(o.payment_status==='unpaid'){
+            escrowHtml='<div class="order-detail" style="margin-top:6px;color:#c0392b;font-weight:800">⏳ Payment not completed — this order won\'t be fulfilled until it\'s paid.</div>';
+          } else if(o.payment_status==='paid' && o.escrow_status==='held'){
+            if(o.delivery_method==='pargo'){
+              escrowHtml='<div style="background:#f5f0ff;border:2px solid #e0d0ff;border-radius:12px;padding:10px 12px;margin-top:8px">'+
+                '<div style="font-size:12.5px;font-weight:800;color:#7c3aed">🚚 Pargo delivery'+(o.pargo_point_name?' — '+escapeHtml(o.pargo_point_name):'')+'</div>'+
+                '<div style="font-size:12px;color:#666;font-weight:600;margin-top:4px">'+(o.delivered_at?'📦 Delivered to the pickup point. Your payment releases to the seller automatically 24h after delivery unless you report a problem.':'On its way — your payment is held safely in escrow until it arrives.')+'</div>'+
+                '</div>';
+            } else {
+              escrowHtml='<div style="background:#f5f0ff;border:2px solid #e0d0ff;border-radius:12px;padding:10px 12px;margin-top:8px">'+
+                '<div style="font-size:12.5px;font-weight:800;color:#7c3aed">🔑 Collection PIN: <span style="font-size:15px;letter-spacing:1px">'+escapeHtml(o.collection_pin||'—')+'</span></div>'+
+                '<div style="font-size:12px;color:#666;font-weight:600;margin-top:4px">Give this to the seller in person once you\'ve got your item — it releases your payment from escrow. Don\'t share it before then.</div>'+
+                '</div>';
+            }
+            escrowHtml+='<button class="btn-sm btn-toggle" style="margin-top:8px" onclick="window._openEscrowDispute(\''+o.id+'\')">🚩 Report a problem with this order</button>';
+          } else if(o.escrow_status==='disputed'){
+            escrowHtml='<div class="order-detail" style="margin-top:6px;color:#c0392b;font-weight:800">⚠️ Dispute under review — our team will follow up.</div>';
+          } else if(o.escrow_status==='released'){
+            escrowHtml='<div class="order-detail" style="margin-top:6px;color:#2e7d32;font-weight:700">✅ Payment released to the seller.</div>';
+          }
+        }
+
         let ratingHtml='';
         if(o.status==='completed'){
           if(myReviews[o.id]){
@@ -364,7 +393,11 @@
               '</div>';
           }
         }
-        const cancelBtn = o.status==='confirmed' ? '<button class="btn-sm btn-delete" style="margin-top:8px" onclick="window._cancelOrder(\''+o.id+'\')">Cancel Order</button>' : '';
+        // Cancelling is only safe while nothing has been paid yet — once
+        // money's moved into escrow, cancelling here would strand it there
+        // with no order to tie it back to, so that path goes through the
+        // dispute button above instead.
+        const cancelBtn = (o.status==='confirmed' && o.payment_status==='unpaid') ? '<button class="btn-sm btn-delete" style="margin-top:8px" onclick="window._cancelOrder(\''+o.id+'\')">Cancel Order</button>' : '';
         const receiptBtn = o.status==='completed' ? '<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
         const disputeBtn = o.status==='completed' ? '<button class="btn-sm btn-toggle" style="margin-top:8px;margin-left:6px" onclick="window._requestDispute(\''+o.id+'\',\''+escapeHtml(o.listings?.title||'').replace(/'/g,"\\'")+'\')">🚩 Report a problem</button>' : '';
         const viewItem = o.listing_id ? "window._viewOrderedItem('"+o.listing_id+"')" : '';
@@ -374,7 +407,8 @@
           '<div style="flex:1">'+status+
           '<div class="order-card-title"'+(viewItem?' onclick="'+viewItem+'" style="cursor:pointer"':'')+'>'+escapeHtml(o.listings?.title||'Unknown')+(viewItem?' 👁️':'')+'</div>'+
           '<div class="order-detail">Qty: <strong>'+o.quantity+'</strong></div>'+
-          '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-bottom:8px" href="messages.html?seller='+o.seller_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Seller</a>'+
+          escrowHtml+
+          '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-bottom:8px;margin-top:8px" href="messages.html?seller='+o.seller_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Seller</a>'+
           '<div class="order-detail">👤 <strong>'+escapeHtml(o.profiles?.full_name||'Seller')+'</strong></div>'+
           (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+escapeHtml(o.profiles.residence)+'</strong></div>':'')+
           '<div class="order-detail">📱 <strong>'+escapeHtml(o.profiles?.whatsapp||'N/A')+'</strong></div>'+
@@ -392,6 +426,14 @@
       if(!confirm('Cancel this order? The seller will see it as cancelled.'))return;
       const {error}=await supabase.rpc('buyer_cancel_order',{p_order_id:id});
       if(error){alert('Error: '+error.message);return;}
+      loadBuyerOrders();
+    };
+    window._openEscrowDispute=async(orderId)=>{
+      const reason=prompt('Briefly describe the problem — this pauses the automatic payment release until our team reviews it:');
+      if(reason===null || !reason.trim())return;
+      const {error}=await supabase.rpc('open_dispute',{p_order_id:orderId,p_reason:reason.trim()});
+      if(error){alert('Could not submit: '+error.message);return;}
+      alert('Dispute opened — the payment release is on hold. Our team will follow up.');
       loadBuyerOrders();
     };
     window._requestDispute=async(orderId,listingTitle)=>{

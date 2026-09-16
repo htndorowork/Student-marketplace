@@ -292,6 +292,34 @@
     </div>
   </div>
 
+  <!-- CHECKOUT: delivery method + pay (TradeSafe escrow) -->
+  <div class="modal-overlay" id="checkout-flow-overlay">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-body" style="padding:24px">
+        <h2 style="font-size:18px;font-weight:900;margin-bottom:4px">How will you get this? 📦</h2>
+        <p style="font-size:12.5px;color:#888;font-weight:600;margin-bottom:16px">Your payment is held safely in escrow by TradeSafe until you've got your item.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:10px;border:2px solid #eee;border-radius:14px;padding:12px 14px;cursor:pointer" id="cf-method-pickup-label">
+            <input type="radio" name="cf-method" value="pickup" checked onchange="cfSetMethod('pickup')"/>
+            <span><strong style="font-size:13.5px">🤝 In-person handover</strong><br/><span style="font-size:11.5px;color:#888;font-weight:600">Meet the seller. Funds release once you share your Collection PIN.</span></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;border:2px solid #eee;border-radius:14px;padding:12px 14px;cursor:pointer" id="cf-method-pargo-label">
+            <input type="radio" name="cf-method" value="pargo" onchange="cfSetMethod('pargo')"/>
+            <span><strong style="font-size:13.5px">🚚 Pargo pickup point</strong><br/><span style="font-size:11.5px;color:#888;font-weight:600">Nationwide drop-off/collection. Auto-releases 24h after delivery if there's no dispute.</span></span>
+          </label>
+        </div>
+        <div id="cf-pargo-picker" style="display:none;margin-bottom:14px">
+          <input type="text" id="cf-pargo-search" placeholder="Search suburb or postal code…" style="width:100%;padding:10px 14px;border:2px solid #eee;border-radius:12px;font-family:inherit;font-size:13.5px;box-sizing:border-box" oninput="cfSearchPargoPoints(this.value)"/>
+          <div id="cf-pargo-results" style="margin-top:8px;max-height:160px;overflow-y:auto"></div>
+          <div id="cf-pargo-selected" style="display:none;margin-top:8px;font-size:12.5px;font-weight:700;color:#2e7d32"></div>
+        </div>
+        <p id="cf-error" style="display:none;color:#c0392b;font-size:12.5px;font-weight:700;margin-bottom:10px"></p>
+        <button class="btn-order" onclick="cfConfirmAndPay()" id="cf-pay-btn">Pay with card / Ozow / SnapScan / RCS →</button>
+        <button style="width:100%;background:none;border:none;color:#888;font-size:12.5px;font-weight:700;margin-top:10px;cursor:pointer" onclick="document.getElementById('checkout-flow-overlay').style.display='none'">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CART DRAWER -->
   <div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
   <div class="cart-drawer" id="cart-drawer">
@@ -1422,65 +1450,142 @@
       const raw=error?.message||'Unknown error';
       // A missing RPC (schema/migration not applied yet) surfaces as a "not found" style error from PostgREST
       if(/function .*place_order.*does not exist|could not find the function|schema cache/i.test(raw)){
-        return 'Ordering isn\'t set up yet on this store (missing database function). Please contact the site owner.';
+        return 'Ordering isn\'t set up yet on this store (missing database function). Please contact the site owner. (Run escrow_system_migration.sql.)';
       }
       return raw;
     }
+
+    // ---------------------------------------------------------------
+    // Paid checkout (TradeSafe escrow + optional Pargo delivery)
+    //
+    // Cart items are checked out ONE AT A TIME: each becomes its own
+    // order + its own TradeSafe transaction, and paying for one means a
+    // full page redirect to TradeSafe's hosted checkout. The remaining
+    // queue is kept in sessionStorage so payment-return.html can pick up
+    // where we left off after each redirect. (Combining several items
+    // from the same seller into a single TradeSafe transaction — so one
+    // redirect pays for all of them — is a nice follow-up but adds real
+    // complexity; this keeps each payment's money/status unambiguous.)
+    // ---------------------------------------------------------------
+    let cfPendingItems=[]; // [{listingId, title, qty}]
+    let cfPargoSelection=null; // {id, name}
 
     window.checkout=async()=>{
       if(!currentUser){window.location.href='login.html';return;}
       if(!cart.length)return;
       const info=await getBuyerContactInfo();
       if(!info)return;
-      const btn=document.querySelector('.btn-checkout');
-      const origTxt=btn?btn.textContent:'';
-      if(btn){btn.disabled=true;btn.textContent='Placing order...';}
-      let sellers={};
-      try{
-        for(const c of cart){
-          const l=c.listing;
-          const {data,error}=await supabase.rpc('place_order',{p_listing_id:l.id,p_quantity:c.qty});
-          if(error){showToast('❌ Order failed: '+orderErrorMessage(error),'error');return;}
-          const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
-          const sid=data.seller_id;
-          if(!sellers[sid])sellers[sid]={name:data.seller_name||'Seller',wa:data.seller_whatsapp||'N/A',res:data.seller_residence||'',items:[]};
-          sellers[sid].items.push((data.listing_title||l.title)+' ×'+c.qty+' (R'+(fp*c.qty)+')');
-          l.quantity=Math.max(0,(l.quantity||0)-c.qty);
-        }
-        cart=[];saveCart();updateCartUI();closeCart();
-        showToast('✅ Order placed! Contact details below.','success');
-        showSellerContacts(sellers);
-        doFilter();
-      } catch(e){
-        showToast('❌ Order failed: '+(e?.message||'Unknown error'),'error');
-      } finally {
-        if(btn){btn.disabled=false;btn.textContent=origTxt;}
-      }
+      cfPendingItems=cart.map(c=>({listingId:c.listing.id, title:c.listing.title, qty:c.qty}));
+      openCheckoutFlow();
     };
 
-    async function placeOrder(items){
+    async function placeOrder(items){ // "Buy Now" from a single listing
       if(!currentUser){window.location.href='login.html';return;}
       const info=await getBuyerContactInfo();
       if(!info)return;
-      let sellers={};
-      try{
-        for(const {listing:l,qty} of items){
-          const {data,error}=await supabase.rpc('place_order',{p_listing_id:l.id,p_quantity:qty});
-          if(error){showToast('❌ Order failed: '+orderErrorMessage(error),'error');return;}
-          const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
-          const sid=data.seller_id;
-          if(!sellers[sid])sellers[sid]={name:data.seller_name||'Seller',wa:data.seller_whatsapp||'N/A',res:data.seller_residence||'',items:[]};
-          sellers[sid].items.push((data.listing_title||l.title)+' ×'+qty+' (R'+(fp*qty)+')');
-          l.quantity=Math.max(0,(l.quantity||0)-qty);
-        }
-        closeModal();
-        showToast('✅ Order placed! Contact details below.','success');
-        showSellerContacts(sellers);
-        doFilter();
-      } catch(e){
-        showToast('❌ Order failed: '+(e?.message||'Unknown error'),'error');
-      }
+      cfPendingItems=items.map(({listing:l,qty})=>({listingId:l.id, title:l.title, qty}));
+      closeModal();
+      openCheckoutFlow();
     }
+
+    function openCheckoutFlow(){
+      cfPargoSelection=null;
+      document.getElementById('cf-pargo-picker').style.display='none';
+      document.getElementById('cf-pargo-selected').style.display='none';
+      document.getElementById('cf-pargo-results').innerHTML='';
+      document.getElementById('cf-pargo-search').value='';
+      document.getElementById('cf-error').style.display='none';
+      document.querySelector('input[name="cf-method"][value="pickup"]').checked=true;
+      document.getElementById('checkout-flow-overlay').style.display='flex';
+    }
+    window.cfSetMethod=(m)=>{
+      document.getElementById('cf-pargo-picker').style.display=m==='pargo'?'block':'none';
+    };
+    let cfSearchDebounce=null;
+    window.cfSearchPargoPoints=(q)=>{
+      clearTimeout(cfSearchDebounce);
+      const box=document.getElementById('cf-pargo-results');
+      if(!q||q.trim().length<2){box.innerHTML='';return;}
+      cfSearchDebounce=setTimeout(async()=>{
+        box.innerHTML='<div style="font-size:12px;color:#aaa;padding:6px">Searching…</div>';
+        try{
+          const {data:{session}}=await supabase.auth.getSession();
+          const res=await fetch('https://kqsqtasykdtpdrkqyaxp.supabase.co/functions/v1/pargo-shipment/points?q='+encodeURIComponent(q),{
+            headers:{Authorization:'Bearer '+(session?.access_token||'')}
+          });
+          const data=await res.json();
+          const points=data?.points||[];
+          if(!points.length){
+            box.innerHTML='<div style="font-size:12px;color:#aaa;padding:6px">No pickup points found yet — Pargo delivery isn\'t fully connected on this store. Choose in-person handover instead, or try a different search.</div>';
+            return;
+          }
+          box.innerHTML=points.map(p=>'<div onclick=\'cfSelectPargoPoint('+JSON.stringify(JSON.stringify(p))+')\' style="padding:8px 10px;border:1px solid #eee;border-radius:10px;margin-bottom:6px;cursor:pointer;font-size:12.5px;font-weight:700">📍 '+escapeHtml(p.name||p.id)+'<div style="font-size:11px;color:#888;font-weight:600">'+escapeHtml(p.address||'')+'</div></div>').join('');
+        }catch(e){
+          box.innerHTML='<div style="font-size:12px;color:#aaa;padding:6px">Pargo search isn\'t available right now — choose in-person handover instead.</div>';
+        }
+      },350);
+    };
+    window.cfSelectPargoPoint=(pJson)=>{
+      const p=JSON.parse(pJson);
+      cfPargoSelection={id:p.id, name:p.name||p.id};
+      document.getElementById('cf-pargo-results').innerHTML='';
+      document.getElementById('cf-pargo-search').value='';
+      const sel=document.getElementById('cf-pargo-selected');
+      sel.style.display='block';
+      sel.textContent='✓ Selected: '+cfPargoSelection.name;
+    };
+
+    window.cfConfirmAndPay=async()=>{
+      const method=document.querySelector('input[name="cf-method"]:checked').value;
+      const errEl=document.getElementById('cf-error');
+      errEl.style.display='none';
+      if(method==='pargo' && !cfPargoSelection){
+        errEl.textContent='Pick a Pargo point first, or switch to in-person handover.';
+        errEl.style.display='block';
+        return;
+      }
+      const btn=document.getElementById('cf-pay-btn');
+      btn.disabled=true; btn.textContent='Setting up payment…';
+      try{
+        sessionStorage.setItem('smp_checkout_queue', JSON.stringify({
+          items: cfPendingItems,
+          idx: 0,
+          delivery_method: method,
+          pargo_point_id: cfPargoSelection?.id||null,
+          pargo_point_name: cfPargoSelection?.name||null,
+        }));
+        if(method==='pickup'){ cart=[]; saveCart(); updateCartUI(); closeCart(); }
+        await processNextCheckoutItem();
+      }catch(e){
+        errEl.textContent=orderErrorMessage(e);
+        errEl.style.display='block';
+        btn.disabled=false; btn.textContent='Pay with card / Ozow / SnapScan / RCS →';
+      }
+    };
+
+    // Also called from payment-return.html to advance to the next item
+    // in the queue after a successful payment — kept as a global so that
+    // page's own small script can call it after loading this same logic.
+    window.processNextCheckoutItem=async function(){
+      const raw=sessionStorage.getItem('smp_checkout_queue');
+      if(!raw)return {done:true};
+      const q=JSON.parse(raw);
+      if(q.idx>=q.items.length){
+        sessionStorage.removeItem('smp_checkout_queue');
+        return {done:true};
+      }
+      const item=q.items[q.idx];
+      const {data,error}=await supabase.rpc('place_order_paid',{
+        p_listing_id:item.listingId, p_quantity:item.qty,
+        p_delivery_method:q.delivery_method,
+        p_pargo_point_id:q.pargo_point_id, p_pargo_point_name:q.pargo_point_name
+      });
+      if(error) throw new Error(orderErrorMessage(error));
+      const {data:fnData, error:fnError}=await supabase.functions.invoke('tradesafe-checkout',{body:{order_id:data.order_id}});
+      if(fnError || !fnData?.checkout_url) throw new Error(fnData?.error||fnError?.message||'Could not start payment');
+      window.location.href=fnData.checkout_url; // full redirect to TradeSafe's hosted checkout
+      return {done:false, redirected:true};
+    };
 
     window.closeModal=()=>{document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
     window.selectCat=(c,el)=>{

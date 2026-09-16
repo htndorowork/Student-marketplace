@@ -330,17 +330,32 @@
       const {data}=await supabase.from('orders').select('*,listings(title),profiles!orders_seller_id_fkey(full_name)').order('created_at',{ascending:false});
       const c=document.getElementById('all-orders-container');
       if(!data?.length){c.innerHTML='<div class="empty-msg">No orders yet</div>';return;}
-      c.innerHTML=data.map(o=>'<div class="listing-row">'+
+      const ESCROW_LABEL={none:'',held:'💰 In escrow',released:'✅ Released',disputed:'⚠️ DISPUTED',refunded:'↩️ Refunded'};
+      c.innerHTML=data.map(o=>{
+        const escrowTag = o.payment_status==='paid' ? ' · <span style="color:'+(o.escrow_status==='disputed'?'#c0392b':'#7c3aed')+';font-weight:700">'+(ESCROW_LABEL[o.escrow_status]||o.escrow_status)+'</span>' : (o.payment_status==='unpaid'?' · <span style="color:#aaa;font-weight:700">unpaid</span>':'');
+        const deliveryTag = o.delivery_method==='pargo' ? ' · 🚚 Pargo'+(o.pargo_point_name?' ('+escapeHtml(o.pargo_point_name)+')':'') : ' · 🤝 Pickup';
+        return '<div class="listing-row">'+
         '<div style="font-size:24px;flex-shrink:0">🛒</div>'+
         '<div class="listing-info" style="flex:1;cursor:pointer" onclick="window._viewStore(\''+o.seller_id+'\')" title="View seller\'s store">'+
         '<div class="listing-title">'+(o.listings?.title||'Unknown')+'</div>'+
-        '<div class="listing-meta">👤 '+escapeHtml(o.buyer_name)+' · 📱 '+escapeHtml(o.buyer_whatsapp)+' · Qty: '+o.quantity+' · Seller: '+escapeHtml(o.profiles?.full_name||'?')+' · <span style="color:'+(o.status==='confirmed'?'#e65c00':'#2e7d32')+';font-weight:700">'+o.status.toUpperCase()+'</span></div>'+
+        '<div class="listing-meta">👤 '+escapeHtml(o.buyer_name)+' · 📱 '+escapeHtml(o.buyer_whatsapp)+' · Qty: '+o.quantity+' · Seller: '+escapeHtml(o.profiles?.full_name||'?')+' · <span style="color:'+(o.status==='confirmed'?'#e65c00':'#2e7d32')+';font-weight:700">'+o.status.toUpperCase()+'</span>'+escrowTag+deliveryTag+'</div>'+
+        (o.escrow_status==='disputed' && o.dispute_reason?'<div class="listing-meta" style="color:#c0392b">Reason: '+escapeHtml(o.dispute_reason)+'</div>':'')+
         '<div class="listing-meta">🕐 '+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
         '</div>'+
-        (o.status==='confirmed'?'<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._adone(\''+o.id+'\')">Mark Done</button>':'')+
-        '</div>'
-      ).join('');
+        (o.escrow_status==='disputed'?
+          '<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._resolveDispute(\''+o.id+'\',\'release\')">Pay seller</button>'+
+          '<button class="btn-sm btn-delete" onclick="event.stopPropagation();window._resolveDispute(\''+o.id+'\',\'refund\')">Flag refund</button>'
+          : (o.status==='confirmed' && (o.payment_status!=='paid')?'<button class="btn-sm btn-toggle" onclick="event.stopPropagation();window._adone(\''+o.id+'\')">Mark Done</button>':''))+
+        '</div>';
+      }).join('');
     }
+    window._resolveDispute=async(id,resolution)=>{
+      const note=prompt(resolution==='release'?'Note for releasing this order to the seller (optional):':'Note for flagging this for manual refund (optional):');
+      if(note===null)return;
+      const {error}=await supabase.rpc('admin_resolve_dispute',{p_order_id:id,p_resolution:resolution,p_note:note||null});
+      if(error){alert('Error: '+error.message);return;}
+      loadOrders();
+    };
 
     function sellerScopeSummary(s){
       const parts=[];

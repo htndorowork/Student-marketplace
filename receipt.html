@@ -75,7 +75,9 @@
           '<div class="receipt-row"><span>Unit price</span><strong>R'+unitPrice+'</strong></div>'+
           (deliveryFee>0?'<div class="receipt-row"><span>Delivery fee</span><strong>R'+deliveryFee+'</strong></div>':'')+
           '<div class="receipt-total"><span>Total</span><span>R'+total+'</span></div>'+
-          '<div style="text-align:center;font-size:11px;color:#aaa;font-weight:600;margin-top:16px">Payment arranged directly between buyer and seller. This receipt confirms the order details recorded on Student Marketplace.</div>';
+          '<div class="receipt-row" style="margin-top:10px"><span>Delivery</span><strong>'+(o.delivery_method==='pargo'?'🚚 Pargo — '+escapeHtml(o.pargo_point_name||'pickup point'):'🤝 In-person handover')+'</strong></div>'+
+          '<div class="receipt-row"><span>Payment</span><strong>'+(o.payment_status==='paid'?'Paid via TradeSafe':(o.payment_status==='refunded'?'Refunded':'Unpaid'))+'</strong></div>'+
+          '<div style="text-align:center;font-size:11px;color:#aaa;font-weight:600;margin-top:16px">Payment is held securely in escrow by TradeSafe and released to the seller once the order is confirmed delivered or collected. This receipt confirms the order details recorded on Student Marketplace.</div>';
       }
     }
   </script>

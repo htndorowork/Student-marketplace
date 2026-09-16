@@ -182,6 +182,9 @@
             <span class="pmr-icon">📦</span><span class="pmr-label">My Listings</span>
             <span class="pmr-badge" id="listings-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
           </button>
+          <button class="profile-menu-row" onclick="showTab('wallet')">
+            <span class="pmr-icon">💰</span><span class="pmr-label">Wallet</span><span class="pmr-chevron">›</span>
+          </button>
           <button class="profile-menu-row" onclick="showTab('add')">
             <span class="pmr-icon">➕</span><span class="pmr-label">Add Listing</span><span class="pmr-chevron">›</span>
           </button>
@@ -265,6 +268,26 @@
           <button class="btn-sm btn-toggle" onclick="exportMyListingsCSV()">⬇️ Export CSV</button>
         </div>
         <div id="my-listings"><p class="loading-msg">Loading listings...</p></div>
+      </div>
+
+      <!-- WALLET -->
+      <div id="tab-wallet" style="display:none">
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <div style="flex:1;background:#f5f0ff;border-radius:14px;padding:14px">
+            <div style="font-size:11.5px;color:#7c3aed;font-weight:800">AVAILABLE</div>
+            <div id="wallet-balance" style="font-size:24px;font-weight:900;color:#7c3aed">R0</div>
+          </div>
+          <div style="flex:1;background:#f7f7f7;border-radius:14px;padding:14px">
+            <div style="font-size:11.5px;color:#888;font-weight:800">IN ESCROW</div>
+            <div id="wallet-pending" style="font-size:24px;font-weight:900;color:#888">R0</div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:#888;font-weight:600;margin-bottom:14px">"In escrow" is money buyers have paid that's still held by TradeSafe — it moves to "Available" once you confirm the Collection PIN (or 24h after Pargo delivery with no dispute).</p>
+        <div id="wallet-payout-banner"></div>
+        <button class="btn-primary" style="width:100%" onclick="window._requestWithdrawal()">Withdraw available balance</button>
+        <p id="wallet-error" style="display:none;color:#c0392b;font-size:12.5px;font-weight:700;margin-top:8px"></p>
+        <div class="profile-section-label" style="margin-top:20px">Transaction history</div>
+        <div id="wallet-transactions"><p class="loading-msg">Loading...</p></div>
       </div>
 
       <!-- ADD LISTING -->
@@ -1909,6 +1932,32 @@
           '</div>';
       }
       const badge = isNew?'<span class="order-badge badge-new">🆕 New Order</span>':isCancelled?'<span class="order-badge" style="background:#f0f0f0;color:#888">🚫 Cancelled</span>':'<span class="order-badge badge-done">✅ Completed</span>';
+
+      // Escrow-aware fulfilment block — replaces the old bare "Mark as
+      // Done" button, which used to flip status with no link to whether
+      // (or how) the buyer had actually paid.
+      let escrowHtml='';
+      if(isNew){
+        if(o.payment_status!=='paid' || o.escrow_status!=='held'){
+          escrowHtml='<div class="order-detail" style="margin-top:8px;color:#888;font-weight:700">⏳ Waiting on payment — nothing to do yet.</div>';
+        } else if(o.escrow_status==='disputed'){
+          escrowHtml='<div class="order-detail" style="margin-top:8px;color:#c0392b;font-weight:800">⚠️ Buyer opened a dispute'+(o.dispute_reason?': '+escapeHtml(o.dispute_reason):'')+'. Payout is on hold — message the buyer or contact support.</div>';
+        } else if(o.delivery_method==='pargo'){
+          escrowHtml='<div style="background:#f5f0ff;border:2px solid #e0d0ff;border-radius:12px;padding:10px 12px;margin-top:8px">'+
+            '<div style="font-size:12.5px;font-weight:800;color:#7c3aed">🚚 Pargo — '+escapeHtml(o.pargo_point_name||'pickup point')+'</div>'+
+            '<div style="font-size:12px;color:#666;font-weight:600;margin-top:4px">'+(o.delivered_at?'Delivered — your payout releases automatically 24h after drop-off unless the buyer disputes.':'Payment is held in escrow until Pargo confirms delivery.')+'</div>'+
+            '</div>';
+        } else {
+          escrowHtml='<div style="background:#f5f0ff;border:2px solid #e0d0ff;border-radius:12px;padding:10px 12px;margin-top:8px">'+
+            '<div style="font-size:12.5px;font-weight:800;color:#7c3aed">🔑 Ask the buyer for their 6-digit Collection PIN at handover</div>'+
+            '<div style="display:flex;gap:8px;margin-top:8px">'+
+            '<input type="text" inputmode="numeric" maxlength="6" placeholder="6-digit PIN" id="pin-input-'+o.id+'" style="flex:1;padding:9px 12px;border:2px solid #ddd;border-radius:10px;font-family:inherit;font-size:14px;letter-spacing:2px"/>'+
+            '<button class="btn-sm btn-toggle" onclick="window._confirmHandover(\''+o.id+'\')">Confirm ✓</button>'+
+            '</div><p id="pin-error-'+o.id+'" style="display:none;color:#c0392b;font-size:11.5px;font-weight:700;margin-top:6px"></p>'+
+            '</div>';
+        }
+      }
+
       return '<div class="order-card '+(isNew?'order-new':'')+'">'+
         badge+
         '<div class="order-card-title">'+escapeHtml(o.listings?.title||'Unknown listing')+'</div>'+
@@ -1916,8 +1965,8 @@
         '<div class="order-detail">📱 WhatsApp: <strong>'+escapeHtml(o.buyer_whatsapp)+'</strong></div>'+
         '<div class="order-detail">📦 Quantity: <strong>'+o.quantity+'</strong></div>'+
         '<div class="order-detail" style="color:#aaa;font-size:12px;margin-top:4px">🕐 '+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
+        escrowHtml+
         '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-top:10px" href="messages.html?buyer='+o.buyer_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Buyer</a>'+
-        (isNew?'<button class="btn-sm btn-toggle" style="margin-top:10px;margin-left:8px" onclick="window._done(\''+o.id+'\')">Mark as Done ✓</button>':'')+
         (o.status==='completed'?'<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>':'')+
         ratingHtml+
         '</div>';
@@ -2114,7 +2163,63 @@
       if(error)alert('Error: '+error.message); else loadMyListings();
     };
 
-    window._done   = async id => { await supabase.from('orders').update({status:'completed'}).eq('id',id); loadOrders(); };
+    async function loadWallet(){
+      const {data:profile} = await supabase.from('profiles').select('wallet_balance,wallet_pending,tradesafe_token_id').eq('id',currentUser.id).single();
+      document.getElementById('wallet-balance').textContent = 'R'+Math.round(profile?.wallet_balance||0);
+      document.getElementById('wallet-pending').textContent = 'R'+Math.round(profile?.wallet_pending||0);
+      const banner=document.getElementById('wallet-payout-banner');
+      banner.innerHTML = profile?.tradesafe_token_id
+        ? '<div style="background:#e8f5e9;color:#2e7d32;border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:700;margin-bottom:12px">✅ Payouts connected</div>'
+        : '<div style="background:#fff3e0;color:#e65c00;border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:700;margin-bottom:12px">⚠️ Payouts aren\'t connected yet — buyers can\'t pay you until this is set up. <a href="https://wa.me/27694520629" target="_blank" rel="noopener" style="color:#e65c00;text-decoration:underline">Contact support</a> to finish TradeSafe seller onboarding.</div>';
+
+      const {data:txs} = await supabase.from('wallet_transactions').select('*').eq('seller_id',currentUser.id).order('created_at',{ascending:false}).limit(50);
+      const c=document.getElementById('wallet-transactions');
+      if(!txs?.length){c.innerHTML='<p class="loading-msg">No transactions yet.</p>';return;}
+      const TYPE_LABEL={escrow_release:'💰 Order payout',withdrawal_requested:'🏦 Withdrawal requested',withdrawal_paid:'✅ Withdrawal paid',adjustment:'⚙️ Adjustment'};
+      c.innerHTML=txs.map(t=>{
+        const isCredit=t.amount>0;
+        return '<div class="order-card" style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center">'+
+          '<div><div style="font-size:12.5px;font-weight:800">'+(TYPE_LABEL[t.type]||t.type)+'</div>'+
+          '<div style="font-size:11px;color:#888;font-weight:600">'+new Date(t.created_at).toLocaleDateString('en-ZA')+(t.status==='pending'?' · pending':'')+'</div></div>'+
+          '<div style="font-weight:900;color:'+(isCredit?'#2e7d32':'#c0392b')+'">'+(isCredit?'+':'')+'R'+Math.round(t.amount)+'</div>'+
+          '</div>';
+      }).join('');
+    }
+    window._requestWithdrawal = async () => {
+      const errEl=document.getElementById('wallet-error');
+      errEl.style.display='none';
+      const {data:profile} = await supabase.from('profiles').select('wallet_balance').eq('id',currentUser.id).single();
+      const balance = profile?.wallet_balance||0;
+      if(balance<=0){errEl.textContent='Your available balance is R0.';errEl.style.display='block';return;}
+      if(!confirm('Withdraw R'+Math.round(balance)+' to your bank account? This can take a few business days.'))return;
+      const {error} = await supabase.rpc('request_withdrawal',{p_amount:balance});
+      if(error){errEl.textContent=error.message;errEl.style.display='block';return;}
+      alert('Withdrawal requested — you\'ll be paid out shortly.');
+      loadWallet();
+    };
+
+    window._confirmHandover = async (id) => {
+      const input = document.getElementById('pin-input-'+id);
+      const errEl = document.getElementById('pin-error-'+id);
+      errEl.style.display='none';
+      const pin = (input?.value||'').trim();
+      if(!/^\d{6}$/.test(pin)){
+        errEl.textContent='Enter the 6-digit PIN the buyer gives you.';
+        errEl.style.display='block';
+        return;
+      }
+      const {error} = await supabase.rpc('confirm_handover_pin',{p_order_id:id,p_pin:pin});
+      if(error){
+        errEl.textContent = /incorrect pin/i.test(error.message) ? 'That PIN doesn\'t match — double-check with the buyer.' : error.message;
+        errEl.style.display='block';
+        return;
+      }
+      // confirm_handover_pin releases escrow into the wallet; mark the
+      // order itself completed too so it moves out of "new orders" and
+      // becomes rateable/receiptable like before.
+      await supabase.from('orders').update({status:'completed'}).eq('id',id);
+      loadOrders();
+    };
     window._toggle = async (id,cur) => { const {error} = await supabase.from('listings').update({is_available:!cur}).eq('id',id); if(error)alert('Error: '+error.message); else loadMyListings(); };
     window._toggleSold = async (id,cur) => {
       const {error} = await supabase.from('listings').update({is_sold:!cur, is_available: cur}).eq('id',id);
@@ -2140,8 +2245,9 @@
     window.showTab = (tab) => {
       document.getElementById('dashboard-menu').style.display='none';
       document.getElementById('dashboard-detail').style.display='block';
-      ['orders','orders-completed','listings','add','store','profile','security','alerts','invite','my-purchases'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
+      ['orders','orders-completed','listings','wallet','add','store','profile','security','alerts','invite','my-purchases'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
       if (tab==='listings') loadMyListings(true);
+      if (tab==='wallet') loadWallet();
       if (tab==='orders') loadOrders(true);
       if (tab==='orders-completed') loadCompletedOrders();
       if (tab==='store') loadStoreTab();
