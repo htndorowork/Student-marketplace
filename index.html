@@ -273,7 +273,7 @@
     <button onclick="event.stopPropagation();lightboxSlide(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;font-weight:800" id="lb-prev">‹</button>
     <button onclick="event.stopPropagation();lightboxSlide(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;font-weight:800" id="lb-next">›</button>
     <div class="lightbox-frame" onclick="event.stopPropagation()">
-      <img id="lightbox-img" src="" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.5)"/>
+      <div class="lb-slides" id="lb-slides"></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:16px" id="lb-dots"></div>
     <div style="color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;margin-top:8px" id="lb-counter"></div>
@@ -1689,37 +1689,48 @@
       lbImgs=[currentListing.image_url,currentListing.image_url_2,currentListing.image_url_3,currentListing.image_url_4,currentListing.image_url_5,currentListing.image_url_6].filter(Boolean);
       if(!lbImgs.length)return;
       lbIdx=idx||0;
+      const track=document.getElementById('lb-slides');
+      track.innerHTML=lbImgs.map((u,i)=>'<div class="lb-slide"><img loading="lazy" src="'+u+'" alt="'+((currentListing?.title||'Listing photo')+' — photo '+(i+1)+' of '+lbImgs.length).replace(/"/g,'')+'"/></div>').join('');
+      track.style.transition='none';
+      track.style.transform='translateX(-'+(lbIdx*100)+'%)';
       renderLightbox();
-      const img=document.getElementById('lightbox-img');
-      img.style.transition='none';
-      img.style.transform='translateX(0)';
       const lb=document.getElementById('lightbox');
       lb.style.display='flex';
       document.body.style.overflow='hidden';
     };
     function renderLightbox(){
-      document.getElementById('lightbox-img').src=lbImgs[lbIdx];
-      document.getElementById('lightbox-img').alt=(currentListing?.title||'Listing photo')+' — photo '+(lbIdx+1)+' of '+lbImgs.length;
       document.getElementById('lb-counter').textContent=(lbIdx+1)+' / '+lbImgs.length;
       document.getElementById('lb-prev').style.display=lbImgs.length>1?'block':'none';
       document.getElementById('lb-next').style.display=lbImgs.length>1?'block':'none';
       document.getElementById('lb-dots').innerHTML=lbImgs.map((_,i)=>'<div onclick="event.stopPropagation();lbGo('+i+')" style="width:8px;height:8px;border-radius:50%;background:'+(i===lbIdx?'#fff':'rgba(255,255,255,0.35)')+';cursor:pointer"></div>').join('');
     }
-    window.lightboxSlide=(dir)=>{lbIdx=(lbIdx+dir+lbImgs.length)%lbImgs.length;renderLightbox();};
-    window.lbGo=(i)=>{lbIdx=i;renderLightbox();};
+    function goLightboxSlide(){
+      const track=document.getElementById('lb-slides');
+      track.style.transition='transform 0.25s ease';
+      track.style.transform='translateX(-'+(lbIdx*100)+'%)';
+      renderLightbox();
+    }
+    window.lightboxSlide=(dir)=>{lbIdx=(lbIdx+dir+lbImgs.length)%lbImgs.length;goLightboxSlide();};
+    window.lbGo=(i)=>{lbIdx=i;goLightboxSlide();};
     window.closeLightbox=()=>{document.getElementById('lightbox').style.display='none';document.body.style.overflow='hidden';};
 
-    // Swipe-to-change-photo in the fullscreen lightbox
+    // Swipe-to-change-photo in the fullscreen lightbox. This drives the same
+    // kind of sliding track as the product-card gallery (initGallerySwipe)
+    // instead of animating a single <img> off-screen and swapping its src —
+    // that old approach never showed the next photo while you dragged, so
+    // the swipe felt disconnected from your finger. Dragging the real track
+    // means the next/previous photo slides in live, same as the card gallery.
     (function initLightboxSwipe(){
       const lb=document.getElementById('lightbox');
-      const img=document.getElementById('lightbox-img');
-      if(!lb||!img)return;
+      const frame=document.querySelector('.lightbox-frame');
+      if(!lb||!frame)return;
       let startX=0, startY=0, dragging=false, dragDelta=0, horizontal=false, directionLocked=false;
+      const track=()=>document.getElementById('lb-slides');
       lb.addEventListener('touchstart',(e)=>{
         if(lbImgs.length<=1)return;
         const t=e.touches[0];
         startX=t.clientX; startY=t.clientY; dragging=true; horizontal=false; directionLocked=false; dragDelta=0;
-        img.style.transition='none';
+        track().style.transition='none';
       },{passive:true});
       lb.addEventListener('touchmove',(e)=>{
         if(!dragging)return;
@@ -1735,36 +1746,24 @@
         }
         e.preventDefault();
         dragDelta=dx;
-        img.style.transform='translateX('+dragDelta+'px)';
+        track().style.transform='translateX(calc(-'+(lbIdx*100)+'% + '+dragDelta+'px))';
       },{passive:false});
       lb.addEventListener('touchend',()=>{
         if(!dragging){ horizontal=false; directionLocked=false; return; }
         dragging=false;
-        const width=lb.clientWidth;
-        const threshold=width*0.15;
+        track().style.transition='transform 0.25s ease';
+        const threshold=frame.clientWidth*0.18;
         if(horizontal && Math.abs(dragDelta)>threshold){
-          const dir = dragDelta<0 ? 1 : -1; // swiped left -> next, swiped right -> prev
-          img.style.transition='transform 0.2s ease';
-          img.style.transform='translateX('+(dir<0?width:-width)+'px)';
-          setTimeout(()=>{
-            lightboxSlide(dir);
-            img.style.transition='none';
-            img.style.transform='translateX('+(dir<0?-width:width)+'px)';
-            requestAnimationFrame(()=>{
-              img.style.transition='transform 0.2s ease';
-              img.style.transform='translateX(0)';
-            });
-          },200);
+          lightboxSlide(dragDelta<0?1:-1);
         } else {
-          img.style.transition='transform 0.2s ease';
-          img.style.transform='translateX(0)';
+          track().style.transform='translateX(-'+(lbIdx*100)+'%)';
         }
         horizontal=false; directionLocked=false; dragDelta=0;
       });
       lb.addEventListener('touchcancel',()=>{
         dragging=false; horizontal=false; directionLocked=false; dragDelta=0;
-        img.style.transition='transform 0.2s ease';
-        img.style.transform='translateX(0)';
+        track().style.transition='transform 0.25s ease';
+        track().style.transform='translateX(-'+(lbIdx*100)+'%)';
       });
     })();
 
