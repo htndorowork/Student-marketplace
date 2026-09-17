@@ -268,15 +268,17 @@
   </div>
 
   <!-- LIGHTBOX -->
-  <div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:2000;flex-direction:column;align-items:center;justify-content:center;touch-action:pan-y" onclick="closeLightbox()">
-    <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:800;z-index:10">✕</button>
-    <button onclick="event.stopPropagation();lightboxSlide(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;font-weight:800" id="lb-prev">‹</button>
-    <button onclick="event.stopPropagation();lightboxSlide(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;font-weight:800" id="lb-next">›</button>
+  <div id="lightbox" style="display:none;position:fixed;inset:0;background:#000;z-index:2000;touch-action:pan-y" onclick="closeLightbox()">
     <div class="lightbox-frame" onclick="event.stopPropagation()">
       <div class="lb-slides" id="lb-slides"></div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:16px" id="lb-dots"></div>
-    <div style="color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;margin-top:8px" id="lb-counter"></div>
+    <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:800;z-index:10">✕</button>
+    <button onclick="event.stopPropagation();lightboxSlide(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;font-weight:800;z-index:10" id="lb-prev">‹</button>
+    <button onclick="event.stopPropagation();lightboxSlide(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;font-weight:800;z-index:10" id="lb-next">›</button>
+    <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 0 18px;background:linear-gradient(transparent,rgba(0,0,0,0.7));display:flex;flex-direction:column;align-items:center;gap:8px;z-index:10;pointer-events:none">
+      <div style="display:flex;gap:8px" id="lb-dots"></div>
+      <div style="color:rgba(255,255,255,0.7);font-size:13px;font-weight:600" id="lb-counter"></div>
+    </div>
   </div>
 
   <!-- CONTACT MODAL -->
