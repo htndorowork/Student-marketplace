@@ -1798,13 +1798,38 @@
       lbIdx=idx||0;
       const track=document.getElementById('lb-slides');
       track.innerHTML=lbImgs.map((u,i)=>'<div class="lb-slide"><img loading="lazy" src="'+u+'" alt="'+((currentListing?.title||'Listing photo')+' — photo '+(i+1)+' of '+lbImgs.length).replace(/"/g,'')+'"/></div>').join('');
-      track.style.transition='none';
-      track.style.transform='translateX(-'+(lbIdx*100)+'%)';
-      renderLightbox();
       const lb=document.getElementById('lightbox');
       lb.style.display='flex';
       document.body.style.overflow='hidden';
+      layoutLightboxSlides();
+      track.style.transition='none';
+      track.style.transform='translateX(-'+(lbIdx*lbFrameWidth())+'px)';
+      renderLightbox();
     };
+    // Every slide's width is set in real pixels from the frame's actual
+    // measured size, instead of leaning on percentage/min-width resolving
+    // correctly through position:fixed > absolute > absolute > flex-item —
+    // that chain renders inconsistently between Chrome and Safari (a photo
+    // would land partially off-screen, offset to one side, on iPhone even
+    // though the same markup was fine on Android). Pixel widths measured
+    // directly from the DOM sidestep that engine difference entirely.
+    function lbFrameWidth(){
+      return document.querySelector('.lightbox-frame').clientWidth;
+    }
+    function layoutLightboxSlides(){
+      const w=lbFrameWidth();
+      const track=document.getElementById('lb-slides');
+      track.style.width=(w*lbImgs.length)+'px';
+      [...track.children].forEach(slide=>{slide.style.width=w+'px';});
+    }
+    window.addEventListener('resize',()=>{
+      if(document.getElementById('lightbox').style.display==='flex'){
+        layoutLightboxSlides();
+        const track=document.getElementById('lb-slides');
+        track.style.transition='none';
+        track.style.transform='translateX(-'+(lbIdx*lbFrameWidth())+'px)';
+      }
+    });
     function renderLightbox(){
       document.getElementById('lb-counter').textContent=(lbIdx+1)+' / '+lbImgs.length;
       document.getElementById('lb-prev').style.display=lbImgs.length>1?'block':'none';
@@ -1814,7 +1839,7 @@
     function goLightboxSlide(){
       const track=document.getElementById('lb-slides');
       track.style.transition='transform 0.25s ease';
-      track.style.transform='translateX(-'+(lbIdx*100)+'%)';
+      track.style.transform='translateX(-'+(lbIdx*lbFrameWidth())+'px)';
       renderLightbox();
     }
     window.lightboxSlide=(dir)=>{lbIdx=(lbIdx+dir+lbImgs.length)%lbImgs.length;goLightboxSlide();};
@@ -1853,7 +1878,7 @@
         }
         e.preventDefault();
         dragDelta=dx;
-        track().style.transform='translateX(calc(-'+(lbIdx*100)+'% + '+dragDelta+'px))';
+        track().style.transform='translateX('+(-(lbIdx*lbFrameWidth())+dragDelta)+'px)';
       },{passive:false});
       lb.addEventListener('touchend',()=>{
         if(!dragging){ horizontal=false; directionLocked=false; return; }
@@ -1863,14 +1888,14 @@
         if(horizontal && Math.abs(dragDelta)>threshold){
           lightboxSlide(dragDelta<0?1:-1);
         } else {
-          track().style.transform='translateX(-'+(lbIdx*100)+'%)';
+          track().style.transform='translateX(-'+(lbIdx*lbFrameWidth())+'px)';
         }
         horizontal=false; directionLocked=false; dragDelta=0;
       });
       lb.addEventListener('touchcancel',()=>{
         dragging=false; horizontal=false; directionLocked=false; dragDelta=0;
         track().style.transition='transform 0.25s ease';
-        track().style.transform='translateX(-'+(lbIdx*100)+'%)';
+        track().style.transform='translateX(-'+(lbIdx*lbFrameWidth())+'px)';
       });
     })();
 
