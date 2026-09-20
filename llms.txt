@@ -15,7 +15,7 @@ itself ever processes.
 
 ## Key pages
 
-- [Browse listings](https://www.mystudentmarketplace.com/index.html): the main marketplace feed, filterable by category, price, and institution/campus.
+- [Browse listings](https://www.mystudentmarketplace.com/): the main marketplace feed, filterable by category, price, and institution/campus.
 - [All categories](https://www.mystudentmarketplace.com/categories.html): full category directory.
 - [How it works / FAQ](https://www.mystudentmarketplace.com/faq.html): how buying, selling, and delivery work.
 - [Community guidelines](https://www.mystudentmarketplace.com/guidelines.html): rules for safe, fair use of the platform.

@@ -24,17 +24,17 @@
   <meta name="twitter:card" content="summary"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#7c3aed"/>
-  <link rel="apple-touch-icon" href="icons/icon-192.png?v=2"/>
-  <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=2"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png?v=3"/>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=3"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=3"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=3"/>
   <link rel="stylesheet" href="style.css?v=1790000001"/>
 </head>
 <body>
   <nav class="nav">
-    <a href="index.html" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
+    <a href="/" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
     <div class="nav-links">
-      <a href="index.html">Browse</a>
+      <a href="/">Browse</a>
       <a href="messages.html" id="nav-messages">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
       <div style="position:relative;display:inline-block" id="notif-wrap">
         <a href="#" id="nav-notif" onclick="toggleNotifDropdown();return false">🔔 Notifications<span class="inline-badge" id="notif-badge" style="display:none">0</span></a>
@@ -235,7 +235,7 @@
         <div class="footer-links">
       <a class="footer-link" href="mailto:studentmarketplacehelp@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
-      <a class="footer-link" href="index.html">Browse listings</a>
+      <a class="footer-link" href="/">Browse listings</a>
       <a class="footer-link" href="faq.html">How It Works</a>
       <a class="footer-link" href="terms.html">Terms</a>
       <a class="footer-link" href="privacy.html">Privacy</a>
@@ -447,7 +447,7 @@
     }
 
     window._viewOrderedItem=(listingId)=>{
-      window.location.href='index.html?open='+listingId;
+      window.location.href='/?open='+listingId;
     };
 
     window._cancelOrder=async(id)=>{
@@ -502,7 +502,7 @@
         const e=CAT_EMOJI[l.category]||'🛍️';
         const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:36px">${e}</span>`;
         const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
-        return '<div class="card" onclick="location.href=\'index.html?open='+l.id+'\'">'+
+        return '<div class="card" onclick="location.href=\'/?open='+l.id+'\'">'+
           '<div class="card-img" style="background:#f5f5f5">'+img+'</div>'+
           '<div class="card-body"><div class="card-title">'+escapeHtml(l.title)+'</div>'+
           '<div class="card-footer"><span class="price">R'+fp+'</span></div></div></div>';
@@ -706,7 +706,7 @@
       if(!confirm('This clears your saved name, WhatsApp number and residence from our system, and signs you out. Your past orders stay on record for the sellers you dealt with. To fully delete your login and all data, email us afterwards using the Report an issue link. Continue?'))return;
       await supabase.from('profiles').update({full_name:null,whatsapp:null,residence:null}).eq('id',currentUser.id);
       await supabase.auth.signOut();
-      window.location.href='index.html';
+      window.location.href='/';
     };
 
     let pendingMfaFactorId=null;
@@ -781,7 +781,7 @@
     window._openNotif=async(id,listingId)=>{
       await supabase.from('notifications').update({is_read:true}).eq('id',id);
       document.getElementById('notif-dropdown').style.display='none';
-      if(listingId) window.location.href='index.html?open='+listingId;
+      if(listingId) window.location.href='/?open='+listingId;
       else loadNotifications();
     };
     document.addEventListener('click',(e)=>{
@@ -792,7 +792,7 @@
     init();
   </script>
   <nav class="bottom-nav">
-    <a class="bottom-nav-item" href="index.html"><span class="bottom-nav-icon">🔍</span><span class="bottom-nav-label">Browse</span></a>
+    <a class="bottom-nav-item" href="/"><span class="bottom-nav-icon">🔍</span><span class="bottom-nav-label">Browse</span></a>
     <a class="bottom-nav-item" href="categories.html"><span class="bottom-nav-icon">🗂️</span><span class="bottom-nav-label">Categories</span></a>
     <a class="bottom-nav-item" href="messages.html"><span class="bottom-nav-icon">💬</span><span class="bottom-nav-label">Messages</span></a>
     <a class="bottom-nav-item" href="favorites.html"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
