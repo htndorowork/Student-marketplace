@@ -368,7 +368,7 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    import { startPresence, fetchPresence, applyPresence } from './presence.js?v=1';
+    import { startPresence } from './presence.js?v=1';
     import { avatarHTML, pickAvatar } from './avatar.js?v=1';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
@@ -1153,7 +1153,7 @@
       const flatVal2=flatConf2?l[flatConf2.field]:null;
       const deliveryTxt = describeDeliveryScope(l.profiles);
       const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+escapeHtml(l.condition)+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
-      document.getElementById('modal-seller-info').innerHTML='<div class="seller-head">'+avatarHTML({url:pickAvatar(l.profiles),name:l.profiles?.full_name||'Seller',size:46,uid:l.seller_id,dot:true})+'<div><div class="seller-head-label">Seller</div><div class="seller-head-name">'+escapeHtml(l.profiles?.full_name||'Unknown')+(verifiedSellers.has(l.seller_id)?' <span class="verified-badge">✅ Verified</span>':'')+'</div><div class="pstatus" data-uid="'+l.seller_id+'"></div></div></div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+escapeHtml(l.profiles.residence)+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+escapeHtml(l.textbook_year)+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+escapeHtml(l.textbook_subject)+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+escapeHtml(flatVal2)+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+escapeHtml(deliveryTxt)+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="listing-reviews.html?listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
+      document.getElementById('modal-seller-info').innerHTML='<div class="seller-head">'+avatarHTML({url:pickAvatar(l.profiles),name:l.profiles?.full_name||'Seller',size:46})+'<div><div class="seller-head-label">Seller</div><div class="seller-head-name">'+escapeHtml(l.profiles?.full_name||'Unknown')+(verifiedSellers.has(l.seller_id)?' <span class="verified-badge">✅ Verified</span>':'')+'</div></div></div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+escapeHtml(l.profiles.residence)+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+escapeHtml(l.textbook_year)+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+escapeHtml(l.textbook_subject)+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+escapeHtml(flatVal2)+'</div>':'')+extraTags+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="listing-reviews.html?listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -1170,13 +1170,6 @@
       }
       document.getElementById('modal-overlay').style.display='flex';
       document.body.style.overflow='hidden';
-
-      // Seller online/offline status: look it up now, then keep it fresh while the listing is open
-      clearInterval(window._modalPresenceTimer);
-      const modalRoot=document.getElementById('modal-seller-info');
-      const refreshSellerPresence=()=>fetchPresence(supabase,[l.seller_id]).then(m=>applyPresence(m,modalRoot));
-      refreshSellerPresence();
-      window._modalPresenceTimer=setInterval(refreshSellerPresence,60000);
 
       // Track recently viewed
       let recent=JSON.parse(localStorage.getItem('sm_recently_viewed')||'[]');
@@ -1599,7 +1592,7 @@
       return {done:false, redirected:true};
     };
 
-    window.closeModal=()=>{clearInterval(window._modalPresenceTimer);document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
+    window.closeModal=()=>{document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
     window.selectCat=(c,el)=>{
       cat=c;tbYear=null;tbSubject=null;tbSubjectsExpanded=false;flatSubcat=null;stationaryGroup=null;flatChipsExpanded=false;
       document.getElementById('tb-panel').style.display='none';
