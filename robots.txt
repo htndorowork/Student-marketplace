@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Allow: /favicon.ico
+Allow: /apple-touch-icon.png
+Allow: /icons/
 Disallow: /admin
 Disallow: /messages
 Disallow: /profile

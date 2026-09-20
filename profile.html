@@ -24,12 +24,11 @@
   <meta name="twitter:card" content="summary"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#7c3aed"/>
-  <link rel="icon" href="/favicon.ico" sizes="any"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png?v=4"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png?v=4"/>
-  <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png?v=4"/>
-  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4"/>
-  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=4"/>
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48"/>
+  <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png"/>
+  <link rel="icon" type="image/png" sizes="96x96" href="/icons/favicon-96.png"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
 <link rel="stylesheet" href="style.css?v=1790000003"/>
 </head>
 <body>
@@ -272,6 +271,7 @@
   </script>
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { unreadMessageCount } from './unread.js?v=1';
     import { startPresence } from './presence.js?v=1';
     import { bindAvatarUploader } from './avatar.js?v=1';
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
@@ -296,7 +296,7 @@
       if(!user){document.getElementById('auth-guard').style.display='block';return;}
       currentUser=user;
       startPresence(supabase,user.id);
-      supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).neq('sender_id',user.id).eq('is_read',false).then(({count})=>{
+      unreadMessageCount(supabase,user.id).then((count)=>{
         if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
       });
       loadNotifications();
