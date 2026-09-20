@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Messages — Student Marketplace</title>
   <meta name="robots" content="noindex,nofollow"/>
-  <link rel="canonical" href="https://www.mystudentmarketplace.com/messages.html"/>
+  <link rel="canonical" href="https://www.mystudentmarketplace.com/messages"/>
   <meta name="description" content="Your conversations with buyers and sellers on Student Marketplace."/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="manifest" href="manifest.json"/>
@@ -88,7 +88,7 @@
     <a href="/" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
     <div class="nav-links nav-links-simple">
       <a href="/">Browse</a>
-      <a href="profile.html" id="nav-profile">My Profile</a>
+      <a href="/profile" id="nav-profile">My Profile</a>
     </div>
   </nav>
 
@@ -174,7 +174,7 @@
     const otherId = t => t.buyer_id===user.id ? t.seller_id : t.buyer_id;
 
     const {data:{user}} = await supabase.auth.getUser();
-    if(!user){ window.location.href='login.html'; }
+    if(!user){ window.location.href='/login'; }
     currentUser=user;
     if(user) startPresence(supabase,user.id);
 
@@ -353,7 +353,7 @@
     window.viewSellerProfile = () => {
       if(!activeThread) return;
       const counterpartId = activeThread.buyer_id===user.id?activeThread.seller_id:activeThread.buyer_id;
-      window.location.href = 'store.html?seller='+counterpartId;
+      window.location.href = '/store?seller='+counterpartId;
     };
 
     function updateBlockUI(counterpartId){
@@ -595,10 +595,10 @@
   </script>
   <nav class="bottom-nav">
     <a class="bottom-nav-item" href="/"><span class="bottom-nav-icon">🔍</span><span class="bottom-nav-label">Browse</span></a>
-    <a class="bottom-nav-item" href="categories.html"><span class="bottom-nav-icon">🗂️</span><span class="bottom-nav-label">Categories</span></a>
-    <a class="bottom-nav-item active" href="messages.html"><span class="bottom-nav-icon">💬</span><span class="bottom-nav-label">Messages</span></a>
-    <a class="bottom-nav-item" href="favorites.html"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
-    <a class="bottom-nav-item" href="profile.html"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
+    <a class="bottom-nav-item" href="/categories"><span class="bottom-nav-icon">🗂️</span><span class="bottom-nav-label">Categories</span></a>
+    <a class="bottom-nav-item active" href="/messages"><span class="bottom-nav-icon">💬</span><span class="bottom-nav-label">Messages</span></a>
+    <a class="bottom-nav-item" href="/favorites"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
+    <a class="bottom-nav-item" href="/profile"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
   </nav>
   <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>

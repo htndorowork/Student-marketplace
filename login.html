@@ -4,11 +4,11 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign In — Student Marketplace</title>
-  <link rel="canonical" href="https://www.mystudentmarketplace.com/login.html"/>
+  <link rel="canonical" href="https://www.mystudentmarketplace.com/login"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
     <meta name="description" content="Sign in or create a free account on Student Marketplace to start buying and selling with fellow students."/>
     <meta property="og:title" content="Sign In — Student Marketplace"/>
-  <meta property="og:url" content="https://www.mystudentmarketplace.com/login.html"/>
+  <meta property="og:url" content="https://www.mystudentmarketplace.com/login"/>
   <meta property="og:description" content="Sign in or create a free account on Student Marketplace to start buying and selling with fellow students."/>
   <meta property="og:type" content="website"/>
   <meta property="og:image" content="https://www.mystudentmarketplace.com/assets/og-image.png"/>
@@ -117,7 +117,7 @@
         <div class="auth-error" id="signup-error"></div>
         <label class="terms-check" for="signup-agree">
           <input type="checkbox" id="signup-agree"/>
-          <span>By clicking "Create Account", you agree to our <a href="terms.html" onclick="event.stopPropagation()">Terms and Conditions</a> and <a href="privacy.html" onclick="event.stopPropagation()">Privacy Policy</a>, and confirm that you are over 18 years of age.</span>
+          <span>By clicking "Create Account", you agree to our <a href="/terms" onclick="event.stopPropagation()">Terms and Conditions</a> and <a href="/privacy" onclick="event.stopPropagation()">Privacy Policy</a>, and confirm that you are over 18 years of age.</span>
         </label>
         <button class="btn-primary" id="btn-signup">Create Account 🎓</button>
       </div>
@@ -615,7 +615,7 @@
       }
       const {data:{user}}=await supabase.auth.getUser();
       const {data:p}=await supabase.from('profiles').select('role').eq('id',user.id).single();
-      window.location.href = p?.role==='seller' ? 'seller.html' : 'profile.html';
+      window.location.href = p?.role==='seller' ? '/seller' : '/profile';
     };
 
     document.getElementById('btn-signup').onclick=async()=>{

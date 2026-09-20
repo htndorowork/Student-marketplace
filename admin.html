@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin — Student Marketplace</title>
   <meta name="robots" content="noindex,nofollow"/>
-  <link rel="canonical" href="https://www.mystudentmarketplace.com/admin.html"/>
+  <link rel="canonical" href="https://www.mystudentmarketplace.com/admin"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
     <meta name="description" content="Admin dashboard for managing Student Marketplace listings, sellers, and reports."/>
     <meta property="og:title" content="Admin — Student Marketplace"/>
@@ -26,7 +26,7 @@
     <a href="/" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
     <div class="nav-links">
       <a href="/">Browse</a>
-      <a href="profile.html">Profile</a>
+      <a href="/profile">Profile</a>
       <a href="#" id="signout-btn">Sign out</a>
     </div>
   </nav>
@@ -174,14 +174,14 @@
 
     async function init(){
       const {data:{user}}=await supabase.auth.getUser();
-      if(!user){window.location.href='login.html';return;}
+      if(!user){window.location.href='/login';return;}
       const {data:p}=await supabase.from('profiles').select('is_admin,full_name').eq('id',user.id).single();
       if(!p?.is_admin){document.getElementById('access-denied').style.display='block';return;}
       currentAdminId=user.id;
       document.getElementById('admin-content').style.display='block';
       document.getElementById('admin-avatar').textContent=(p.full_name||'?').trim().charAt(0).toUpperCase()||'🛡️';
       document.getElementById('admin-header-meta').textContent=(p.full_name?p.full_name+' · ':'')+'System administrator';
-      document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
+      document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='/login';};
       loadPaywall();loadStats();loadListings();loadReports();
     }
 
@@ -278,7 +278,7 @@
 
     window._viewStore=(sellerId)=>{
       if(!sellerId){alert('No seller info available for this row.');return;}
-      window.open('store.html?seller='+sellerId,'_blank');
+      window.open('/store?seller='+sellerId,'_blank');
     };
     window.toggleSelectAllListings=()=>{
       const boxes=document.querySelectorAll('.listing-select');

@@ -16,12 +16,12 @@ itself ever processes.
 ## Key pages
 
 - [Browse listings](https://www.mystudentmarketplace.com/): the main marketplace feed, filterable by category, price, and institution/campus.
-- [All categories](https://www.mystudentmarketplace.com/categories.html): full category directory.
-- [How it works / FAQ](https://www.mystudentmarketplace.com/faq.html): how buying, selling, and delivery work.
-- [Community guidelines](https://www.mystudentmarketplace.com/guidelines.html): rules for safe, fair use of the platform.
-- [Terms of Service](https://www.mystudentmarketplace.com/terms.html)
-- [Privacy Policy](https://www.mystudentmarketplace.com/privacy.html)
-- [Sign in / create account](https://www.mystudentmarketplace.com/login.html)
+- [All categories](https://www.mystudentmarketplace.com/categories): full category directory.
+- [How it works / FAQ](https://www.mystudentmarketplace.com/faq): how buying, selling, and delivery work.
+- [Community guidelines](https://www.mystudentmarketplace.com/guidelines): rules for safe, fair use of the platform.
+- [Terms of Service](https://www.mystudentmarketplace.com/terms)
+- [Privacy Policy](https://www.mystudentmarketplace.com/privacy)
+- [Sign in / create account](https://www.mystudentmarketplace.com/login)
 
 ## Notes for automated tools and LLMs
 

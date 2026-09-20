@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Payment received — Student Marketplace</title>
   <meta name="robots" content="noindex,nofollow"/>
-  <link rel="canonical" href="https://www.mystudentmarketplace.com/payment-return.html"/>
+  <link rel="canonical" href="https://www.mystudentmarketplace.com/payment-return"/>
   <meta name="description" content="Confirming your Student Marketplace order payment."/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="manifest" href="manifest.json"/>
@@ -47,7 +47,7 @@
         // No queue on this device/tab (e.g. opened the return link separately,
         // or an older seller-plan payment) — just point them at their orders.
         setState('✅','Payment received','Your payment went through.',
-          '<a href="profile.html?tab=orders" class="btn-primary" style="display:inline-block;margin-top:8px;text-decoration:none">View my orders</a>');
+          '<a href="/profile?tab=orders" class="btn-primary" style="display:inline-block;margin-top:8px;text-decoration:none">View my orders</a>');
         return;
       }
       const q = JSON.parse(raw);
@@ -61,7 +61,7 @@
         // a Pargo checkout doesn't, so clear it here once everything's paid.
         try{ localStorage.removeItem('cv_cart'); }catch(e){}
         setState('🎉','All paid!','Your order'+(q.items.length>1?'s are':' is')+' confirmed'+(q.delivery_method==='pickup'?" — you'll find your Collection PIN under My Orders.":' — TradeSafe is holding the payment until delivery is confirmed.'),
-          '<a href="profile.html?tab=orders" class="btn-primary" style="display:inline-block;margin-top:8px;text-decoration:none">View my orders</a>');
+          '<a href="/profile?tab=orders" class="btn-primary" style="display:inline-block;margin-top:8px;text-decoration:none">View my orders</a>');
         return;
       }
 
@@ -81,7 +81,7 @@
         window.location.href=fnData.checkout_url;
       }catch(e){
         setState('⚠️','That item didn\'t go through',orderErrorMessage(e),
-          '<a href="profile.html?tab=orders" class="btn-primary" style="display:inline-block;margin-top:8px;text-decoration:none">View my orders</a>'+
+          '<a href="/profile?tab=orders" class="btn-primary" style="display:inline-block;margin-top:8px;text-decoration:none">View my orders</a>'+
           '<p style="margin-top:14px;font-size:12.5px;color:#888;font-weight:600">Earlier items in this order were paid successfully — only this one needs retrying, from its listing page.</p>');
       }
     }

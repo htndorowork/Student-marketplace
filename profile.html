@@ -14,7 +14,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Profile — Student Marketplace</title>
   <meta name="robots" content="noindex,nofollow"/>
-  <link rel="canonical" href="https://www.mystudentmarketplace.com/profile.html"/>
+  <link rel="canonical" href="https://www.mystudentmarketplace.com/profile"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
     <meta name="description" content="Manage your Student Marketplace profile, orders, and saved listings."/>
     <meta property="og:title" content="My Profile — Student Marketplace"/>
@@ -35,13 +35,13 @@
     <a href="/" class="nav-logo">Student<span>Marketplace</span> 🎓</a>
     <div class="nav-links">
       <a href="/">Browse</a>
-      <a href="messages.html" id="nav-messages">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
+      <a href="/messages" id="nav-messages">💬 Messages<span class="inline-badge" id="msg-badge" style="display:none">0</span></a>
       <div style="position:relative;display:inline-block" id="notif-wrap">
         <a href="#" id="nav-notif" onclick="toggleNotifDropdown();return false">🔔 Notifications<span class="inline-badge" id="notif-badge" style="display:none">0</span></a>
         <div id="notif-dropdown" class="notif-dropdown" style="display:none"></div>
       </div>
-      <a href="seller.html" id="nav-seller" style="display:none">Sell</a>
-      <a href="admin.html" id="nav-admin" style="display:none">Admin</a>
+      <a href="/seller" id="nav-seller" style="display:none">Sell</a>
+      <a href="/admin" id="nav-admin" style="display:none">Admin</a>
       <a href="#" id="signout-btn">Sign out</a>
     </div>
   </nav>
@@ -51,7 +51,7 @@
       <div class="form-card" style="text-align:center">
         <div style="font-size:40px;margin-bottom:12px">🔒</div>
         <p style="font-weight:700;margin-bottom:16px">Sign in to view your profile</p>
-        <a href="login.html" class="btn-primary" style="display:inline-block;text-decoration:none;padding:12px 32px;border-radius:50px">Sign In</a>
+        <a href="/login" class="btn-primary" style="display:inline-block;text-decoration:none;padding:12px 32px;border-radius:50px">Sign In</a>
       </div>
     </div>
 
@@ -99,7 +99,7 @@
 
         <div class="profile-section-label">Support</div>
         <div class="profile-menu-card">
-          <a class="profile-menu-row" href="faq.html"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="/faq"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
           <a class="profile-menu-row" href="https://wa.me/27694520629" target="_blank" rel="noopener"><span class="pmr-icon">📱</span><span class="pmr-label">WhatsApp Support</span><span class="pmr-chevron">›</span></a>
           <a class="profile-menu-row" href="mailto:studentmarketplacehelp@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
           <div class="profile-menu-row" id="install-app-row" style="display:none">
@@ -109,9 +109,9 @@
 
         <div class="profile-section-label">Legal</div>
         <div class="profile-menu-card">
-          <a class="profile-menu-row" href="terms.html"><span class="pmr-icon">📄</span><span class="pmr-label">Terms &amp; Policies</span><span class="pmr-chevron">›</span></a>
-          <a class="profile-menu-row" href="privacy.html"><span class="pmr-icon">🔒</span><span class="pmr-label">Privacy Policy</span><span class="pmr-chevron">›</span></a>
-          <a class="profile-menu-row" href="guidelines.html"><span class="pmr-icon">📋</span><span class="pmr-label">Community Guidelines</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="/terms"><span class="pmr-icon">📄</span><span class="pmr-label">Terms &amp; Policies</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="/privacy"><span class="pmr-icon">🔒</span><span class="pmr-label">Privacy Policy</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="/guidelines"><span class="pmr-icon">📋</span><span class="pmr-label">Community Guidelines</span><span class="pmr-chevron">›</span></a>
         </div>
 
         <button class="profile-logout-btn" id="profile-logout-btn">🚪 Sign out</button>
@@ -236,17 +236,17 @@
       <a class="footer-link" href="mailto:studentmarketplacehelp@gmail.com">📧 Report an issue</a>
       <a class="footer-link" href="https://wa.me/27694520629">📱 WhatsApp Support</a>
       <a class="footer-link" href="/">Browse listings</a>
-      <a class="footer-link" href="faq.html">How It Works</a>
-      <a class="footer-link" href="terms.html">Terms</a>
-      <a class="footer-link" href="privacy.html">Privacy</a>
-      <a class="footer-link" href="guidelines.html">Guidelines</a>
+      <a class="footer-link" href="/faq">How It Works</a>
+      <a class="footer-link" href="/terms">Terms</a>
+      <a class="footer-link" href="/privacy">Privacy</a>
+      <a class="footer-link" href="/guidelines">Guidelines</a>
     </div>
         <div class="footer-copy">© 2025 Student Marketplace</div>
       </div>
       <div class="footer-business">
         <div class="footer-business-title">Business Info</div>
         <div class="footer-business-line">📞 <a href="tel:+27623584921">062 358 4921</a></div>
-        <div class="footer-business-line">📄 <a href="terms.html#refund-policy">Refund &amp; Return Policy</a></div>
+        <div class="footer-business-line">📄 <a href="/terms#refund-policy">Refund &amp; Return Policy</a></div>
       </div>
     </div>
     </footer>
@@ -298,18 +298,18 @@
         if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
       });
       loadNotifications();
-      document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
+      document.getElementById('signout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='/login';};
       const {data:p}=await supabase.from('profiles').select('*').eq('id',user.id).single();
 
       // Sellers get taken straight to their dashboard instead of this buyer-facing page
       if(p && p.role==='seller'){
         document.getElementById('redirecting-guard').style.display='block';
-        window.location.href='seller.html';
+        window.location.href='/seller';
         return;
       }
 
       document.getElementById('profile-content').style.display='block';
-      document.getElementById('profile-logout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='login.html';};
+      document.getElementById('profile-logout-btn').onclick=async()=>{await supabase.auth.signOut();window.location.href='/login';};
       if(p){
         const displayName=p.full_name||'My Profile';
         document.getElementById('profile-name').textContent=displayName;
@@ -354,7 +354,7 @@
       if(avatarUI)avatarUI.setName(name);
       if(role==='seller'){
         errEl.style.color='#2e7d32';errEl.textContent='✅ Saved! Taking you to your seller dashboard...';
-        setTimeout(()=>window.location.href='seller.html',1200);
+        setTimeout(()=>window.location.href='/seller',1200);
         return;
       }
       errEl.style.color='#2e7d32';errEl.textContent='✅ Saved!';
@@ -426,7 +426,7 @@
         // with no order to tie it back to, so that path goes through the
         // dispute button above instead.
         const cancelBtn = (o.status==='confirmed' && o.payment_status==='unpaid') ? '<button class="btn-sm btn-delete" style="margin-top:8px" onclick="window._cancelOrder(\''+o.id+'\')">Cancel Order</button>' : '';
-        const receiptBtn = o.status==='completed' ? '<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
+        const receiptBtn = o.status==='completed' ? '<a href="/receipt?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
         const disputeBtn = o.status==='completed' ? '<button class="btn-sm btn-toggle" style="margin-top:8px;margin-left:6px" onclick="window._requestDispute(\''+o.id+'\',\''+escapeHtml(o.listings?.title||'').replace(/'/g,"\\'")+'\')">🚩 Report a problem</button>' : '';
         const viewItem = o.listing_id ? "window._viewOrderedItem('"+o.listing_id+"')" : '';
         return '<div class="order-card '+(o.status==='confirmed'?'order-new':'')+'">'+
@@ -436,7 +436,7 @@
           '<div class="order-card-title"'+(viewItem?' onclick="'+viewItem+'" style="cursor:pointer"':'')+'>'+escapeHtml(o.listings?.title||'Unknown')+(viewItem?' 👁️':'')+'</div>'+
           '<div class="order-detail">Qty: <strong>'+o.quantity+'</strong></div>'+
           escrowHtml+
-          '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-bottom:8px;margin-top:8px" href="messages.html?seller='+o.seller_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Seller</a>'+
+          '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-bottom:8px;margin-top:8px" href="/messages?seller='+o.seller_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Seller</a>'+
           '<div class="order-detail">👤 <strong>'+escapeHtml(o.profiles?.full_name||'Seller')+'</strong></div>'+
           (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+escapeHtml(o.profiles.residence)+'</strong></div>':'')+
           '<div class="order-detail">📱 <strong>'+escapeHtml(o.profiles?.whatsapp||'N/A')+'</strong></div>'+
@@ -512,7 +512,7 @@
     window.signOutEverywhere=async()=>{
       if(!confirm('This signs you out on every device where you\'re logged in, not just this one. Continue?'))return;
       await supabase.auth.signOut({scope:'global'});
-      window.location.href='login.html';
+      window.location.href='/login';
     };
 
         const VAPID_PUBLIC_KEY = 'BDyOj8uuDSlLJDGHXjMZYWWvELnV2jtbQ5YY93jxZ_TNYAcDLgUUaaOntRyt-iOWUvEV-aIZbBIfCrLEQ_fxnD4';
@@ -685,11 +685,13 @@
     };
 
     async function loadInviteTab(){
-      const link=location.origin+location.pathname.replace('profile.html','login.html')+'?ref='+currentUser.id;
+      const link=location.origin+'/login?ref='+currentUser.id;
       document.getElementById('invite-link').value=link;
       const {count}=await supabase.from('profiles').select('id',{count:'exact',head:true}).eq('referred_by',currentUser.id);
       document.getElementById('referral-count-text').textContent=(count||0)+' friend'+(count===1?'':'s')+' joined using your link so far';
     }
+    // showTab() lives in a classic script, so these module functions must be reachable from window
+    window.refreshPushStatus=refreshPushStatus; window.loadSearchAlerts=loadSearchAlerts; window.loadInviteTab=loadInviteTab;
     window.copyInviteLink=()=>{
       const el=document.getElementById('invite-link');
       el.select(); document.execCommand('copy');
@@ -793,10 +795,10 @@
   </script>
   <nav class="bottom-nav">
     <a class="bottom-nav-item" href="/"><span class="bottom-nav-icon">🔍</span><span class="bottom-nav-label">Browse</span></a>
-    <a class="bottom-nav-item" href="categories.html"><span class="bottom-nav-icon">🗂️</span><span class="bottom-nav-label">Categories</span></a>
-    <a class="bottom-nav-item" href="messages.html"><span class="bottom-nav-icon">💬</span><span class="bottom-nav-label">Messages</span></a>
-    <a class="bottom-nav-item" href="favorites.html"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
-    <a class="bottom-nav-item active" href="profile.html"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
+    <a class="bottom-nav-item" href="/categories"><span class="bottom-nav-icon">🗂️</span><span class="bottom-nav-label">Categories</span></a>
+    <a class="bottom-nav-item" href="/messages"><span class="bottom-nav-icon">💬</span><span class="bottom-nav-label">Messages</span></a>
+    <a class="bottom-nav-item" href="/favorites"><span class="bottom-nav-icon">❤️</span><span class="bottom-nav-label">Favourites</span></a>
+    <a class="bottom-nav-item active" href="/profile"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profile</span></a>
   </nav>
   <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body>

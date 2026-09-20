@@ -14,7 +14,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Seller Dashboard — Student Marketplace</title>
   <meta name="robots" content="noindex,nofollow"/>
-  <link rel="canonical" href="https://www.mystudentmarketplace.com/seller.html"/>
+  <link rel="canonical" href="https://www.mystudentmarketplace.com/seller"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
     <meta name="description" content="Manage your listings, orders, and seller plan on Student Marketplace."/>
     <meta property="og:title" content="Seller Dashboard — Student Marketplace"/>
@@ -158,7 +158,7 @@
   <!-- MAIN DASHBOARD -->
   <main class="main" style="max-width:700px;display:none" id="main-dashboard">
     <div id="auth-guard" style="display:none">
-      <div class="deposit-note">You need to <a href="login.html" style="color:#7c3aed;font-weight:700">sign in</a> to access your dashboard.</div>
+      <div class="deposit-note">You need to <a href="/login" style="color:#7c3aed;font-weight:700">sign in</a> to access your dashboard.</div>
     </div>
 
     <div id="seller-content" style="display:none">
@@ -201,7 +201,7 @@
           <button class="profile-menu-row" onclick="showTab('my-purchases')">
             <span class="pmr-icon">🛍️</span><span class="pmr-label">My Purchases</span><span class="pmr-chevron">›</span>
           </button>
-          <a class="profile-menu-row" href="messages.html" onclick="window._dismissBadge('messages', parseInt(document.getElementById('msg-badge').textContent)||0)">
+          <a class="profile-menu-row" href="/messages" onclick="window._dismissBadge('messages', parseInt(document.getElementById('msg-badge').textContent)||0)">
             <span class="pmr-icon">💬</span><span class="pmr-label">Messages</span>
             <span class="pmr-badge" id="msg-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
           </a>
@@ -224,14 +224,14 @@
           <button class="profile-menu-row" onclick="showTab('invite')">
             <span class="pmr-icon">🎁</span><span class="pmr-label">Invite Friends</span><span class="pmr-chevron">›</span>
           </button>
-          <a class="profile-menu-row" href="admin.html" id="admin-link" style="display:none">
+          <a class="profile-menu-row" href="/admin" id="admin-link" style="display:none">
             <span class="pmr-icon">🛠️</span><span class="pmr-label">Admin</span><span class="pmr-chevron">›</span>
           </a>
         </div>
 
         <div class="profile-section-label">Support</div>
         <div class="profile-menu-card">
-          <a class="profile-menu-row" href="faq.html"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
+          <a class="profile-menu-row" href="/faq"><span class="pmr-icon">❓</span><span class="pmr-label">Help &amp; How It Works</span><span class="pmr-chevron">›</span></a>
           <a class="profile-menu-row" href="https://wa.me/27694520629" target="_blank" rel="noopener"><span class="pmr-icon">📱</span><span class="pmr-label">WhatsApp Support</span><span class="pmr-chevron">›</span></a>
           <a class="profile-menu-row" href="mailto:studentmarketplacehelp@gmail.com"><span class="pmr-icon">📧</span><span class="pmr-label">Report an Issue</span><span class="pmr-chevron">›</span></a>
           <div class="profile-menu-row" id="install-app-row" style="display:none">
@@ -1303,7 +1303,7 @@
       }
       currentUser = user;
       startPresence(supabase, user.id);
-      document.getElementById('dashboard-logout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='login.html'; };
+      document.getElementById('dashboard-logout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='/login'; };
 
       if (paywallOn) {
         document.getElementById('paywall-screen').style.display = 'block';
@@ -1581,7 +1581,7 @@
     };
     window.paywallSignOut=async()=>{
       await supabase.auth.signOut();
-      window.location.href='login.html';
+      window.location.href='/login';
     };
 
     function resetAddForm(){
@@ -1660,7 +1660,7 @@
     window.signOutEverywhere=async()=>{
       if(!confirm('This signs you out on every device where you\'re logged in, not just this one. Continue?'))return;
       await supabase.auth.signOut({scope:'global'});
-      window.location.href='login.html';
+      window.location.href='/login';
     };
 
         const VAPID_PUBLIC_KEY = 'BDyOj8uuDSlLJDGHXjMZYWWvELnV2jtbQ5YY93jxZ_TNYAcDLgUUaaOntRyt-iOWUvEV-aIZbBIfCrLEQ_fxnD4';
@@ -1833,7 +1833,7 @@
     };
 
     async function loadInviteTab(){
-      const link=location.origin+location.pathname.replace('seller.html','login.html')+'?ref='+currentUser.id;
+      const link=location.origin+'/login?ref='+currentUser.id;
       document.getElementById('invite-link').value=link;
       const {count}=await supabase.from('profiles').select('id',{count:'exact',head:true}).eq('referred_by',currentUser.id);
       document.getElementById('referral-count-text').textContent=(count||0)+' friend'+(count===1?'':'s')+' joined using your link so far';
@@ -1993,8 +1993,8 @@
         '<div class="order-detail">📦 Quantity: <strong>'+o.quantity+'</strong></div>'+
         '<div class="order-detail" style="color:#aaa;font-size:12px;margin-top:4px">🕐 '+new Date(o.created_at).toLocaleDateString('en-ZA')+'</div>'+
         escrowHtml+
-        '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-top:10px" href="messages.html?buyer='+o.buyer_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Buyer</a>'+
-        (o.status==='completed'?'<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>':'')+
+        '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-top:10px" href="/messages?buyer='+o.buyer_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Buyer</a>'+
+        (o.status==='completed'?'<a href="/receipt?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>':'')+
         ratingHtml+
         '</div>';
     }
@@ -2050,7 +2050,7 @@
           }
         }
         const cancelBtn = o.status==='confirmed' ? '<button class="btn-sm btn-delete" style="margin-top:8px" onclick="window._mpCancelOrder(\''+o.id+'\')">Cancel Order</button>' : '';
-        const receiptBtn = o.status==='completed' ? '<a href="receipt.html?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
+        const receiptBtn = o.status==='completed' ? '<a href="/receipt?order='+o.id+'" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#7c3aed;text-decoration:none">🧾 View Receipt</a>' : '';
         const disputeBtn = o.status==='completed' ? '<button class="btn-sm btn-toggle" style="margin-top:8px;margin-left:6px" onclick="window._mpRequestDispute(\''+o.id+'\',\''+escapeHtml(o.listings?.title||'').replace(/'/g,"\\'")+'\')">🚩 Report a problem</button>' : '';
         // Only offer to view the listing when it's still there — o.listing_id
         // can point at a listing that's since been deleted (the column has no
@@ -2062,7 +2062,7 @@
           '<div style="flex:1">'+status+
           '<div class="order-card-title"'+(viewItem?' onclick="'+viewItem+'" style="cursor:pointer"':'')+'>'+escapeHtml(o.listings?.title||'Listing no longer available')+(viewItem?' 👁️':'')+'</div>'+
           '<div class="order-detail">Qty: <strong>'+o.quantity+'</strong></div>'+
-          '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-bottom:8px" href="messages.html?seller='+o.seller_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Seller</a>'+
+          '<a style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;background:#7c3aed;padding:8px 16px;border-radius:50px;text-decoration:none;margin-bottom:8px" href="/messages?seller='+o.seller_id+(o.listing_id?'&listing='+o.listing_id:'')+'">💬 Message Seller</a>'+
           '<div class="order-detail">👤 <strong>'+escapeHtml(o.profiles?.full_name||'Seller')+'</strong></div>'+
           (o.profiles?.residence?'<div class="order-detail">📍 <strong>'+escapeHtml(o.profiles.residence)+'</strong></div>':'')+
           '<div class="order-detail">📱 <strong>'+escapeHtml(o.profiles?.whatsapp||'N/A')+'</strong></div>'+
@@ -2318,7 +2318,7 @@
     window.removeStoreLogo = (e) => { e.stopPropagation(); storeLogoUrl=null; document.getElementById('store-logo-input').value=''; renderStoreLogoSlot(); };
 
     async function loadStoreTab(){
-      document.getElementById('store-public-link').href = 'store.html?seller='+currentUser.id;
+      document.getElementById('store-public-link').href = '/store?seller='+currentUser.id;
 
       const {data:p} = await supabase.from('profiles').select('store_name,store_bio,store_logo_url,store_link').eq('id',currentUser.id).single();
       document.getElementById('s-store-name').value = p?.store_name || '';
