@@ -638,3 +638,6 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
   #modal-overlay .modal-close { position: fixed; top: 10px; right: 20px; width: 40px; height: 40px; font-size: 16px; background: #e8e8ec; }
   #modal-overlay .modal-close:hover { background: #dcdce2; }
 }
+
+/* Recently viewed: one row of six on laptops */
+@media (min-width: 900px) { .recent-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
