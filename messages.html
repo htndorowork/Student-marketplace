@@ -14,7 +14,7 @@
   <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=2"/>
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"/>
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"/>
-  <link rel="stylesheet" href="style.css?v=1789517217"/>
+  <link rel="stylesheet" href="style.css?v=1790000001"/>
   <style>
     .msg-wrap { max-width: 1400px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 320px 1fr; gap: 16px; height: calc(100vh - 90px); height: calc(100dvh - 90px); }
     @media (max-width: 700px) {
@@ -35,17 +35,33 @@
     .thread-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .thread-item { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; display: flex; align-items: center; gap: 10px; }
     .thread-item:hover, .thread-item.active { background: #f5f0fe; }
-    .thread-avatar { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 14px; background: #7c3aed; }
+    .thread-avatar { flex-shrink: 0; display: flex; }
     .thread-info { min-width: 0; flex: 1; }
     .thread-name { font-weight: 800; font-size: 13.5px; color: #111; }
     .thread-preview { font-size: 12px; color: #888; font-weight: 600; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .thread-unread { display: inline-block; background: #7c3aed; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 50px; margin-left: 6px; }
     .chat-panel { background: #fff; border: 2px solid #f0f0f0; border-radius: 16px; display: flex; flex-direction: column; height: 100%; min-height: 0; }
     .chat-header { padding: 12px 16px; border-bottom: 2px solid #f5f5f5; display: flex; align-items: center; gap: 10px; position: relative; }
-    .chat-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 15px; background: #7c3aed; }
+    .chat-avatar { flex-shrink: 0; display: flex; }
     .chat-header-info { flex: 1; min-width: 0; }
     .chat-header-name { font-weight: 800; font-size: 14px; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .chat-header-sub { font-size: 11.5px; color: #aaa; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-search-toggle { font-size: 17px; }
+    .chat-header-status { line-height: 1.3; }
+    .chat-searchbar { display: none; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 2px solid #f5f5f5; background: #faf7ff; }
+    .chat-searchbar.open { display: flex; }
+    .chat-searchbar input { flex: 1; min-width: 0; border: 2px solid #eadffd; border-radius: 50px; padding: 8px 14px; font-family: inherit; font-size: 14px; font-weight: 600; -webkit-appearance: none; background: #fff; }
+    .chat-searchbar input:focus { outline: none; border-color: #7c3aed; }
+    .chat-search-count { font-size: 12px; font-weight: 800; color: #7c3aed; min-width: 56px; text-align: center; white-space: nowrap; }
+    .chat-search-nav { background: none; border: none; cursor: pointer; width: 30px; height: 30px; border-radius: 50%; font-size: 15px; font-weight: 900; color: #555; font-family: inherit; flex-shrink: 0; }
+    .chat-search-nav:hover:not(:disabled) { background: #eadffd; }
+    .chat-search-nav:disabled { opacity: .35; cursor: default; }
+    mark.hit { background: #fde68a; color: #111; border-radius: 3px; padding: 0 1px; }
+    mark.hit.current { background: #f97316; color: #fff; }
+    .thread-search-result .tsr-row { display: flex; align-items: center; gap: 10px; }
+    .thread-search-result .tsr-snippet { font-size: 12px; font-weight: 600; color: #777; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .thread-search-result .tsr-snippet mark.hit { padding: 0 1px; }
+    .thread-search-result .tsr-count { font-size: 11px; color: #aaa; font-weight: 700; }
     .chat-menu-btn { background: none; border: none; cursor: pointer; font-size: 20px; font-weight: 900; color: #888; padding: 4px 8px; font-family: inherit; line-height: 1; }
     .chat-options-dropdown { display: none; position: absolute; top: 54px; right: 10px; background: #fff; border: 2px solid #f0f0f0; border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.12); min-width: 210px; z-index: 20; overflow: hidden; }
     .chat-options-dropdown.open { display: block; }
@@ -79,7 +95,7 @@
   <div class="msg-wrap" id="msg-wrap">
     <div class="thread-list" id="thread-list">
       <div class="thread-search-box">
-        <input type="text" id="user-search" placeholder="🔍 Search your conversations..." autocomplete="off"/>
+        <input type="text" id="user-search" placeholder="🔍 Search people and messages..." autocomplete="off"/>
       </div>
       <div class="thread-search-results" id="user-search-results" style="display:none"></div>
       <div class="thread-scroll" id="thread-scroll"><p class="loading-msg">Loading conversations... ⏳</p></div>
@@ -90,14 +106,23 @@
         <div class="chat-avatar" id="chat-avatar" style="display:none"></div>
         <div class="chat-header-info">
           <div class="chat-header-name" id="chat-header-text">Select a conversation</div>
+          <div class="chat-header-status"><span class="pstatus" id="chat-header-status" data-uid=""></span></div>
           <div class="chat-header-sub" id="chat-header-sub" style="display:none"></div>
         </div>
+        <button class="chat-menu-btn chat-search-toggle" id="chat-search-btn" style="display:none" onclick="toggleChatSearch()" aria-label="Search in this conversation" title="Search in this conversation">🔍</button>
         <button class="chat-menu-btn" id="chat-menu-btn" style="display:none" onclick="toggleChatOptions()">⋮</button>
         <div class="chat-options-dropdown" id="chat-options-dropdown">
           <button class="chat-option-item" onclick="viewSellerProfile()">👤 View Seller Profile</button>
           <button class="chat-option-item danger" id="chat-option-block" onclick="toggleBlockThread()">🚫 Block User</button>
           <button class="chat-option-item danger" onclick="openReportUserModal()">🚩 Report User</button>
         </div>
+      </div>
+      <div class="chat-searchbar" id="chat-searchbar">
+        <input type="text" id="chat-search-input" placeholder="Search in this conversation..." autocomplete="off" aria-label="Search in this conversation"/>
+        <span class="chat-search-count" id="chat-search-count"></span>
+        <button class="chat-search-nav" id="chat-search-prev" onclick="stepChatSearch(-1)" aria-label="Previous (older) match" title="Older match (Enter)">↑</button>
+        <button class="chat-search-nav" id="chat-search-next" onclick="stepChatSearch(1)" aria-label="Next (newer) match" title="Newer match (Shift+Enter)">↓</button>
+        <button class="chat-search-nav" onclick="closeChatSearch()" aria-label="Close search" title="Close (Esc)">✕</button>
       </div>
       <div class="chat-messages" id="chat-messages"><p class="loading-msg" style="margin:auto">Pick a conversation on the left, or message a seller from a listing 💬</p></div>
       <p id="blocked-notice" style="display:none;text-align:center;font-size:12.5px;color:#aaa;font-weight:700;padding:10px">🚫 You've blocked this user — unblock them to send a message.</p>
@@ -135,22 +160,23 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { startPresence, fetchPresence, applyPresence } from './presence.js?v=1';
+    import { avatarHTML, pickAvatar } from './avatar.js?v=1';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
     let currentUser=null, activeThread=null, pollTimer=null, blockedIds=new Set();
 
-    const AVATAR_COLORS = ['#7c3aed','#2563eb','#059669','#d97706','#dc2626','#db2777','#0891b2','#65a30d'];
-    function avatarInitial(name){ return ((name||'?').trim().charAt(0)||'?').toUpperCase(); }
-    function avatarColor(name){
-      let hash=0;
-      const s=name||'U';
-      for(let i=0;i<s.length;i++) hash = s.charCodeAt(i) + ((hash<<5)-hash);
-      return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-    }
+    // Profile pictures and online status of the people I'm chatting with
+    const avatars = {};                 // userId -> picture url
+    const presence = {};                // userId -> seconds since last seen
+    const presenceLoaded = new Set();   // ids we've asked the server about (so "Offline" isn't shown before we know)
+    const threadKey = t => t.buyer_id+'|'+t.seller_id+'|'+(t.listing_id||'none');
+    const otherId = t => t.buyer_id===user.id ? t.seller_id : t.buyer_id;
 
     const {data:{user}} = await supabase.auth.getUser();
     if(!user){ window.location.href='login.html'; }
     currentUser=user;
+    if(user) startPresence(supabase,user.id);
 
     async function loadBlockedUsers(){
       const {data} = await supabase.from('blocked_users').select('blocked_id').eq('blocker_id',user.id);
@@ -173,8 +199,8 @@
       const counterpartIds = [...new Set(threads.map(t=>t.buyer_id===user.id?t.seller_id:t.buyer_id))];
       let names={};
       if(counterpartIds.length){
-        const {data:profs} = await supabase.from('profiles').select('id,full_name,store_name').in('id',counterpartIds);
-        (profs||[]).forEach(p=>{names[p.id]=p.store_name||p.full_name||'User';});
+        const {data:profs} = await supabase.from('profiles').select('id,full_name,store_name,avatar_url,store_logo_url').in('id',counterpartIds);
+        (profs||[]).forEach(p=>{names[p.id]=p.store_name||p.full_name||'User'; avatars[p.id]=pickAvatar(p);});
       }
 
       const list = document.getElementById('thread-scroll');
@@ -184,39 +210,95 @@
         const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
         const unread = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).length;
         return '<div class="thread-item" data-idx="'+i+'" onclick="openThread('+i+')">'+
-          '<div class="thread-avatar" style="background:'+avatarColor(names[counterpartId])+'">'+avatarInitial(names[counterpartId])+'</div>'+
+          '<div class="thread-avatar">'+avatarHTML({url:avatars[counterpartId],name:names[counterpartId]||'User',size:38,uid:counterpartId,dot:true})+'</div>'+
           '<div class="thread-info"><div class="thread-name">'+escapeHtml(names[counterpartId]||'User')+(unread?'<span class="thread-unread">'+unread+'</span>':'')+'</div></div>'+
           '</div>';
       }).join('');
       window._threads = threads;
       window._names = names;
+      // keep the open conversation highlighted when the list is rebuilt (new message, etc.)
+      if(activeThread){
+        const ai = threads.findIndex(t=>threadKey(t)===threadKey(activeThread));
+        if(ai>-1) list.querySelector('.thread-item[data-idx="'+ai+'"]')?.classList.add('active');
+      }
+      // paint dots from what we already know; only ask the server about people we haven't looked up yet
+      paintPresence();
+      const fresh = counterpartIds.filter(id=>!presenceLoaded.has(id));
+      if(fresh.length) refreshPresence(fresh);
     }
 
-    window.openThreadFromSearch = (idx) => {
+    // ----- online / offline status -----
+    async function refreshPresence(ids){
+      if(!ids){
+        ids = new Set((window._threads||[]).map(otherId));
+        if(activeThread) ids.add(otherId(activeThread));
+        ids = [...ids];
+      }
+      if(!ids.length) return;
+      const m = await fetchPresence(supabase, ids);
+      ids.forEach(id=>{ presenceLoaded.add(id); if(id in m) presence[id]=m[id]; else delete presence[id]; });
+      paintPresence();
+    }
+    function paintPresence(){
+      const root = document.getElementById('msg-wrap');
+      applyPresence(presence, root);
+      // don't claim "Offline" for someone we haven't looked up yet
+      root.querySelectorAll('.pstatus[data-uid]').forEach(el=>{
+        if(!presenceLoaded.has(el.dataset.uid)){ el.textContent=''; el.classList.remove('on'); }
+      });
+    }
+    setInterval(()=>{ if(document.visibilityState==='visible') refreshPresence(); }, 45000);
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refreshPresence(); });
+
+    // ----- search helpers -----
+    function highlightHTML(text, q){
+      if(!q) return escapeHtml(text);
+      const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+      return String(text).split(re).map((part,i)=> i%2 ? '<mark class="hit">'+escapeHtml(part)+'</mark>' : escapeHtml(part)).join('');
+    }
+
+    window.openThreadFromSearch = (idx, withQuery) => {
+      const box = document.getElementById('user-search');
+      const q = withQuery ? box.value.trim() : '';
       document.getElementById('user-search-results').style.display='none';
-      document.getElementById('user-search').value='';
-      window.openThread(idx);
+      box.value='';
+      window.openThread(idx, q);
     };
 
+    // Sidebar search: finds people by name AND text inside any conversation.
+    // Clicking a message hit opens that chat with the in-chat search pre-filled.
     document.getElementById('user-search').addEventListener('input', (e) => {
-      const q = e.target.value.trim().toLowerCase();
+      const raw = e.target.value.trim();
+      const q = raw.toLowerCase();
       const results = document.getElementById('user-search-results');
       if (!q) { results.style.display='none'; results.innerHTML=''; return; }
       const threads = window._threads||[];
       const names = window._names||{};
-      const matches = threads
-        .map((t,i)=>({idx:i, counterpartId: t.buyer_id===user.id?t.seller_id:t.buyer_id}))
-        .filter(x=>(names[x.counterpartId]||'User').toLowerCase().includes(q));
+      const matches = threads.map((t,i)=>{
+        const cid = otherId(t);
+        const name = names[cid]||'User';
+        const msgs = t.messages.filter(m=>m.content && m.content.toLowerCase().includes(q));
+        return {idx:i, cid, name, msgs, nameMatch:name.toLowerCase().includes(q)};
+      }).filter(x=>x.nameMatch||x.msgs.length).slice(0,30);
       if (!matches.length) {
-        results.innerHTML = '<div class="thread-search-result" style="cursor:default;color:#aaa">No conversations match</div>';
+        results.innerHTML = '<div class="thread-search-result" style="cursor:default;color:#aaa">No people or messages match</div>';
         results.style.display='block';
         return;
       }
       results.innerHTML = matches.map(x=>{
-        const name = (names[x.counterpartId]||'User').replace(/</g,'&lt;');
-        return '<div class="thread-search-result" onclick="openThreadFromSearch('+x.idx+')">'+name+'</div>';
+        let snippet = '';
+        if (x.msgs.length) {
+          const text = x.msgs[0].content; // newest matching message
+          const at = text.toLowerCase().indexOf(q);
+          const from = Math.max(0, at-25);
+          const part = (from>0?'…':'')+text.slice(from, from+90)+(from+90<text.length?'…':'');
+          snippet = '<div class="tsr-snippet">'+highlightHTML(part, raw)+'</div><div class="tsr-count">'+x.msgs.length+' message'+(x.msgs.length===1?'':'s')+'</div>';
+        }
+        return '<div class="thread-search-result" onclick="openThreadFromSearch('+x.idx+','+(x.msgs.length?'true':'false')+')">'+
+          '<div class="tsr-row">'+avatarHTML({url:avatars[x.cid],name:x.name,size:30,uid:x.cid,dot:true})+'<span>'+escapeHtml(x.name)+'</span></div>'+snippet+'</div>';
       }).join('');
       results.style.display='block';
+      paintPresence();
     });
     document.addEventListener('click',(e)=>{
       const box = document.querySelector('.thread-search-box');
@@ -226,7 +308,7 @@
       }
     });
 
-    window.openThread = async (idx) => {
+    window.openThread = async (idx, searchQ) => {
       const t = window._threads[idx];
       activeThread = t;
       document.getElementById('msg-wrap').classList.add('chat-open');
@@ -234,22 +316,27 @@
       document.querySelector('.thread-item[data-idx="'+idx+'"]')?.classList.add('active');
       const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
       const name = window._names[counterpartId]||'User';
-      setChatHeader(name, t.listingTitle);
+      setChatHeader(name, t.listingTitle, counterpartId);
       updateBlockUI(counterpartId);
+      closeChatSearch(true);
       renderMessages();
+      if(searchQ) openChatSearch(searchQ);
+      if(!presenceLoaded.has(counterpartId)) refreshPresence([counterpartId]);
       // Mark unread as read
       const unreadIds = t.messages.filter(m=>m.sender_id!==user.id && !m.is_read).map(m=>m.id);
       if(unreadIds.length) await supabase.from('messages').update({is_read:true}).in('id',unreadIds);
     };
 
-    function setChatHeader(name, sub){
+    function setChatHeader(name, sub, counterpartId){
       document.getElementById('chat-header-text').textContent = name;
       const subEl = document.getElementById('chat-header-sub');
       if(sub){ subEl.textContent = sub; subEl.style.display='block'; } else { subEl.style.display='none'; }
       const avatar = document.getElementById('chat-avatar');
-      avatar.textContent = avatarInitial(name);
-      avatar.style.background = avatarColor(name);
+      avatar.innerHTML = avatarHTML({url:avatars[counterpartId],name,size:40,uid:counterpartId,dot:true});
       avatar.style.display = 'flex';
+      document.getElementById('chat-header-status').dataset.uid = counterpartId||'';
+      paintPresence();
+      document.getElementById('chat-search-btn').style.display = 'inline-block';
       document.getElementById('chat-menu-btn').style.display = 'inline-block';
       document.getElementById('chat-options-dropdown').classList.remove('open');
     }
@@ -321,6 +408,7 @@
     };
 
     window.closeThread = () => {
+      window.closeChatSearch(true);
       document.getElementById('msg-wrap').classList.remove('chat-open');
     };
 
@@ -329,18 +417,77 @@
       div.textContent = s;
       return div.innerHTML;
     }
-    function renderMessages(){
+    // ----- search inside the open conversation -----
+    const cs = { open:false, q:'', hits:[], cur:-1 };
+    let csTimer = null;
+
+    function updateSearchCount(){
+      const c = document.getElementById('chat-search-count');
+      const n = cs.hits.length;
+      c.textContent = !cs.q ? '' : (n ? (cs.cur+1)+' of '+n : 'No results');
+      document.getElementById('chat-search-prev').disabled = n<2;
+      document.getElementById('chat-search-next').disabled = n<2;
+    }
+    function markCurrentHit(scroll){
+      cs.hits.forEach((el,i)=>el.classList.toggle('current', i===cs.cur));
+      if(scroll && cs.hits[cs.cur]) cs.hits[cs.cur].scrollIntoView({block:'center'});
+      updateSearchCount();
+    }
+    function renderMessages(opts){
+      opts = opts||{};
       const box = document.getElementById('chat-messages');
+      const prevScroll = box.scrollTop;
+      const q = cs.open ? cs.q : '';
       const sorted = [...activeThread.messages].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
       box.innerHTML = sorted.map(m=>{
         const isMe = m.sender_id===user.id;
         const time = new Date(m.created_at).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
         const ticks = isMe ? '<span class="bubble-tick">'+(m.is_read?'✓✓':'✓')+'</span>' : '';
-        return '<div class="bubble '+(isMe?'me':'them')+'">'+escapeHtml(m.content)+
+        return '<div class="bubble '+(isMe?'me':'them')+'">'+highlightHTML(m.content, q)+
           '<div class="bubble-time">'+time+ticks+'</div></div>';
       }).join('');
-      box.scrollTop = box.scrollHeight;
+      cs.hits = q ? [...box.querySelectorAll('mark.hit')] : [];
+      if(!q){ box.scrollTop = box.scrollHeight; updateSearchCount(); return; }
+      if(opts.fresh) cs.cur = cs.hits.length-1;            // a new query starts at the newest match
+      else cs.cur = Math.min(cs.cur, cs.hits.length-1);     // a live re-render keeps your place
+      if(cs.hits.length && cs.cur<0) cs.cur = 0;
+      if(opts.fresh) markCurrentHit(true);
+      else { box.scrollTop = prevScroll; markCurrentHit(false); }
     }
+    function runChatSearch(){
+      cs.q = document.getElementById('chat-search-input').value.trim();
+      if(activeThread) renderMessages({fresh:true});
+    }
+    function openChatSearch(prefill){
+      if(!activeThread) return;
+      cs.open = true;
+      document.getElementById('chat-searchbar').classList.add('open');
+      const input = document.getElementById('chat-search-input');
+      if(prefill!==undefined){ input.value = prefill; }
+      input.focus();
+      runChatSearch();
+    }
+    window.closeChatSearch = (silent) => {
+      if(!cs.open && !cs.q) return;
+      cs.open = false; cs.q = ''; cs.hits = []; cs.cur = -1;
+      document.getElementById('chat-searchbar').classList.remove('open');
+      document.getElementById('chat-search-input').value = '';
+      updateSearchCount();
+      if(!silent && activeThread) renderMessages();
+    };
+    window.toggleChatSearch = () => { cs.open ? window.closeChatSearch() : openChatSearch(); };
+    window.stepChatSearch = (dir) => {
+      if(!cs.hits.length) return;
+      cs.cur = (cs.cur+dir+cs.hits.length) % cs.hits.length;
+      markCurrentHit(true);
+    };
+    document.getElementById('chat-search-input').addEventListener('input', ()=>{
+      clearTimeout(csTimer); csTimer = setTimeout(runChatSearch, 120);
+    });
+    document.getElementById('chat-search-input').addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){ e.preventDefault(); clearTimeout(csTimer); if(cs.q!==e.target.value.trim()) runChatSearch(); else window.stepChatSearch(e.shiftKey?1:-1); }
+      else if(e.key==='Escape'){ window.closeChatSearch(); }
+    });
 
     let isSending = false;
     window.sendMessage = async () => {
@@ -387,16 +534,20 @@
     const toBuyer = params.get('buyer');
     const listingId = params.get('listing');
     if (toSeller && toSeller!==user.id) {
-      const {data:sellerProfile} = await supabase.from('profiles').select('full_name,store_name').eq('id',toSeller).single();
+      const {data:sellerProfile} = await supabase.from('profiles').select('full_name,store_name,avatar_url,store_logo_url').eq('id',toSeller).single();
+      avatars[toSeller] = pickAvatar(sellerProfile);
       activeThread = { buyer_id:user.id, seller_id:toSeller, listing_id:listingId||null, messages:[] };
       document.getElementById('msg-wrap').classList.add('chat-open');
-      setChatHeader(sellerProfile?.store_name||sellerProfile?.full_name||'Seller', null);
+      setChatHeader(sellerProfile?.store_name||sellerProfile?.full_name||'Seller', null, toSeller);
+      refreshPresence([toSeller]);
       document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
     } else if (toBuyer && toBuyer!==user.id) {
-      const {data:buyerProfile} = await supabase.from('profiles').select('full_name').eq('id',toBuyer).single();
+      const {data:buyerProfile} = await supabase.from('profiles').select('full_name,avatar_url,store_logo_url').eq('id',toBuyer).single();
+      avatars[toBuyer] = pickAvatar(buyerProfile);
       activeThread = { buyer_id:toBuyer, seller_id:user.id, listing_id:listingId||null, messages:[] };
       document.getElementById('msg-wrap').classList.add('chat-open');
-      setChatHeader(buyerProfile?.full_name||'Buyer', null);
+      setChatHeader(buyerProfile?.full_name||'Buyer', null, toBuyer);
+      refreshPresence([toBuyer]);
       document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
     }
 

@@ -28,7 +28,7 @@
   <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=2"/>
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"/>
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"/>
-  <link rel="stylesheet" href="style.css?v=1789517217"/>
+  <link rel="stylesheet" href="style.css?v=1790000001"/>
   <style>
     .dash-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
     .dash-tab{border:2px solid #f0f0f0;background:#fff;padding:10px 20px;border-radius:50px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#888}
@@ -463,6 +463,21 @@
         <div class="form-card">
           <h3 style="font-size:18px;font-weight:800;margin-bottom:4px">Your Profile 👤</h3>
           <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:16px">This shows on your listings so buyers can find you.</p>
+          <div class="form-group">
+            <label>Profile Picture</label>
+            <div class="avatar-upload-row">
+              <div class="avatar-upload-preview" id="avatar-preview"></div>
+              <div>
+                <div class="avatar-upload-actions">
+                  <button type="button" class="btn-sm btn-toggle" id="btn-avatar-change">📷 Upload photo</button>
+                  <button type="button" class="btn-sm btn-delete" id="btn-avatar-remove" style="display:none">Remove</button>
+                </div>
+                <div class="avatar-hint">Buyers see this on your listings and in chat. Saved as soon as you upload.</div>
+                <div class="form-error" id="avatar-err" style="min-height:0"></div>
+              </div>
+            </div>
+            <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/webp" style="display:none"/>
+          </div>
           <div class="form-group"><label>Full Name *</label><input type="text" id="p-name" placeholder="Thabo Mokoena"/></div>
           <div class="form-group"><label>WhatsApp *</label><input type="text" id="p-whatsapp" placeholder="0812345678"/></div>
           <div class="form-group"><label>Residence</label><input type="text" id="p-residence" placeholder="e.g. Heroes Residence, NWU Potchefstroom"/></div>
@@ -557,6 +572,8 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { startPresence } from './presence.js?v=1';
+    import { bindAvatarUploader } from './avatar.js?v=1';
     const supabase = createClient(
       'https://kqsqtasykdtpdrkqyaxp.supabase.co',
       'sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ'
@@ -570,7 +587,13 @@
       return /^0[6-8][0-9]{8}$/.test(v) || /^\+?27[6-8][0-9]{8}$/.test(v);
     }
 
-    let currentUser = null;
+    let currentUser = null, avatarUI = null, sellerAvatarUrl = null;
+    // Header circle: profile picture if set, otherwise the initial
+    function paintSellerAvatar(url, name){
+      const el = document.getElementById('seller-avatar');
+      el.textContent = (name||'?').trim().charAt(0).toUpperCase()||'🏪';
+      if (url) { const img=document.createElement('img'); img.alt=''; img.src=url; img.onerror=()=>img.remove(); el.appendChild(img); }
+    }
     const imgs = {1:null,2:null,3:null,4:null,5:null,6:null};
 
     const TB_TAXONOMY={
@@ -1279,6 +1302,7 @@
         return;
       }
       currentUser = user;
+      startPresence(supabase, user.id);
       document.getElementById('dashboard-logout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='login.html'; };
 
       if (paywallOn) {
@@ -1314,7 +1338,9 @@
 
       if (p) {
         document.getElementById('seller-header-name').textContent = p.full_name||'Seller';
-        document.getElementById('seller-avatar').textContent = (p.full_name||p.store_name||'?').trim().charAt(0).toUpperCase()||'🏪';
+        sellerAvatarUrl = p.avatar_url || null;
+        paintSellerAvatar(sellerAvatarUrl, p.full_name||p.store_name);
+        avatarUI = bindAvatarUploader(supabase, user.id, {url:sellerAvatarUrl, name:p.full_name||p.store_name, onChange:(u)=>{ sellerAvatarUrl=u; paintSellerAvatar(u, document.getElementById('p-name').value||p.full_name||p.store_name); }});
         document.getElementById('seller-header-meta').textContent = [p.store_name,'Seller'].filter(Boolean).join(' · ');
         document.getElementById('p-name').value = p.full_name||'';
         document.getElementById('p-whatsapp').value = p.whatsapp||'';
@@ -1916,7 +1942,8 @@
       const {error} = await supabase.from('profiles').update(updatePayload).eq('id',currentUser.id);
       if (error) { err.textContent='❌ '+error.message; return; }
       document.getElementById('seller-header-name').textContent=name;
-      document.getElementById('seller-avatar').textContent=name.trim().charAt(0).toUpperCase()||'🏪';
+      paintSellerAvatar(sellerAvatarUrl, name);
+      if (avatarUI) avatarUI.setName(name);
       err.style.color='#2e7d32'; err.textContent='✅ Profile saved!';
       setTimeout(()=>err.textContent='',3000);
     }

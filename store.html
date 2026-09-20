@@ -22,7 +22,7 @@
   <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=2"/>
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"/>
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"/>
-  <link rel="stylesheet" href="style.css?v=1789517217"/>
+  <link rel="stylesheet" href="style.css?v=1790000001"/>
   <style>
     .store-header { background:#fff; border-bottom:2px solid #f0f0f0; padding:32px 20px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
     .store-logo { width:88px; height:88px; border-radius:50%; background:#f4f4f5; display:flex; align-items:center; justify-content:center; font-size:36px; overflow:hidden; flex-shrink:0; border:3px solid #f0f0f0; }
@@ -121,6 +121,7 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { startPresence } from './presence.js?v=1';
     const supabase = createClient(
       'https://kqsqtasykdtpdrkqyaxp.supabase.co',
       'sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ'
@@ -133,6 +134,7 @@
     const CAT_COLOR={Textbooks:{bg:'#fff8e1'},Clothing:{bg:'#fce4ec'},Electronics:{bg:'#e8eaf6'},Food:{bg:'#e8f5e9'},Beauty:{bg:'#fce4ec'},Tutoring:{bg:'#e1f5ee'},Accommodation:{bg:'#fff3e0'},Transport:{bg:'#e0f2f1'},Services:{bg:'#ede7f6'},Stationary:{bg:'#fffde7'},Appliances:{bg:'#eceff1'},Furniture:{bg:'#efebe9'},Utensils:{bg:'#fff3e0'},Jewellery:{bg:'#fdf0e6'},Bags:{bg:'#ede7f6'},Toys:{bg:'#e3f2fd'},Pets:{bg:'#f1f8e9'},Tools:{bg:'#eceff1'},Snacks:{bg:'#fff8e1'},Sports:{bg:'#e8f5e9'},Books:{bg:'#efebe9'},Music:{bg:'#f3e5f5'},Cameras:{bg:'#eceff1'},Events:{bg:'#fce4ec'},Plants:{bg:'#e8f5e9'},Decor:{bg:'#fff3e0'},Baby:{bg:'#e1f5fe'},Data:{bg:'#e8eaf6'},Health:{bg:'#ffebee'},Career:{bg:'#e0f2f1'}};
 
     const {data:{user}}=await supabase.auth.getUser();
+    if(user) startPresence(supabase,user.id);
     if(user){
       document.getElementById('nav-auth').textContent='Sign out';
       document.getElementById('nav-auth').href='#';

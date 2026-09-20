@@ -28,7 +28,7 @@
   <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=2"/>
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"/>
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"/>
-  <link rel="stylesheet" href="style.css?v=1789517217"/>
+  <link rel="stylesheet" href="style.css?v=1790000001"/>
 </head>
 <body>
   <nav class="nav">
@@ -133,6 +133,21 @@
         <div id="tab-edit" style="display:none">
           <div class="form-card">
             <h3 style="font-size:18px;font-weight:800;margin-bottom:16px">Edit Profile</h3>
+            <div class="form-group">
+              <label>Profile Picture</label>
+              <div class="avatar-upload-row">
+                <div class="avatar-upload-preview" id="avatar-preview"></div>
+                <div>
+                  <div class="avatar-upload-actions">
+                    <button type="button" class="btn-sm btn-toggle" id="btn-avatar-change">📷 Upload photo</button>
+                    <button type="button" class="btn-sm btn-delete" id="btn-avatar-remove" style="display:none">Remove</button>
+                  </div>
+                  <div class="avatar-hint">JPG, PNG or WEBP. Saved as soon as you upload.</div>
+                  <div class="form-error" id="avatar-err" style="min-height:0"></div>
+                </div>
+              </div>
+              <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/webp" style="display:none"/>
+            </div>
             <div class="form-group"><label>Full Name *</label><input type="text" id="p-name" placeholder="Your name"/></div>
             <div class="form-group"><label>WhatsApp *</label><input type="text" id="p-wa" placeholder="0812345678"/></div>
             <div class="form-group"><label>Residence</label><input type="text" id="p-res" placeholder="e.g. Heroes Residence"/></div>
@@ -255,8 +270,17 @@
   </script>
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { startPresence } from './presence.js?v=1';
+    import { bindAvatarUploader } from './avatar.js?v=1';
     const supabase=createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
-    let currentUser=null;
+    let currentUser=null, avatarUI=null, avatarUrl=null;
+    // Shows the profile picture in the header circle, or the name's initial if there isn't one
+    function paintHeaderAvatar(url,name){
+      const el=document.getElementById('profile-avatar');
+      const initial=(name||'?').trim().charAt(0).toUpperCase()||'🙂';
+      el.textContent=initial;
+      if(url){const img=document.createElement('img');img.alt='';img.src=url;img.onerror=()=>img.remove();el.appendChild(img);}
+    }
     function escapeHtml(s){
       return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
@@ -269,6 +293,7 @@
       const {data:{user}}=await supabase.auth.getUser();
       if(!user){document.getElementById('auth-guard').style.display='block';return;}
       currentUser=user;
+      startPresence(supabase,user.id);
       supabase.from('messages').select('id',{count:'exact',head:true}).or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).neq('sender_id',user.id).eq('is_read',false).then(({count})=>{
         if(count>0){const b=document.getElementById('msg-badge');b.textContent=count;b.style.display='inline-flex';}
       });
@@ -288,7 +313,9 @@
       if(p){
         const displayName=p.full_name||'My Profile';
         document.getElementById('profile-name').textContent=displayName;
-        document.getElementById('profile-avatar').textContent=(p.full_name||'?').trim().charAt(0).toUpperCase()||'🙂';
+        avatarUrl=p.avatar_url||null;
+        paintHeaderAvatar(avatarUrl,p.full_name);
+        avatarUI=bindAvatarUploader(supabase,user.id,{url:avatarUrl,name:p.full_name,onChange:(u)=>{avatarUrl=u;paintHeaderAvatar(u,document.getElementById('p-name').value||p.full_name);}});
         document.getElementById('profile-meta').textContent=[p.residence,user.email].filter(Boolean).join(' · ')||user.email;
         document.getElementById('p-name').value=p.full_name||'';
         document.getElementById('p-wa').value=p.whatsapp||'';
@@ -323,7 +350,8 @@
       const {error}=await supabase.from('profiles').update({full_name:name,whatsapp:wa,residence:res,role}).eq('id',currentUser.id);
       if(error){errEl.textContent='❌ '+error.message;return;}
       document.getElementById('profile-name').textContent=name;
-      document.getElementById('profile-avatar').textContent=name.trim().charAt(0).toUpperCase()||'🙂';
+      paintHeaderAvatar(avatarUrl,name);
+      if(avatarUI)avatarUI.setName(name);
       if(role==='seller'){
         errEl.style.color='#2e7d32';errEl.textContent='✅ Saved! Taking you to your seller dashboard...';
         setTimeout(()=>window.location.href='seller.html',1200);

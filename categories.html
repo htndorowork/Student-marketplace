@@ -22,7 +22,7 @@
   <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=2"/>
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"/>
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"/>
-  <link rel="stylesheet" href="style.css?v=1789517217"/>
+  <link rel="stylesheet" href="style.css?v=1790000001"/>
   <style>
     .cat-page-wrap { max-width: 640px; margin: 0 auto; padding: 24px 20px 20px; }
     .cat-page-title { font-size: 22px; font-weight: 900; color: #111; margin-bottom: 14px; }
@@ -180,9 +180,11 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { startPresence } from './presence.js?v=1';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
     const {data:{user}}=await supabase.auth.getUser();
+    if(user) startPresence(supabase,user.id);
     if(user){
       document.getElementById('nav-auth').textContent='Sign out';
       document.getElementById('nav-auth').href='#';

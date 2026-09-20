@@ -31,7 +31,7 @@
   <link rel="icon" type="image/x-icon" href="icons/favicon.ico?v=2"/>
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"/>
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"/>
-  <link rel="stylesheet" href="style.css?v=1789517217"/>
+  <link rel="stylesheet" href="style.css?v=1790000001"/>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -368,6 +368,8 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { startPresence, fetchPresence, applyPresence } from './presence.js?v=1';
+    import { avatarHTML, pickAvatar } from './avatar.js?v=1';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
     function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true; }
@@ -778,6 +780,7 @@
     currentUser=user;
     let myFavorites=new Set();
     if(user){
+      startPresence(supabase,user.id);
       document.getElementById('nav-auth').textContent='Sign out';
       document.getElementById('nav-auth').href='#';
       document.getElementById('nav-auth').onclick=async()=>{await supabase.auth.signOut();location.reload();};
@@ -814,7 +817,7 @@
     let currentFilters={cat:'All',flatSubcat:null,tbYear:null,tbSubject:null,stationaryGroup:null,q:'',minP:null,maxP:null,myCampusOnly:false,sortMode:'random'};
 
     function buildListingsQuery(f){
-      let query=supabase.from('listings').select('*,profiles(full_name,residence,university,deliver_all_universities,deliver_all_tvet,deliver_all_private,seller_institutions,is_blocked,subscription_paid_until,is_admin)').eq('is_available',true).eq('is_draft',false);
+      let query=supabase.from('listings').select('*,profiles(full_name,avatar_url,store_logo_url,residence,university,deliver_all_universities,deliver_all_tvet,deliver_all_private,seller_institutions,is_blocked,subscription_paid_until,is_admin)').eq('is_available',true).eq('is_draft',false);
 
       let postFilter=null; // applied client-side, but only ever to an already DB-narrowed page — never the whole table
 
@@ -1150,7 +1153,7 @@
       const flatVal2=flatConf2?l[flatConf2.field]:null;
       const deliveryTxt = describeDeliveryScope(l.profiles);
       const extraTags = (l.condition?'<div><strong>🏷️ Condition:</strong> '+escapeHtml(l.condition)+'</div>':'')+(l.is_negotiable?'<div><strong>💬 Price is negotiable</strong></div>':'')+(l.delivery_fee>0?'<div><strong>🚚 Delivery fee:</strong> R'+l.delivery_fee+'</div>':'');
-      document.getElementById('modal-seller-info').innerHTML='<div><strong>👤 Seller:</strong> '+escapeHtml(l.profiles?.full_name||'Unknown')+(verifiedSellers.has(l.seller_id)?' <span class="verified-badge">✅ Verified</span>':'')+'</div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+escapeHtml(l.profiles.residence)+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+escapeHtml(l.textbook_year)+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+escapeHtml(l.textbook_subject)+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+escapeHtml(flatVal2)+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+escapeHtml(deliveryTxt)+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="listing-reviews.html?listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
+      document.getElementById('modal-seller-info').innerHTML='<div class="seller-head">'+avatarHTML({url:pickAvatar(l.profiles),name:l.profiles?.full_name||'Seller',size:46,uid:l.seller_id,dot:true})+'<div><div class="seller-head-label">Seller</div><div class="seller-head-name">'+escapeHtml(l.profiles?.full_name||'Unknown')+(verifiedSellers.has(l.seller_id)?' <span class="verified-badge">✅ Verified</span>':'')+'</div><div class="pstatus" data-uid="'+l.seller_id+'"></div></div></div>'+(l.profiles?.residence?'<div><strong>📍 Residence:</strong> '+escapeHtml(l.profiles.residence)+'</div>':'')+((l.category==='Textbooks'&&l.textbook_year)?'<div><strong>🎓 Year:</strong> '+escapeHtml(l.textbook_year)+'</div>'+(l.textbook_subject?'<div><strong>📖 Subject:</strong> '+escapeHtml(l.textbook_subject)+'</div>':''):'')+(flatVal2?'<div><strong>'+flatConf2.emoji+' Type:</strong> '+escapeHtml(flatVal2)+'</div>':'')+extraTags+(deliveryTxt?'<div><strong>🚚 Delivers to:</strong> '+escapeHtml(deliveryTxt)+'</div>':'')+'<div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><a href="store.html?seller='+l.seller_id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">🏪 Visit store</a><a href="listing-reviews.html?listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">⭐ Reviews</a><a href="messages.html?seller='+l.seller_id+'&listing='+l.id+'" style="font-weight:800;color:#7c3aed;text-decoration:none">💬 Message seller</a><a href="#" onclick="event.preventDefault();shareListing()" style="font-weight:800;color:#7c3aed;text-decoration:none">🔗 Share</a></div>';
       document.getElementById('modal-qty').textContent=1;
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
@@ -1167,6 +1170,13 @@
       }
       document.getElementById('modal-overlay').style.display='flex';
       document.body.style.overflow='hidden';
+
+      // Seller online/offline status: look it up now, then keep it fresh while the listing is open
+      clearInterval(window._modalPresenceTimer);
+      const modalRoot=document.getElementById('modal-seller-info');
+      const refreshSellerPresence=()=>fetchPresence(supabase,[l.seller_id]).then(m=>applyPresence(m,modalRoot));
+      refreshSellerPresence();
+      window._modalPresenceTimer=setInterval(refreshSellerPresence,60000);
 
       // Track recently viewed
       let recent=JSON.parse(localStorage.getItem('sm_recently_viewed')||'[]');
@@ -1589,7 +1599,7 @@
       return {done:false, redirected:true};
     };
 
-    window.closeModal=()=>{document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
+    window.closeModal=()=>{clearInterval(window._modalPresenceTimer);document.getElementById('modal-overlay').style.display='none';document.body.style.overflow='';};
     window.selectCat=(c,el)=>{
       cat=c;tbYear=null;tbSubject=null;tbSubjectsExpanded=false;flatSubcat=null;stationaryGroup=null;flatChipsExpanded=false;
       document.getElementById('tb-panel').style.display='none';
