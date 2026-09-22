@@ -53,6 +53,35 @@
     .qty-num-sm{font-size:15px;font-weight:800;min-width:28px;text-align:center}
     .plan-card{transition:border-color .15s,box-shadow .15s}
     .plan-card-pressed{border-color:#7c3aed !important;box-shadow:0 0 0 3px rgba(124,58,237,0.18)}
+
+    /* ANALYTICS */
+    .an-range{display:flex;gap:8px;margin:18px 0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .an-range button{flex-shrink:0;border:2px solid #f0f0f0;background:#fff;padding:8px 16px;border-radius:50px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;color:#888}
+    .an-range button.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
+    .an-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .an-card{border-radius:14px;padding:14px}
+    .an-card .an-label{font-size:11px;font-weight:800;letter-spacing:.02em}
+    .an-card .an-value{font-size:22px;font-weight:900;margin-top:2px}
+    .an-card .an-sub{font-size:11px;font-weight:700;margin-top:3px;opacity:.75}
+    .an-hero{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-radius:16px;padding:18px;margin-bottom:14px}
+    .an-hero .an-hero-label{font-size:12px;font-weight:800;opacity:.85}
+    .an-hero .an-hero-value{font-size:32px;font-weight:900;margin-top:4px}
+    .an-hero .an-hero-sub{font-size:12.5px;font-weight:700;opacity:.85;margin-top:4px}
+    .an-chart-wrap{background:#fff;border:2px solid #f0f0f0;border-radius:16px;padding:16px 12px;margin-top:18px}
+    .an-chart-empty{text-align:center;color:#aaa;font-size:13px;font-weight:700;padding:40px 0}
+    .an-bar-tip{fill:#7c3aed}
+    .an-bar-tip.zero{fill:#f0f0f0}
+    .an-axis-label{fill:#aaa;font-size:9.5px;font-weight:700;font-family:inherit}
+    .an-status-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+    .an-pill{flex:1;min-width:120px;background:#faf9fb;border-radius:12px;padding:10px 12px}
+    .an-pill .an-pill-n{font-size:17px;font-weight:900;color:#333}
+    .an-pill .an-pill-l{font-size:10.5px;font-weight:800;color:#999;margin-top:1px}
+    .an-top-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f5f5f5}
+    .an-top-row:last-child{border-bottom:none}
+    .an-top-rank{width:22px;height:22px;border-radius:50%;background:#f5f0ff;color:#7c3aed;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .an-top-title{flex:1;min-width:0;font-size:13px;font-weight:800;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .an-top-units{font-size:11px;font-weight:700;color:#999}
+    .an-top-revenue{font-size:13.5px;font-weight:900;color:#333;flex-shrink:0}
   </style>
 </head>
 <body>
@@ -179,6 +208,9 @@
             <span class="pmr-icon">📬</span><span class="pmr-label">Orders</span>
             <span class="pmr-badge" id="orders-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
           </button>
+          <button class="profile-menu-row" onclick="showTab('analytics')">
+            <span class="pmr-icon">📊</span><span class="pmr-label">Analytics</span><span class="pmr-chevron">›</span>
+          </button>
           <button class="profile-menu-row" onclick="showTab('listings')">
             <span class="pmr-icon">📦</span><span class="pmr-label">My Listings</span>
             <span class="pmr-badge" id="listings-badge" style="display:none">0</span><span class="pmr-chevron">›</span>
@@ -261,6 +293,65 @@
       <div id="tab-orders-completed" style="display:none">
         <button class="profile-back-btn" style="padding-bottom:12px" onclick="showTab('orders')">← Back to Orders</button>
         <div id="orders-completed-container"><p class="loading-msg">Loading completed orders... ⏳</p></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div id="tab-analytics" style="display:none">
+        <div id="an-hero" class="an-hero">
+          <div class="an-hero-label">TOTAL SALES · ALL TIME</div>
+          <div class="an-hero-value" id="an-alltime-revenue">R0</div>
+          <div class="an-hero-sub" id="an-alltime-orders">0 orders</div>
+        </div>
+
+        <div class="an-grid">
+          <div class="an-card" style="background:#f5f0ff">
+            <div class="an-label" style="color:#7c3aed">TODAY</div>
+            <div class="an-value" style="color:#7c3aed" id="an-today-revenue">R0</div>
+            <div class="an-sub" style="color:#7c3aed" id="an-today-orders">0 orders</div>
+          </div>
+          <div class="an-card" style="background:#eef6ff">
+            <div class="an-label" style="color:#2563eb">THIS WEEK</div>
+            <div class="an-value" style="color:#2563eb" id="an-week-revenue">R0</div>
+            <div class="an-sub" style="color:#2563eb" id="an-week-orders">0 orders</div>
+          </div>
+          <div class="an-card" style="background:#eafaf0">
+            <div class="an-label" style="color:#059669">THIS MONTH</div>
+            <div class="an-value" style="color:#059669" id="an-month-revenue">R0</div>
+            <div class="an-sub" style="color:#059669" id="an-month-orders">0 orders</div>
+          </div>
+          <div class="an-card" style="background:#fff6e8">
+            <div class="an-label" style="color:#d97706">THIS YEAR</div>
+            <div class="an-value" style="color:#d97706" id="an-year-revenue">R0</div>
+            <div class="an-sub" style="color:#d97706" id="an-year-orders">0 orders</div>
+          </div>
+        </div>
+
+        <div class="an-status-row">
+          <div class="an-pill"><div class="an-pill-n" id="an-items-sold">0</div><div class="an-pill-l">ITEMS SOLD</div></div>
+          <div class="an-pill"><div class="an-pill-n" id="an-avg-order">R0</div><div class="an-pill-l">AVG ORDER VALUE</div></div>
+        </div>
+
+        <div class="profile-section-label">Sales over time</div>
+        <div class="an-range">
+          <button class="active" data-g="daily" onclick="window._anSetRange('daily')">Daily</button>
+          <button data-g="weekly" onclick="window._anSetRange('weekly')">Weekly</button>
+          <button data-g="monthly" onclick="window._anSetRange('monthly')">Monthly</button>
+          <button data-g="yearly" onclick="window._anSetRange('yearly')">Yearly</button>
+        </div>
+        <div class="an-chart-wrap"><div id="an-chart"><p class="loading-msg">Loading...</p></div></div>
+
+        <div class="profile-section-label">Order status</div>
+        <div class="an-status-row">
+          <div class="an-pill"><div class="an-pill-n" id="an-pending-n">0</div><div class="an-pill-l">PENDING PAYMENT</div></div>
+          <div class="an-pill"><div class="an-pill-n" id="an-escrow-n">0</div><div class="an-pill-l">IN ESCROW</div></div>
+        </div>
+        <div class="an-status-row">
+          <div class="an-pill"><div class="an-pill-n" id="an-completed-n">0</div><div class="an-pill-l">COMPLETED</div></div>
+          <div class="an-pill"><div class="an-pill-n" id="an-disputed-n">0</div><div class="an-pill-l">DISPUTED</div></div>
+        </div>
+
+        <div class="profile-section-label">Top listings</div>
+        <div class="profile-menu-card" style="padding:4px 14px" id="an-top-listings"><p class="loading-msg">Loading...</p></div>
       </div>
 
       <!-- MY LISTINGS -->
@@ -2192,6 +2283,128 @@
       if(error)alert('Error: '+error.message); else loadMyListings();
     };
 
+    // ----- ANALYTICS -----
+    function fmtR(n){ return 'R'+Math.round(n||0).toLocaleString('en-ZA'); }
+    function fmtOrders(n){ n=n||0; return n+(n===1?' order':' orders'); }
+
+    let anRange = 'daily';
+    let anSummaryLoaded = false;
+    const anSeriesCache = {};   // granularity -> series rows, cleared each time the tab is opened
+
+    async function loadAnalytics(){
+      anSeriesCache.daily = anSeriesCache.weekly = anSeriesCache.monthly = anSeriesCache.yearly = null;
+      if(!anSummaryLoaded){
+        const {data,error} = await supabase.rpc('get_seller_analytics_summary');
+        if(error){ document.getElementById('an-chart').innerHTML='<p class="loading-msg">Couldn\'t load analytics: '+escapeHtml(error.message)+'</p>'; return; }
+        paintAnalyticsSummary(data);
+        anSummaryLoaded = true;
+      }
+      loadAnalyticsSeries(anRange);
+    }
+
+    function paintAnalyticsSummary(d){
+      const $=id=>document.getElementById(id);
+      $('an-alltime-revenue').textContent = fmtR(d.all_time.revenue);
+      $('an-alltime-orders').textContent = fmtOrders(d.all_time.orders);
+      $('an-today-revenue').textContent = fmtR(d.today.revenue);
+      $('an-today-orders').textContent = fmtOrders(d.today.orders);
+      $('an-week-revenue').textContent = fmtR(d.this_week.revenue);
+      $('an-week-orders').textContent = fmtOrders(d.this_week.orders);
+      $('an-month-revenue').textContent = fmtR(d.this_month.revenue);
+      $('an-month-orders').textContent = fmtOrders(d.this_month.orders);
+      $('an-year-revenue').textContent = fmtR(d.this_year.revenue);
+      $('an-year-orders').textContent = fmtOrders(d.this_year.orders);
+      $('an-items-sold').textContent = (d.items_sold||0).toLocaleString('en-ZA');
+      $('an-avg-order').textContent = fmtR(d.avg_order_value);
+      $('an-pending-n').textContent = d.pending_payment.count + (d.pending_payment.amount ? ' ('+fmtR(d.pending_payment.amount)+')' : '');
+      $('an-escrow-n').textContent = d.in_escrow.count + (d.in_escrow.amount ? ' ('+fmtR(d.in_escrow.amount)+')' : '');
+      $('an-completed-n').textContent = d.completed.count;
+      $('an-disputed-n').textContent = d.disputed;
+
+      const top = document.getElementById('an-top-listings');
+      if(!d.top_listings || !d.top_listings.length){
+        top.innerHTML = '<p class="loading-msg">No sales yet — once you get your first order, your best sellers will show up here.</p>';
+      } else {
+        top.innerHTML = d.top_listings.map((l,i)=>
+          '<div class="an-top-row">'+
+            '<div class="an-top-rank">'+(i+1)+'</div>'+
+            '<div class="an-top-title">'+escapeHtml(l.title)+'</div>'+
+            '<div class="an-top-units">'+l.units+' sold</div>'+
+            '<div class="an-top-revenue">'+fmtR(l.revenue)+'</div>'+
+          '</div>'
+        ).join('');
+      }
+    }
+
+    window._anSetRange = (g) => {
+      anRange = g;
+      document.querySelectorAll('.an-range button').forEach(b=>b.classList.toggle('active', b.dataset.g===g));
+      loadAnalyticsSeries(g);
+    };
+
+    async function loadAnalyticsSeries(g){
+      const chart = document.getElementById('an-chart');
+      if(anSeriesCache[g]){ renderAnalyticsChart(anSeriesCache[g], g); return; }
+      chart.innerHTML = '<p class="loading-msg">Loading...</p>';
+      const {data,error} = await supabase.rpc('get_seller_sales_series',{p_granularity:g});
+      if(g!==anRange) return; // a later click already moved on
+      if(error){ chart.innerHTML='<p class="loading-msg">Couldn\'t load this chart: '+escapeHtml(error.message)+'</p>'; return; }
+      anSeriesCache[g] = data||[];
+      renderAnalyticsChart(anSeriesCache[g], g);
+    }
+
+    // Small inline-SVG bar chart — no charting library needed for one bar series.
+    function renderAnalyticsChart(rows, g){
+      const chart = document.getElementById('an-chart');
+      if(!rows.length || !rows.some(r=>Number(r.revenue)>0)){
+        chart.innerHTML = '<div class="an-chart-empty">📊 No sales in this range yet<br><span style="font-size:11.5px;font-weight:600;color:#ccc">Once you get an order, it\'ll show up here</span></div>';
+        return;
+      }
+      const W = chart.clientWidth || 320, H = 150, padB = 20, padT = 10;
+      const max = Math.max(1, ...rows.map(r=>Number(r.revenue)));
+      const n = rows.length;
+      const bw = (W / n) * 0.6, gap = (W / n) * 0.4;
+      const labelEvery = Math.ceil(n / (W < 380 ? 6 : 10));
+      const fmtLabel = (dateStr, idx) => {
+        const d = new Date(dateStr+'T00:00:00');
+        // Always label the first and last bar; a regular grid tick in between only
+        // counts if it keeps a full step's clearance from both forced edge labels,
+        // so neighbouring labels never overlap.
+        const show = idx===0 || idx===n-1 || (idx % labelEvery === 0 && idx >= labelEvery && idx <= n-1-labelEvery);
+        if(!show) return '';
+        if(g==='daily') return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short'});
+        if(g==='weekly') return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short'});
+        if(g==='monthly') return d.toLocaleDateString('en-ZA',{month:'short',year:'2-digit'});
+        return d.toLocaleDateString('en-ZA',{year:'numeric'});
+      };
+      let bars = '', labels = '';
+      rows.forEach((r,i)=>{
+        const rev = Number(r.revenue);
+        const h = Math.max(rev>0?3:1, (rev/max) * (H - padT - padB));
+        const x = i * (bw+gap) + gap/2;
+        const y = H - padB - h;
+        const title = (g==='daily'?new Date(r.period_start+'T00:00:00').toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):fmtLabel(r.period_start,0)||r.period_start) + ': ' + fmtR(rev) + ' · ' + fmtOrders(r.orders);
+        bars += '<rect class="an-bar-tip'+(rev>0?'':' zero')+'" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2"><title>'+escapeHtml(title)+'</title></rect>';
+        const lbl = fmtLabel(r.period_start, i);
+        // Center every label except the very first/last, which get pulled in from the
+        // edge and anchored to stay inside the chart instead of being clipped by it.
+        if(lbl){
+          const anchor = i===0 ? 'start' : (i===n-1 ? 'end' : 'middle');
+          const lx = i===0 ? x : (i===n-1 ? x+bw : x+bw/2);
+          labels += '<text class="an-axis-label" x="'+lx.toFixed(1)+'" y="'+(H-4)+'" text-anchor="'+anchor+'">'+escapeHtml(lbl)+'</text>';
+        }
+      });
+      const totalRev = rows.reduce((a,r)=>a+Number(r.revenue),0);
+      const totalOrders = rows.reduce((a,r)=>a+Number(r.orders),0);
+      chart.innerHTML =
+        '<div style="font-size:11.5px;font-weight:800;color:#999;margin-bottom:8px">'+fmtR(totalRev)+' · '+fmtOrders(totalOrders)+' over this range</div>'+
+        '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" preserveAspectRatio="none" role="img" aria-label="Sales chart">'+bars+labels+'</svg>';
+    }
+
+    window.addEventListener('resize', () => {
+      if(document.getElementById('tab-analytics').style.display!=='none' && anSeriesCache[anRange]) renderAnalyticsChart(anSeriesCache[anRange], anRange);
+    });
+
     async function loadWallet(){
       const {data:profile} = await supabase.from('profiles').select('wallet_balance,wallet_pending,tradesafe_token_id').eq('id',currentUser.id).single();
       document.getElementById('wallet-balance').textContent = 'R'+Math.round(profile?.wallet_balance||0);
@@ -2274,7 +2487,8 @@
     window.showTab = (tab) => {
       document.getElementById('dashboard-menu').style.display='none';
       document.getElementById('dashboard-detail').style.display='block';
-      ['orders','orders-completed','listings','wallet','add','store','profile','security','alerts','invite','my-purchases'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
+      ['orders','orders-completed','analytics','listings','wallet','add','store','profile','security','alerts','invite','my-purchases'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'block':'none');
+      if (tab==='analytics') loadAnalytics();
       if (tab==='listings') loadMyListings(true);
       if (tab==='wallet') loadWallet();
       if (tab==='orders') loadOrders(true);
