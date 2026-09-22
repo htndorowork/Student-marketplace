@@ -21,9 +21,9 @@ export async function unreadMessageCount(supabase, userId) {
     return count || 0;
   }
   // Something is muted: fetch the unread rows and drop the muted conversations.
-  const { data } = await supabase.from('messages').select('buyer_id,seller_id,listing_id')
+  // A conversation is "me + one other person", and an unread message always comes from
+  // that other person — so a conversation's key is simply the sender's id.
+  const { data } = await supabase.from('messages').select('sender_id')
     .or(mine).neq('sender_id', userId).eq('is_read', false).limit(1000);
-  return (data || []).filter(m =>
-    !muted.has((m.buyer_id + '|' + m.seller_id + '|' + (m.listing_id || 'none')).toLowerCase())
-  ).length;
+  return (data || []).filter(m => !muted.has(String(m.sender_id).toLowerCase())).length;
 }

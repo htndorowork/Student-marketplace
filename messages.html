@@ -85,6 +85,11 @@
     .thread-flags { display: flex; gap: 4px; flex-shrink: 0; font-size: 12px; }
     .thread-sub { font-size: 11.5px; color: #999; font-weight: 600; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .thread-unread.muted { background: #b8b8c2; }
+    .listing-chip { display: inline-flex; align-items: center; align-self: center; flex-shrink: 0; max-width: 92%; background: #f5f0fe; color: #6d28d9; font-size: 11.5px; font-weight: 800; padding: 6px 13px; border-radius: 50px; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 6px 0 2px; }
+    .listing-chip:hover { background: #ebe1fd; }
+    .listing-ctx { display: none; align-items: center; gap: 8px; padding: 8px 14px; background: #f5f0fe; border-top: 1px solid #ebe1fd; font-size: 12.5px; font-weight: 700; color: #5b21b6; }
+    .listing-ctx span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .listing-ctx button { background: none; border: none; cursor: pointer; font-size: 14px; font-weight: 900; color: #7c3aed; padding: 2px 6px; font-family: inherit; }
     .thread-archive-row { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; font-size: 13.5px; font-weight: 800; color: #555; display: flex; align-items: center; gap: 8px; }
     .thread-archive-row:hover { background: #f5f0fe; }
     .thread-archive-row .thread-unread { margin-left: auto; background: #b8b8c2; }
@@ -156,6 +161,7 @@
       </div>
       <div class="chat-messages" id="chat-messages"><p class="loading-msg" style="margin:auto">Pick a conversation on the left, or message a seller from a listing 💬</p></div>
       <p id="blocked-notice" style="display:none;text-align:center;font-size:12.5px;color:#aaa;font-weight:700;padding:10px">🚫 You've blocked this user — unblock them to send a message.</p>
+      <div class="listing-ctx" id="listing-ctx"><span id="listing-ctx-text"></span><button onclick="clearListingCtx()" aria-label="Don't mention this listing" title="Don't mention this listing">✕</button></div>
       <div class="chat-input-row" id="chat-input-row" style="display:none">
         <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMessage()"/>
         <button class="chat-send-btn" onclick="sendMessage()" aria-label="Send">➤</button>
@@ -208,9 +214,14 @@
     const avatars = {};                 // userId -> picture url
     const presence = {};                // userId -> seconds since last seen
     const presenceLoaded = new Set();   // ids we've asked the server about (so "Offline" isn't shown before we know)
-    // One chat-list row = buyer + seller + listing. Lower-cased so it always matches the key the database uses.
-    const threadKey = t => (t.buyer_id+'|'+t.seller_id+'|'+(t.listing_id||'none')).toLowerCase();
-    const otherId = t => t.buyer_id===user.id ? t.seller_id : t.buyer_id;
+    // One chat-list row = me + ONE other person, however many listings we've talked about.
+    // A thread is { cid: <the other person's id>, messages: [newest first] }. The key is that
+    // person's id (lower-case), which is exactly what the database uses for pin/mute/archive.
+    const threadKey = t => String(t.cid).toLowerCase();
+    const otherId = t => t.cid;
+    // Each message still stores buyer_id + seller_id (they decide who may read it), so this
+    // finds "the other person" of any single message.
+    const cidOfMsg = m => String(m.buyer_id===user.id ? m.seller_id : m.buyer_id).toLowerCase();
 
     const {data:{user}} = await supabase.auth.getUser();
     if(!user){ window.location.href='/login'; }
@@ -265,7 +276,7 @@
       return '<div class="thread-item" data-idx="'+i+'" onclick="openThread('+i+')">'+
         '<div class="thread-avatar">'+avatarHTML({url:avatars[counterpartId],name:names[counterpartId]||'User',size:38,uid:counterpartId,dot:true})+'</div>'+
         '<div class="thread-info"><div class="thread-name">'+escapeHtml(names[counterpartId]||'User')+(unread?'<span class="thread-unread'+(muted?' muted':'')+'">'+unread+'</span>':'')+'</div>'+
-        (t.listingTitle?'<div class="thread-sub">'+escapeHtml(t.listingTitle)+'</div>':'')+'</div>'+
+        (t.messages[0]?'<div class="thread-sub">'+escapeHtml((t.messages[0].sender_id===user.id?'You: ':'')+t.messages[0].content)+'</div>':'')+'</div>'+
         '<div class="thread-flags">'+(muted?'<span title="Muted">🔕</span>':'')+(isPinned(st)?'<span title="Pinned">📌</span>':'')+'</div>'+
         '</div>';
     }
@@ -309,11 +320,11 @@
       convSettings = {};
       (settingsRes?.data||[]).forEach(r=>{ convSettings[r.thread_key]=r; });
       const msgs = data||[];
-      // Group into threads by buyer_id + seller_id + listing_id
+      // Group into ONE thread per other person (all listings together)
       const threadMap = {};
       msgs.forEach(m=>{
-        const key = m.buyer_id+'|'+m.seller_id+'|'+(m.listing_id||'none');
-        if(!threadMap[key]) threadMap[key] = {buyer_id:m.buyer_id, seller_id:m.seller_id, listing_id:m.listing_id, listingTitle:m.listings?.title, messages:[]};
+        const key = cidOfMsg(m);
+        if(!threadMap[key]) threadMap[key] = {cid:key, messages:[]};
         threadMap[key].messages.push(m);
       });
       const threads = Object.values(threadMap);
@@ -330,7 +341,7 @@
       });
 
       // Fetch counterpart names
-      const counterpartIds = [...new Set(threads.map(t=>t.buyer_id===user.id?t.seller_id:t.buyer_id))];
+      const counterpartIds = threads.map(t=>t.cid);
       let names={};
       if(counterpartIds.length){
         const {data:profs} = await supabase.from('profiles').select('id,full_name,store_name,avatar_url,store_logo_url').in('id',counterpartIds);
@@ -343,6 +354,16 @@
       // ask the server about people we haven't looked up yet
       const fresh = counterpartIds.filter(id=>!presenceLoaded.has(id));
       if(fresh.length) refreshPresence(fresh);
+      // messages that arrived live or that we just sent don't carry their listing's title yet — copy it over
+      if(activeThread){
+        const cur = threads.find(t=>threadKey(t)===threadKey(activeThread));
+        if(cur){
+          const byId = new Map(cur.messages.map(x=>[x.id,x]));
+          let changed = false;
+          activeThread.messages.forEach(m=>{ const f=byId.get(m.id); if(f && !m.listings && f.listings){ m.listings=f.listings; changed=true; } });
+          if(changed && !cs.open) renderMessages();
+        }
+      }
     }
 
     // ----- online / offline status -----
@@ -432,9 +453,10 @@
       document.getElementById('msg-wrap').classList.add('chat-open');
       document.querySelectorAll('.thread-item').forEach(el=>el.classList.remove('active'));
       document.querySelector('.thread-item[data-idx="'+idx+'"]')?.classList.add('active');
-      const counterpartId = t.buyer_id===user.id?t.seller_id:t.buyer_id;
+      const counterpartId = t.cid;
       const name = window._names[counterpartId]||'User';
-      setChatHeader(name, t.listingTitle, counterpartId);
+      setChatHeader(name, null, counterpartId);
+      clearListingCtx();
       updateBlockUI(counterpartId);
       closeChatSearch(true);
       renderMessages();
@@ -573,7 +595,7 @@
     window.toggleBlockThread = async () => {
       if(!activeThread) return;
       closeChatOptions();
-      const counterpartId = activeThread.buyer_id===user.id?activeThread.seller_id:activeThread.buyer_id;
+      const counterpartId = otherId(activeThread);
       if(blockedIds.has(counterpartId)){
         if(!confirm('Unblock this user? They\'ll be able to message you again.')) return;
         await supabase.from('blocked_users').delete().eq('blocker_id',user.id).eq('blocked_id',counterpartId);
@@ -600,11 +622,11 @@
       const err = document.getElementById('report-user-error');
       err.style.color='#9333ea'; err.textContent='';
       if(!activeThread){ err.textContent='❌ No conversation selected'; return; }
-      const counterpartId = activeThread.buyer_id===user.id?activeThread.seller_id:activeThread.buyer_id;
+      const counterpartId = otherId(activeThread);
       const {error} = await supabase.from('reports').insert({
         reporter_id: user.id,
         reported_user_id: counterpartId,
-        listing_id: activeThread.listing_id||null,
+        listing_id: (activeThread.messages[0] && activeThread.messages[0].listing_id) || null,
         reason: document.getElementById('report-user-reason').value,
         details: document.getElementById('report-user-details').value.trim()||null
       });
@@ -645,11 +667,21 @@
       const prevScroll = box.scrollTop;
       const q = cs.open ? cs.q : '';
       const sorted = [...activeThread.messages].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+      // titles of the listings mentioned in this chat (some messages don't carry the joined title)
+      const titles = {};
+      sorted.forEach(m=>{ if(m.listing_id && m.listings && m.listings.title) titles[m.listing_id]=m.listings.title; });
+      let lastListing = null;
       box.innerHTML = sorted.map(m=>{
         const isMe = m.sender_id===user.id;
         const time = new Date(m.created_at).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
         const ticks = isMe ? '<span class="bubble-tick">'+(m.is_read?'✓✓':'✓')+'</span>' : '';
-        return '<div class="bubble '+(isMe?'me':'them')+'">'+highlightHTML(m.content, q)+
+        // one chat per person: a small chip marks where the conversation moves on to a different listing
+        let chip = '';
+        if(m.listing_id && m.listing_id!==lastListing){
+          lastListing = m.listing_id;
+          chip = '<a class="listing-chip" href="/?open='+encodeURIComponent(m.listing_id)+'" title="Open this listing">🛍️ '+escapeHtml(titles[m.listing_id]||'A listing')+'</a>';
+        }
+        return chip+'<div class="bubble '+(isMe?'me':'them')+'">'+highlightHTML(m.content, q)+
           '<div class="bubble-time">'+time+ticks+'</div></div>';
       }).join('');
       cs.hits = q ? [...box.querySelectorAll('mark.hit')] : [];
@@ -705,22 +737,64 @@
       const sendBtn = document.querySelector('#chat-input-row button');
       if (sendBtn) sendBtn.disabled = true;
       input.value=''; // clear immediately so a repeated Enter/click can't resend the same text
-      const payload = {
-        buyer_id: activeThread.buyer_id, seller_id: activeThread.seller_id,
-        listing_id: activeThread.listing_id, sender_id: user.id, content
-      };
+      const next = nextMessageContext(activeThread);
+      const payload = { buyer_id: next.buyer_id, seller_id: next.seller_id, listing_id: next.listing_id, sender_id: user.id, content };
       try {
         const {data,error} = await supabase.from('messages').insert(payload).select().single();
         if(error){ alert('Could not send: '+error.message); input.value = content; return; }
+        // carry the listing's title along so its chip shows straight away
+        if(data.listing_id){
+          const known = (ctxListing && ctxListing.id===data.listing_id) ? ctxListing.title
+                      : (activeThread.messages.find(x=>x.listing_id===data.listing_id && x.listings) || {listings:null}).listings?.title;
+          if(known) data.listings = {title:known};
+        }
         // Own realtime subscription will also receive this INSERT — addMessageOnce()
         // keeps that from rendering it a second time.
         addMessageOnce(activeThread, data);
+        clearListingCtx();   // the "about this listing" note has been used
         renderMessages();
       } finally {
         isSending = false;
         if (sendBtn) sendBtn.disabled = false;
       }
     };
+
+    // ----- "About this listing" -----
+    // Coming from a listing's "Message seller" button adds that listing to your NEXT message.
+    let ctxListing = null;   // { id, title, seller_id }
+    function paintListingCtx(){
+      const bar = document.getElementById('listing-ctx');
+      if(ctxListing){
+        document.getElementById('listing-ctx-text').textContent = '🛍️ Your next message is about: '+ctxListing.title;
+        bar.style.display = 'flex';
+      } else bar.style.display = 'none';
+    }
+    window.clearListingCtx = () => { ctxListing = null; paintListingCtx(); };
+    async function setListingCtx(t, listingId){
+      ctxListing = null;
+      // if the chat is already about this listing there's nothing to add
+      if(listingId && !(t.messages[0] && t.messages[0].listing_id===listingId)){
+        const {data:l} = await supabase.from('listings').select('id,title,seller_id').eq('id',listingId).maybeSingle();
+        // only meaningful if the listing belongs to me or to the person I'm writing to
+        if(l && (l.seller_id===user.id || String(l.seller_id).toLowerCase()===t.cid)) ctxListing = {id:l.id, title:l.title||'a listing', seller_id:String(l.seller_id).toLowerCase()};
+      }
+      paintListingCtx();
+    }
+    // Every message stores who the buyer and seller are (that's what decides who may read it).
+    // In one chat per person those roles can differ from message to message (you might buy from
+    // them AND sell to them), so work them out for the message being sent:
+    //  - a listing picked via "Message seller": its seller decides the roles
+    //  - otherwise: same roles + same listing as the latest message (the chat carries on)
+    //  - brand-new chat: the roles from the link you came in through
+    function nextMessageContext(t){
+      if(ctxListing){
+        if(ctxListing.seller_id===user.id) return {buyer_id:t.cid, seller_id:user.id, listing_id:ctxListing.id};
+        if(ctxListing.seller_id===t.cid)   return {buyer_id:user.id, seller_id:t.cid, listing_id:ctxListing.id};
+      }
+      const last = t.messages[0];
+      if(last) return {buyer_id:last.buyer_id, seller_id:last.seller_id, listing_id:last.listing_id||null};
+      return {buyer_id:t.roles.buyer_id, seller_id:t.roles.seller_id, listing_id:null};
+    }
 
     // Adds a message to a thread's list only if it isn't already there (by id),
     // since the sender's own INSERT is echoed back through their own realtime
@@ -731,43 +805,35 @@
       return true;
     }
 
-    // Start a new thread from ?seller=&listing= (buyer messaging a seller) or
-    // ?buyer=&listing= (seller messaging a buyer) — these need separate params
-    // because a thread's buyer_id/seller_id roles are fixed, and the current
-    // user could be initiating contact from either side.
+    // Opening the page from a listing / store / order: ?seller=<id> (I'm the buyer writing to a seller)
+    // or ?buyer=<id> (I'm the seller writing to a buyer), optionally with &listing=<id>.
+    // Either way it lands in the ONE chat with that person — an existing one if there is one.
     const params = new URLSearchParams(location.search);
-    const toSeller = params.get('seller');
-    const toBuyer = params.get('buyer');
-    const listingId = params.get('listing');
-    if (toSeller && toSeller!==user.id) {
-      const {data:sellerProfile} = await supabase.from('profiles').select('full_name,store_name,avatar_url,store_logo_url').eq('id',toSeller).single();
-      avatars[toSeller] = pickAvatar(sellerProfile);
-      activeThread = { buyer_id:user.id, seller_id:toSeller, listing_id:listingId||null, messages:[] };
+    const toSeller = (params.get('seller')||'').toLowerCase() || null;
+    const toBuyer = (params.get('buyer')||'').toLowerCase() || null;
+    const listingId = params.get('listing') || null;
+    const target = (toSeller && toSeller!==user.id) ? {cid:toSeller, iAm:'buyer'}
+                 : (toBuyer && toBuyer!==user.id) ? {cid:toBuyer, iAm:'seller'} : null;
+    if (target) {
+      const {data:prof} = await supabase.from('profiles').select('full_name,store_name,avatar_url,store_logo_url').eq('id',target.cid).maybeSingle();
+      avatars[target.cid] = pickAvatar(prof);
+      // shown straight away; replaced by the real chat below if one already exists
+      activeThread = { cid:target.cid, messages:[],
+        roles: target.iAm==='buyer' ? {buyer_id:user.id, seller_id:target.cid} : {buyer_id:target.cid, seller_id:user.id} };
       document.getElementById('msg-wrap').classList.add('chat-open');
-      setChatHeader(sellerProfile?.store_name||sellerProfile?.full_name||'Seller', null, toSeller);
-      refreshPresence([toSeller]);
-      document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
-    } else if (toBuyer && toBuyer!==user.id) {
-      const {data:buyerProfile} = await supabase.from('profiles').select('full_name,avatar_url,store_logo_url').eq('id',toBuyer).single();
-      avatars[toBuyer] = pickAvatar(buyerProfile);
-      activeThread = { buyer_id:toBuyer, seller_id:user.id, listing_id:listingId||null, messages:[] };
-      document.getElementById('msg-wrap').classList.add('chat-open');
-      setChatHeader(buyerProfile?.full_name||'Buyer', null, toBuyer);
-      refreshPresence([toBuyer]);
+      setChatHeader((target.iAm==='buyer' ? (prof?.store_name||prof?.full_name||'Seller') : (prof?.full_name||'Buyer')), null, target.cid);
+      refreshPresence([target.cid]);
       document.getElementById('chat-messages').innerHTML = '<p class="loading-msg" style="margin:auto">Say hi 👋</p>';
     }
 
     await loadBlockedUsers();
     await loadThreads();
-    if (toSeller) updateBlockUI(toSeller);
-    else if (toBuyer) updateBlockUI(toBuyer);
-    // If we started a thread via URL params and it already exists, open the matching one instead of a blank one
-    if (toSeller) {
-      const idx = (window._threads||[]).findIndex(t=>t.seller_id===toSeller && t.buyer_id===user.id && (t.listing_id||null)===(listingId||null));
-      if (idx>-1) window.openThread(idx);
-    } else if (toBuyer) {
-      const idx = (window._threads||[]).findIndex(t=>t.buyer_id===toBuyer && t.seller_id===user.id && (t.listing_id||null)===(listingId||null));
-      if (idx>-1) window.openThread(idx);
+    if (target) {
+      updateBlockUI(target.cid);
+      // already chatting with this person? open THAT chat (whatever listing it was about)
+      const idx = (window._threads||[]).findIndex(t=>threadKey(t)===target.cid);
+      if (idx>-1) await window.openThread(idx);
+      await setListingCtx(activeThread, listingId);
     }
 
     // Realtime instead of polling: at scale, every open messages.html tab
@@ -785,7 +851,7 @@
     function handleIncomingMessage(payload){
       const m = payload.new;
       // If it's the currently-open thread, append it live without a full reload.
-      if(activeThread && m.buyer_id===activeThread.buyer_id && m.seller_id===activeThread.seller_id && (m.listing_id||null)===(activeThread.listing_id||null)){
+      if(activeThread && cidOfMsg(m)===threadKey(activeThread)){
         if (addMessageOnce(activeThread, m)) renderMessages();
         if(m.sender_id!==user.id) supabase.from('messages').update({is_read:true}).eq('id',m.id);
       }

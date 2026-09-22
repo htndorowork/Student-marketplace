@@ -98,7 +98,7 @@ BEGIN
       INTO v_muted
       FROM conversation_settings cs
      WHERE cs.user_id = v_recipient
-       AND cs.thread_key = lower(NEW.buyer_id::text || '|' || NEW.seller_id::text || '|' || COALESCE(NEW.listing_id::text, 'none'));
+       AND cs.thread_key = lower(NEW.sender_id::text);   -- the recipient's conversation with the sender
   END IF;
 
   IF COALESCE(v_muted, false) THEN
