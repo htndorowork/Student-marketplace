@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" sizes="96x96" href="/icons/favicon-96.png"/>
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png"/>
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
-<link rel="stylesheet" href="style.css?v=1790000003"/>
+<link rel="stylesheet" href="style.css?v=1790000004"/>
 </head>
 <body>
   <nav class="nav">
@@ -35,7 +35,20 @@
       <h1 class="sr-only">Sign In or Create a Student Marketplace Account</h1>
       <div class="auth-icon">🎓</div>
       <p class="auth-tagline">Your campus marketplace</p>
-      <div class="auth-tabs">
+
+      <div class="oauth-buttons" id="oauth-buttons">
+        <button class="oauth-btn oauth-google" id="btn-google" type="button">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.68-3.87 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.95v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.95A9 9 0 0 0 0 9c0 1.45.35 2.83.95 4.03l3-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+          Continue with Google
+        </button>
+        <button class="oauth-btn oauth-apple" id="btn-apple" type="button">
+          <svg width="16" height="18" viewBox="0 0 16 18" fill="currentColor"><path d="M13.2 9.56c-.02-2.02 1.65-2.99 1.73-3.04-.94-1.38-2.41-1.57-2.93-1.59-1.25-.13-2.44.74-3.07.74-.63 0-1.6-.72-2.63-.7-1.35.02-2.6.79-3.29 2-1.4 2.44-.36 6.05 1.02 8.04.67.97 1.47 2.06 2.52 2.02 1.01-.04 1.39-.65 2.62-.65 1.22 0 1.57.65 2.63.63 1.09-.02 1.78-.99 2.44-1.97.77-1.13 1.09-2.22 1.11-2.28-.02-.01-2.12-.82-2.15-3.2z"/><path d="M11.24 3.36c.55-.67.93-1.6.82-2.53-.8.03-1.77.53-2.34 1.2-.51.59-.96 1.55-.84 2.46.9.07 1.81-.46 2.36-1.13z"/></svg>
+          Continue with Apple
+        </button>
+      </div>
+      <div class="oauth-divider" id="oauth-divider"><span>or continue with email</span></div>
+
+      <div class="auth-tabs" id="auth-tabs">
         <button class="auth-tab active" id="tab-login" onclick="showTab('login')">Sign In</button>
         <button class="auth-tab" id="tab-signup" onclick="showTab('signup')">Sign Up</button>
       </div>
@@ -69,8 +82,8 @@
 
       <!-- SIGNUP -->
       <div id="signup-form" style="display:none">
-        <h2 class="auth-title">Join Student Marketplace! 🎉</h2>
-        <p class="auth-sub">Create your free account</p>
+        <h2 class="auth-title" id="signup-title">Join Student Marketplace! 🎉</h2>
+        <p class="auth-sub" id="signup-sub">Create your free account</p>
         <p id="invite-banner" style="display:none;background:#f5f0fe;color:#5b21b6;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:12px;margin-bottom:10px">🎁 You were invited by a friend!</p>
         <div class="form-group"><label>I want to</label>
           <div class="role-selector">
@@ -105,15 +118,17 @@
           <button type="button" class="btn-sm btn-toggle" onclick="openSellerInstAddModal()">+ Add a specific institution</button>
         </div>
 
-        <div class="form-group"><label>Email *</label><input type="email" id="signup-email" placeholder="your@email.com"/></div>
-        <div class="form-group">
-          <label>Password *</label>
-          <div class="pw-wrap">
-            <input type="password" id="signup-password" placeholder="••••••••" oninput="updatePwStrength(this.value)"/>
-            <button class="pw-toggle" onclick="togglePw('signup-password',this)" type="button">👁</button>
+        <div id="signup-credentials">
+          <div class="form-group"><label>Email *</label><input type="email" id="signup-email" placeholder="your@email.com"/></div>
+          <div class="form-group">
+            <label>Password *</label>
+            <div class="pw-wrap">
+              <input type="password" id="signup-password" placeholder="••••••••" oninput="updatePwStrength(this.value)"/>
+              <button class="pw-toggle" onclick="togglePw('signup-password',this)" type="button">👁</button>
+            </div>
+            <div class="pw-strength-track" id="pw-strength-track"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+            <div class="pw-strength-label" id="pw-strength-label"></div>
           </div>
-          <div class="pw-strength-track" id="pw-strength-track"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
-          <div class="pw-strength-label" id="pw-strength-label"></div>
         </div>
         <div class="auth-error" id="signup-error"></div>
         <label class="terms-check" for="signup-agree">
@@ -121,6 +136,7 @@
           <span>By clicking "Create Account", you agree to our <a href="/terms" onclick="event.stopPropagation()">Terms and Conditions</a> and <a href="/privacy" onclick="event.stopPropagation()">Privacy Policy</a>, and confirm that you are over 18 years of age.</span>
         </label>
         <button class="btn-primary" id="btn-signup">Create Account 🎓</button>
+        <a href="#" class="oauth-signout-link" id="oauth-signout-link" style="display:none" onclick="event.preventDefault();cancelOAuthSignup()">Not you? Sign out</a>
       </div>
     </div>
   </main>
@@ -590,6 +606,72 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient('https://kqsqtasykdtpdrkqyaxp.supabase.co','sb_publishable_8S5WkeUpuQYSLWhIbUJr1w_VrwFatlZ');
 
+    // ----- Google / Apple sign-in -----
+    let oauthMode = false, oauthUser = null;
+
+    async function startOAuth(provider){
+      const err = document.getElementById('login-error');
+      err.style.color='#9333ea'; err.textContent='';
+      const ref = new URLSearchParams(location.search).get('ref');
+      if(ref) sessionStorage.setItem('pending_ref', ref);
+      const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: location.origin + '/login' } });
+      // On success the browser navigates away immediately; we only ever get here on failure
+      // (provider not enabled, popup blocked, network error, etc.)
+      if(error) err.textContent = '❌ '+error.message;
+    }
+    document.getElementById('btn-google').onclick = () => startOAuth('google');
+    document.getElementById('btn-apple').onclick = () => startOAuth('apple');
+
+    // A failed OAuth attempt redirects back here with ?error=...&error_description=...
+    (() => {
+      const q = new URLSearchParams(location.search);
+      const desc = q.get('error_description') || q.get('error');
+      if(desc){
+        document.getElementById('login-error').style.color = '#9333ea';
+        document.getElementById('login-error').textContent = '❌ ' + desc.replace(/\+/g,' ');
+        history.replaceState(null, '', location.pathname);
+      }
+    })();
+
+    // A brand-new Google/Apple sign-in has no name, WhatsApp, institution, etc. yet —
+    // the same details email sign-up collects. Reuse the sign-up form for that, just
+    // without the email/password fields (already authenticated) and a different submit action.
+    function enterOAuthCompleteMode(user){
+      oauthMode = true; oauthUser = user;
+      document.getElementById('oauth-buttons').style.display='none';
+      document.getElementById('oauth-divider').style.display='none';
+      document.getElementById('auth-tabs').style.display='none';
+      document.getElementById('login-form').style.display='none';
+      document.getElementById('forgot-pw-form').style.display='none';
+      document.getElementById('signup-form').style.display='block';
+      document.getElementById('signup-credentials').style.display='none';
+      document.getElementById('signup-title').textContent = 'Almost there! 👋';
+      document.getElementById('signup-sub').textContent = "We just need a few more details to set up your account";
+      document.getElementById('btn-signup').textContent = 'Finish Signing Up 🎓';
+      document.getElementById('oauth-signout-link').style.display='block';
+      const meta = user.user_metadata || {};
+      const name = meta.full_name || meta.name || '';
+      if(name) document.getElementById('signup-name').value = name;
+    }
+    window.cancelOAuthSignup = async () => {
+      await supabase.auth.signOut();
+      location.href = '/login';
+    };
+
+    async function routeSignedInUser(user){
+      const {data:p} = await supabase.from('profiles').select('full_name,role').eq('id',user.id).maybeSingle();
+      if(p && p.full_name){
+        window.location.href = p.role==='seller' ? '/seller' : '/profile';
+        return true;
+      }
+      enterOAuthCompleteMode(user);
+      return false;
+    }
+    // Runs once on load (catches a fresh OAuth redirect back to this page, or simply an
+    // already-signed-in visitor), and again if a sign-in completes while the page is open.
+    supabase.auth.getSession().then(({data:{session}}) => { if(session?.user) routeSignedInUser(session.user); });
+    supabase.auth.onAuthStateChange((event, session) => { if(event==='SIGNED_IN' && session?.user) routeSignedInUser(session.user); });
+
     document.getElementById('btn-forgot').onclick=async()=>{
       const email=document.getElementById('forgot-email').value.trim();
       const err=document.getElementById('forgot-error');
@@ -623,13 +705,13 @@
       const name=document.getElementById('signup-name').value.trim();
       const wa=document.getElementById('signup-whatsapp').value.trim();
       const res=document.getElementById('signup-residence').value.trim();
-      const email=document.getElementById('signup-email').value.trim();
-      const password=document.getElementById('signup-password').value;
+      const email=oauthMode ? (oauthUser.email||'') : document.getElementById('signup-email').value.trim();
+      const password=oauthMode ? null : document.getElementById('signup-password').value;
       const err=document.getElementById('signup-error');
       const {buyerTypePicked,buyerInstPicked,buyerCampusPicked,sellerInstitutions}=window.getSignupState();
       const role=window.selectedRole||'buyer';
       err.style.color='#9333ea';err.textContent='';
-      if(!name||!wa||!email||!password){err.textContent='❌ Please fill in all fields';return;}
+      if(!name||!wa||(!oauthMode&&(!email||!password))){err.textContent='❌ Please fill in all fields';return;}
       if(!document.getElementById('signup-agree').checked){err.textContent='❌ Please agree to the Terms and confirm you are over 18';return;}
       if(!isValidSAPhone(wa)){err.textContent='❌ Enter a valid South African cell number, e.g. 0812345678';return;}
       if(role==='buyer' && (!buyerInstPicked||!buyerCampusPicked)){err.textContent='❌ Select your institution & campus';return;}
@@ -643,11 +725,9 @@
           return;
         }
       }
-      const refCode=new URLSearchParams(location.search).get('ref');
-      const {data,error}=await supabase.auth.signUp({email,password,options:refCode?{data:{ref:refCode}}:undefined});
-      if(error){err.textContent='❌ '+error.message;return;}
-      if(data.user){
-        const payload={id:data.user.id,full_name:name,whatsapp:wa,residence:res||null,role};
+
+      function buildPayload(id){
+        const payload={id,full_name:name,whatsapp:wa,residence:res||null,role};
         if(role==='buyer'){
           payload.institution_type=buyerTypePicked.key;
           payload.university=buyerInstPicked.name;
@@ -658,7 +738,30 @@
           payload.deliver_all_private=allPrivate;
           payload.seller_institutions=sellerInstitutions;
         }
-        await supabase.from('profiles').upsert(payload);
+        return payload;
+      }
+
+      if(oauthMode){
+        const payload = buildPayload(oauthUser.id);
+        const meta = oauthUser.user_metadata || {};
+        const pic = meta.avatar_url || meta.picture;
+        if(pic) payload.avatar_url = pic;
+        const {error} = await supabase.from('profiles').upsert(payload);
+        if(error){ err.textContent='❌ '+error.message; return; }
+        const pendingRef = sessionStorage.getItem('pending_ref');
+        if(pendingRef){
+          sessionStorage.removeItem('pending_ref');
+          await supabase.rpc('claim_referral_code', {p_ref: pendingRef}).catch(()=>{});
+        }
+        window.location.href = role==='seller' ? '/seller' : '/profile';
+        return;
+      }
+
+      const refCode=new URLSearchParams(location.search).get('ref');
+      const {data,error}=await supabase.auth.signUp({email,password,options:refCode?{data:{ref:refCode}}:undefined});
+      if(error){err.textContent='❌ '+error.message;return;}
+      if(data.user){
+        await supabase.from('profiles').upsert(buildPayload(data.user.id));
       }
       err.style.color='#2e7d32';
       err.textContent='✅ Account created! Sign in now.';
