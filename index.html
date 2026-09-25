@@ -213,6 +213,7 @@
         <div id="modal-badge"></div>
         <h2 class="modal-title" id="modal-title"></h2>
         <div class="modal-price" id="modal-price"></div>
+        <div id="modal-offer-note" style="display:none;font-size:12.5px;font-weight:700;color:#7c3aed;background:#f5f0fe;border-radius:10px;padding:8px 10px;margin-bottom:8px"></div>
         <p class="modal-desc" id="modal-desc"></p>
         <div class="seller-info-box" id="modal-seller-info"></div>
         <div class="qty-row">
@@ -413,6 +414,15 @@
       document.getElementById('install-banner').style.display='none';
     };
 
+    // The price THIS buyer pays for a listing: their own accepted (unused)
+    // offer if they have one, otherwise the normal listed/discounted price.
+    // Nobody else's view of the listing is affected — myOffers only ever
+    // holds this signed-in buyer's own offers.
+    function effectivePrice(l){
+      const offer=myOffers.get(l.id);
+      if(offer && offer.status==='accepted') return offer.amount;
+      return l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+    }
     const CAT_EMOJI={Textbooks:'📚',Clothing:'👗',Electronics:'📱',Food:'🍱',Beauty:'💄',Tutoring:'🎓',Utensils:'🍴',Jewellery:'💍',Bags:'👜',Toys:'🧸',Pets:'🐾',Tools:'🔧',Snacks:'🍿',Sports:'🏃',Books:'📖',Music:'🎸',Cameras:'📸',Gaming:'🎮',Tickets:'🎟️',Events:'🎉',Plants:'🌱',Decor:'🖼️',Baby:'👶',Data:'📶',Health:'🩹',Career:'💼',Accommodation:'🏠',Transport:'🚲',Services:'🛠️',Stationary:'✏️',Appliances:'🔌',Furniture:'🛋️',Others:'🔀'};
     const CAT_COLOR={Textbooks:{bg:'#fff8e1',text:'#e65c00'},Clothing:{bg:'#fce4ec',text:'#c2185b'},Electronics:{bg:'#e8eaf6',text:'#3949ab'},Food:{bg:'#e8f5e9',text:'#2e7d32'},Beauty:{bg:'#fce4ec',text:'#ad1457'},Tutoring:{bg:'#e1f5ee',text:'#0f6e56'},Utensils:{bg:'#fff3e0',text:'#e65100'},Jewellery:{bg:'#fdf0e6',text:'#a0522d'},Bags:{bg:'#ede7f6',text:'#5e35b1'},Toys:{bg:'#e3f2fd',text:'#1565c0'},Pets:{bg:'#f1f8e9',text:'#558b2f'},Tools:{bg:'#eceff1',text:'#37474f'},Snacks:{bg:'#fff8e1',text:'#f9a825'},Sports:{bg:'#e8f5e9',text:'#1b5e20'},Books:{bg:'#efebe9',text:'#4e342e'},Music:{bg:'#f3e5f5',text:'#6a1b9a'},Cameras:{bg:'#eceff1',text:'#263238'},Events:{bg:'#fce4ec',text:'#d81b60'},Plants:{bg:'#e8f5e9',text:'#33691e'},Decor:{bg:'#fff3e0',text:'#bf360c'},Baby:{bg:'#e1f5fe',text:'#0277bd'},Data:{bg:'#e8eaf6',text:'#283593'},Health:{bg:'#ffebee',text:'#c62828'},Career:{bg:'#e0f2f1',text:'#00695c'}};
 
@@ -740,6 +750,7 @@
     let flatChipsExpanded=false; // whether the full subcategory chip grid is currently revealed (only after "Show all" is pressed)
 
     let all=[], cat='All', currentListing=null, galleryIdx=0, modalQty=1, currentUser=null, cart=[], renderLimit=24, lastFilteredList=[];
+    let myOffers=new Map(); // listing_id -> {amount,status:'pending'|'accepted'}, this buyer's own active offers only
     let freeModeOn=false;
     let dbOffset=0, dbPageSize=300, dbHasMore=true, dbLoading=false;
 
@@ -925,12 +936,20 @@
     // Favorites (needed by render(), for heart icons) and the listings page
     // itself don't depend on each other — fetch both at once instead of
     // one after the other.
-    const [favResult, listingsResult] = await Promise.all([
+    const [favResult, offersResult, listingsResult] = await Promise.all([
       user ? supabase.from('favorites').select('listing_id').eq('user_id',user.id) : Promise.resolve({data:[]}),
+      user ? supabase.from('listing_offers').select('listing_id,amount,status').eq('buyer_id',user.id).in('status',['pending','accepted']) : Promise.resolve({data:[]}),
       fetchListingsPage()
     ]);
     if(favResult.error) console.error('Could not load favorites:',favResult.error.message);
     myFavorites=new Set((favResult.data||[]).map(f=>f.listing_id));
+    // Accepted beats pending if a listing somehow has both (shouldn't happen —
+    // accepting one supersedes other pending offers on the same listing).
+    myOffers=new Map();
+    (offersResult.data||[]).forEach(o=>{
+      const existing=myOffers.get(o.listing_id);
+      if(!existing || (o.status==='accepted' && existing.status!=='accepted')) myOffers.set(o.listing_id,{amount:o.amount,status:o.status});
+    });
     all=listingsResult;
 
     // Verified-seller badge (5+ completed sales) is only ever shown inside
@@ -967,7 +986,7 @@
       g.innerHTML=pageList.map(l=>{
         const c=CAT_COLOR[l.category]||{bg:'#f5f5f5',text:'#555'};
         const e=CAT_EMOJI[l.category]||'🛍️';
-        const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+        const fp=effectivePrice(l);
         const db=l.discount_percent>0?'<div class="discount-tag">-'+l.discount_percent+'% OFF</div>':'';
         const img=l.image_url?'<img loading="lazy" src="'+l.image_url+'" alt="'+l.title.replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover"/>':`<span style="font-size:44px">${e}</span>`;
         const photoCount=[l.image_url,l.image_url_2,l.image_url_3,l.image_url_4,l.image_url_5,l.image_url_6].filter(Boolean).length;
@@ -1089,7 +1108,7 @@
         return '<div class="card" onclick="window._open(\''+l.id+'\')">'+
           '<div class="card-img" style="background:'+c.bg+'">'+img+'</div>'+
           '<div class="card-body"><div class="card-title">'+escapeHtml(l.title)+'</div>'+
-          '<div class="card-footer"><span class="price">R'+(l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price)+'</span></div></div></div>';
+          '<div class="card-footer"><span class="price">R'+(effectivePrice(l))+'</span></div></div></div>';
       }).join('');
     }
 
@@ -1151,7 +1170,7 @@
 
       const c=CAT_COLOR[l.category]||{bg:'#f5f5f5',text:'#555'};
       const e=CAT_EMOJI[l.category]||'🛍️';
-      const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+      const fp=effectivePrice(l);
       // Build gallery
       const imgs=[l.image_url,l.image_url_2,l.image_url_3,l.image_url_4,l.image_url_5,l.image_url_6].filter(Boolean);
       const slides=document.getElementById('gallery-slides');
@@ -1171,7 +1190,13 @@
       slides.style.transform='translateX(0)';
       document.getElementById('modal-badge').innerHTML='<span class="badge" style="background:'+c.bg+';color:'+c.text+'">'+l.category+'</span>';
       document.getElementById('modal-title').textContent=l.title;
-      document.getElementById('modal-price').innerHTML=l.discount_percent>0?'<span style="text-decoration:line-through;color:#aaa;font-size:14px">R'+l.price+'</span> <span style="color:#7c3aed;font-weight:900;font-size:20px">R'+fp+'</span>':'<span style="font-size:22px;font-weight:900">R'+fp+'</span>';
+      const myOffer=myOffers.get(l.id);
+      const offerAccepted=myOffer&&myOffer.status==='accepted';
+      document.getElementById('modal-price').innerHTML=(l.discount_percent>0||offerAccepted)?'<span style="text-decoration:line-through;color:#aaa;font-size:14px">R'+l.price+'</span> <span style="color:#7c3aed;font-weight:900;font-size:20px">R'+fp+'</span>':'<span style="font-size:22px;font-weight:900">R'+fp+'</span>';
+      const offerNote=document.getElementById('modal-offer-note');
+      if(offerAccepted){ offerNote.style.display='block'; offerNote.textContent='🎉 Your offer of R'+myOffer.amount+' was accepted — this price is just for you.'; }
+      else if(myOffer&&myOffer.status==='pending'){ offerNote.style.display='block'; offerNote.textContent='⏳ Your offer of R'+myOffer.amount+' is awaiting the seller\'s response.'; }
+      else { offerNote.style.display='none'; }
       document.getElementById('modal-desc').textContent=l.description||'No description.';
       const flatConf2=FLAT_SUBCATS[l.category];
       const flatVal2=flatConf2?l[flatConf2.field]:null;
@@ -1182,7 +1207,16 @@
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
       document.getElementById('btn-order-now').disabled=l.quantity<=0;
-      document.getElementById('btn-make-offer').style.display=(l.is_negotiable && (!currentUser || currentUser.id!==l.seller_id))?'block':'none';
+      const canOffer=l.is_negotiable && (!currentUser || currentUser.id!==l.seller_id);
+      const offerBtn=document.getElementById('btn-make-offer');
+      if(!canOffer){ offerBtn.style.display='none'; }
+      else {
+        offerBtn.style.display='block';
+        const mine=myOffers.get(l.id);
+        if(mine&&mine.status==='accepted'){ offerBtn.style.display='none'; } // price already reflects it above
+        else if(mine&&mine.status==='pending'){ offerBtn.disabled=true; offerBtn.textContent='⏳ Offer sent — awaiting response'; offerBtn.style.opacity='0.6'; offerBtn.style.cursor='default'; }
+        else { offerBtn.disabled=false; offerBtn.textContent='💰 Make an Offer'; offerBtn.style.opacity='1'; offerBtn.style.cursor='pointer'; }
+      }
       setupRestockAlertButton(l);
       // Show sign in notice if not logged in
       const signInNote = document.getElementById('modal-signin-note');
@@ -1251,6 +1285,9 @@
       if(!currentUser){location.href='/login';return;}
       if(!currentListing)return;
       const l=currentListing;
+      const mine=myOffers.get(l.id);
+      if(mine&&mine.status==='pending'){showToast('⏳ You already have an offer awaiting the seller\'s response');return;}
+      if(mine&&mine.status==='accepted'){showToast('🎉 Your offer was already accepted — just add it to your cart');return;}
       document.getElementById('offer-error').textContent='';
       document.getElementById('offer-custom-row').style.display='none';
       document.getElementById('offer-custom-amount').value='';
@@ -1286,15 +1323,34 @@
         document.getElementById('offer-custom-amount').value='';
       }
     };
-    window.sendOffer=()=>{
+    window.sendOffer=async()=>{
       const err=document.getElementById('offer-error');
       err.textContent='';
-      if(!currentListing)return;
-      if(!selectedOfferAmount || selectedOfferAmount<=0){err.textContent='❌ Enter a valid offer amount';return;}
-      const msg='💰 I\'d like to offer R'+Math.round(selectedOfferAmount).toLocaleString()+' for "'+currentListing.title+'"';
-      closeOfferModal();
-      closeModal();
-      location.href='/messages?seller='+currentListing.seller_id+'&listing='+currentListing.id+'&msg='+encodeURIComponent(msg);
+      if(!currentListing||!currentUser)return;
+      const amount=Math.round(selectedOfferAmount||0);
+      if(!amount || amount<=0){err.textContent='❌ Enter a valid offer amount';return;}
+      const btn=document.getElementById('btn-send-offer');
+      btn.disabled=true; btn.textContent='Sending…';
+      try{
+        const {data:offer,error:offerErr}=await supabase.from('listing_offers').insert({
+          listing_id:currentListing.id, buyer_id:currentUser.id, seller_id:currentListing.seller_id, amount
+        }).select().single();
+        if(offerErr) throw offerErr;
+        const msg='💰 I\'d like to offer R'+amount.toLocaleString()+' for "'+currentListing.title+'"';
+        const {error:msgErr}=await supabase.from('messages').insert({
+          listing_id:currentListing.id, buyer_id:currentUser.id, seller_id:currentListing.seller_id,
+          sender_id:currentUser.id, content:msg, offer_id:offer.id
+        });
+        if(msgErr) console.error('Offer sent but chat message failed:',msgErr.message);
+        myOffers.set(currentListing.id,{amount,status:'pending'});
+        closeOfferModal();
+        closeModal();
+        location.href='/messages?seller='+currentListing.seller_id+'&listing='+currentListing.id;
+      }catch(e){
+        err.textContent='❌ '+(e.message||'Could not send offer');
+      }finally{
+        btn.disabled=false; btn.textContent='💬 Send offer';
+      }
     };
 
     window.slideGallery=(dir)=>{
@@ -1473,7 +1529,7 @@
       footer.style.display='block';
       let totalPrice=0;
       body.innerHTML=cart.map((c,i)=>{
-        const fp=c.listing.discount_percent>0?Math.round(c.listing.price*(1-c.listing.discount_percent/100)):c.listing.price;
+        const fp=effectivePrice(c.listing);
         totalPrice+=fp*c.qty;
         const img=c.listing.image_url?'<img loading="lazy" src="'+c.listing.image_url+'" alt="'+c.listing.title.replace(/"/g,'')+'">':(CAT_EMOJI[c.listing.category]||'📦');
         return '<div class="cart-item">'+

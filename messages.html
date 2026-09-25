@@ -314,7 +314,7 @@
 
     async function loadThreads(){
       const [{data}, settingsRes] = await Promise.all([
-        supabase.from('messages').select('*,listings(title)').or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).order('created_at',{ascending:false}),
+        supabase.from('messages').select('*,listings(title),listing_offers(amount,status,seller_id)').or('buyer_id.eq.'+user.id+',seller_id.eq.'+user.id).order('created_at',{ascending:false}),
         supabase.from('conversation_settings').select('*').eq('user_id',user.id)
       ]);
       // If the settings table isn't there yet, the chat list still works — options just won't save until the migration is run.
@@ -361,7 +361,12 @@
         if(cur){
           const byId = new Map(cur.messages.map(x=>[x.id,x]));
           let changed = false;
-          activeThread.messages.forEach(m=>{ const f=byId.get(m.id); if(f && !m.listings && f.listings){ m.listings=f.listings; changed=true; } });
+          activeThread.messages.forEach(m=>{
+            const f=byId.get(m.id);
+            if(f && !m.listings && f.listings){ m.listings=f.listings; changed=true; }
+            // offer status can change after the message first loaded (pending -> accepted/declined), so always resync it
+            if(f && f.listing_offers && (!m.listing_offers || m.listing_offers.status!==f.listing_offers.status)){ m.listing_offers=f.listing_offers; changed=true; }
+          });
           if(changed && !cs.open) renderMessages();
         }
       }
@@ -683,6 +688,11 @@
           lastListing = m.listing_id;
           chip = '<a class="listing-chip" href="/?open='+encodeURIComponent(m.listing_id)+'" title="Open this listing">🛍️ '+escapeHtml(titles[m.listing_id]||'A listing')+'</a>';
         }
+        // Only the buyer's original offer message renders as a special card
+        // (with Accept/Decline for the seller); the auto-posted accept/decline
+        // confirmation that follows it is just a normal text bubble.
+        const isOriginalOffer = m.offer_id && m.listing_offers && m.sender_id===m.buyer_id;
+        if(isOriginalOffer) return chip+renderOfferBubble(m, isMe, time, ticks);
         return chip+'<div class="bubble '+(isMe?'me':'them')+'">'+highlightHTML(m.content, q)+
           '<div class="bubble-time">'+time+ticks+'</div></div>';
       }).join('');
@@ -694,6 +704,47 @@
       if(opts.fresh) markCurrentHit(true);
       else { box.scrollTop = prevScroll; markCurrentHit(false); }
     }
+
+    // ----- Offer bubbles -----
+    function renderOfferBubble(m, isMe, time, ticks){
+      const o = m.listing_offers;
+      const amount = 'R'+Number(o.amount).toLocaleString();
+      const badges = {
+        pending: '<span style="opacity:.85">⏳ Pending</span>',
+        accepted: '<span style="color:#4ade80;font-weight:800">✅ Accepted</span>',
+        declined: '<span style="color:#f87171;font-weight:800">❌ Declined</span>',
+        used: '<span style="opacity:.85">✅ Accepted</span>'
+      };
+      const canRespond = !isMe && o.status==='pending' && o.seller_id===user.id;
+      const actions = canRespond
+        ? '<div style="display:flex;gap:8px;margin-top:8px">'+
+          '<button onclick="respondToOffer(\''+m.offer_id+'\',true)" style="flex:1;background:#fff;color:#7c3aed;border:none;border-radius:8px;padding:7px 0;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit">Accept</button>'+
+          '<button onclick="respondToOffer(\''+m.offer_id+'\',false)" style="flex:1;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:7px 0;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit">Decline</button>'+
+          '</div>'
+        : '';
+      return '<div class="bubble '+(isMe?'me':'them')+'" style="min-width:180px">'+
+        '<div style="font-weight:800;font-size:13px;margin-bottom:2px">💰 Offer: '+amount+'</div>'+
+        '<div style="font-size:12px">'+(badges[o.status]||o.status)+'</div>'+
+        actions+
+        '<div class="bubble-time">'+time+ticks+'</div></div>';
+    }
+    let offerResponding = false;
+    window.respondToOffer = async(offerId, accept) => {
+      if(offerResponding) return;
+      offerResponding = true;
+      try{
+        const {error} = await supabase.rpc('respond_to_offer',{p_offer_id:offerId, p_accept:accept});
+        if(error){ alert('Could not respond: '+error.message); return; }
+        // instant local feedback — the confirmation bubble itself arrives via realtime
+        if(activeThread){
+          const m = activeThread.messages.find(x=>x.offer_id===offerId && x.listing_offers);
+          if(m){ m.listing_offers = {...m.listing_offers, status: accept?'accepted':'declined'}; renderMessages(); }
+        }
+      } finally {
+        offerResponding = false;
+      }
+    };
+
     function runChatSearch(){
       cs.q = document.getElementById('chat-search-input').value.trim();
       if(activeThread) renderMessages({fresh:true});
