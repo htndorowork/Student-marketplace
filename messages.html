@@ -814,6 +814,7 @@
     const toSeller = (params.get('seller')||'').toLowerCase() || null;
     const toBuyer = (params.get('buyer')||'').toLowerCase() || null;
     const listingId = params.get('listing') || null;
+    const prefillMsg = params.get('msg') || null;
     const target = (toSeller && toSeller!==user.id) ? {cid:toSeller, iAm:'buyer'}
                  : (toBuyer && toBuyer!==user.id) ? {cid:toBuyer, iAm:'seller'} : null;
     if (target) {
@@ -836,6 +837,10 @@
       const idx = (window._threads||[]).findIndex(t=>threadKey(t)===target.cid);
       if (idx>-1) await window.openThread(idx);
       await setListingCtx(activeThread, listingId);
+      if(prefillMsg){
+        const input=document.getElementById('chat-input');
+        if(input){ input.value=prefillMsg; input.focus(); }
+      }
     }
 
     // Realtime instead of polling: at scale, every open messages.html tab

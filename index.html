@@ -230,6 +230,7 @@
         </div>
         <button class="btn-order" id="btn-add-to-cart">🛒 Add to Cart</button>
         <button class="btn-order-cart" id="btn-order-now">Order Now</button>
+        <button id="btn-make-offer" onclick="openOfferModal()" style="display:none;width:100%;margin-top:8px;padding:10px;border-radius:10px;border:2px solid #7c3aed;background:#f5f0fe;color:#7c3aed;font-weight:800;font-size:13px;cursor:pointer">💰 Make an Offer</button>
         <div id="modal-similar-section" style="display:none;margin-top:18px">
           <div style="font-size:13px;font-weight:800;color:#888;margin-bottom:8px">You might also like</div>
           <div class="grid" id="modal-similar-grid" style="grid-template-columns:repeat(2,1fr);gap:8px"></div>
@@ -264,6 +265,27 @@
         </div>
         <div class="form-error" id="report-error"></div>
         <button class="btn-primary" onclick="submitReport()">Submit Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OFFER MODAL -->
+  <div class="modal-overlay" id="offer-modal-overlay" onclick="closeOfferModal()">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:420px">
+      <button class="modal-close" onclick="closeOfferModal()">✕</button>
+      <div style="padding:22px 20px">
+        <div class="tb-heading">💰 Your offer</div>
+        <div id="offer-listing-summary" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px;background:#f9f9f9;border-radius:12px"></div>
+        <div id="offer-options"></div>
+        <div style="margin-top:6px">
+          <a href="#" id="offer-custom-link" onclick="event.preventDefault();showOfferCustomInput()" style="font-size:13px;font-weight:700;color:#7c3aed;text-decoration:none">Offer a different amount</a>
+          <div class="form-group" id="offer-custom-row" style="display:none;margin-top:8px;margin-bottom:0">
+            <input type="number" min="1" id="offer-custom-amount" placeholder="Enter amount (R)" oninput="selectOfferOption('custom')"/>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#888;font-weight:600;margin:14px 0">Your offer is not a payment. Purchase details are arranged later with the seller.</div>
+        <div class="form-error" id="offer-error"></div>
+        <button class="btn-primary" id="btn-send-offer" onclick="sendOffer()">💬 Send offer</button>
       </div>
     </div>
   </div>
@@ -1160,6 +1182,7 @@
       document.getElementById('modal-stock-note').textContent=l.quantity>0?l.quantity+' available':'Out of stock';
       document.getElementById('btn-add-to-cart').disabled=l.quantity<=0;
       document.getElementById('btn-order-now').disabled=l.quantity<=0;
+      document.getElementById('btn-make-offer').style.display=(l.is_negotiable && (!currentUser || currentUser.id!==l.seller_id))?'block':'none';
       setupRestockAlertButton(l);
       // Show sign in notice if not logged in
       const signInNote = document.getElementById('modal-signin-note');
@@ -1220,6 +1243,58 @@
       err.style.color='#2e7d32';err.textContent='✅ Report submitted. Thanks for helping keep the marketplace safe!';
       document.getElementById('report-details').value='';
       setTimeout(closeReportModal,1800);
+    };
+
+    // ===== MAKE AN OFFER =====
+    let selectedOfferAmount=null;
+    window.openOfferModal=()=>{
+      if(!currentUser){location.href='/login';return;}
+      if(!currentListing)return;
+      const l=currentListing;
+      document.getElementById('offer-error').textContent='';
+      document.getElementById('offer-custom-row').style.display='none';
+      document.getElementById('offer-custom-amount').value='';
+      const fp=l.discount_percent>0?Math.round(l.price*(1-l.discount_percent/100)):l.price;
+      const img=l.image_url?'<img src="'+l.image_url+'" style="width:44px;height:44px;border-radius:8px;object-fit:cover"/>':'<div style="width:44px;height:44px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:22px">'+(CAT_EMOJI[l.category]||'🛍️')+'</div>';
+      document.getElementById('offer-listing-summary').innerHTML=img+'<div><div style="font-weight:800;font-size:13px">'+escapeHtml(l.title)+'</div><div style="color:#2e7d32;font-weight:800;font-size:13px">R'+fp+'</div></div>';
+      const lower=Math.round(fp*0.9);
+      const higher=Math.round(fp*1.05);
+      const opts=[
+        {amount:lower,label:'R '+lower.toLocaleString()+' (10% lower)'},
+        {amount:fp,label:'R '+fp.toLocaleString()+' (asking price)'},
+        {amount:higher,label:'R '+higher.toLocaleString()+' (5% higher)'}
+      ];
+      selectedOfferAmount=fp;
+      document.getElementById('offer-options').innerHTML=opts.map(o=>
+        '<label style="display:flex;align-items:center;gap:10px;padding:10px 4px;cursor:pointer;font-size:14px;font-weight:700;border-bottom:1px solid #f5f5f5">'+
+        '<input type="radio" name="offer-opt" '+(o.amount===fp?'checked':'')+' onchange="selectOfferOption('+o.amount+')" style="width:18px;height:18px"/>'+o.label+'</label>'
+      ).join('');
+      document.getElementById('offer-modal-overlay').style.display='flex';
+    };
+    window.closeOfferModal=()=>{document.getElementById('offer-modal-overlay').style.display='none';};
+    window.showOfferCustomInput=()=>{
+      document.getElementById('offer-custom-row').style.display='block';
+      document.querySelectorAll('input[name="offer-opt"]').forEach(r=>r.checked=false);
+      document.getElementById('offer-custom-amount').focus();
+    };
+    window.selectOfferOption=(val)=>{
+      if(val==='custom'){
+        const n=parseFloat(document.getElementById('offer-custom-amount').value);
+        selectedOfferAmount=isNaN(n)?null:n;
+      } else {
+        selectedOfferAmount=val;
+        document.getElementById('offer-custom-amount').value='';
+      }
+    };
+    window.sendOffer=()=>{
+      const err=document.getElementById('offer-error');
+      err.textContent='';
+      if(!currentListing)return;
+      if(!selectedOfferAmount || selectedOfferAmount<=0){err.textContent='❌ Enter a valid offer amount';return;}
+      const msg='💰 I\'d like to offer R'+Math.round(selectedOfferAmount).toLocaleString()+' for "'+currentListing.title+'"';
+      closeOfferModal();
+      closeModal();
+      location.href='/messages?seller='+currentListing.seller_id+'&listing='+currentListing.id+'&msg='+encodeURIComponent(msg);
     };
 
     window.slideGallery=(dir)=>{
